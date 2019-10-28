@@ -1,0 +1,18 @@
+Package: dsdive
+Type: Package
+Title: Approximate Bayesian Computation for Animal movement models
+Version: 1.0.0
+Date: 2019-05-28
+Author: Joshua Hewitt
+Maintainer: Joshua Hewitt <joshua.hewitt@duke.edu>
+Description: Implementation of Approximate Bayesian Computing (ABC) Methods for Fitting Animal Movement Models.
+License: GPL-3
+RoxygenNote: 6.1.1
+Suggests: testthat, spdep, ggplot2, viridis
+Depends: R (>= 3.0.2)
+Imports: Rcpp, crawl, spam, igraph, ctmcmove, Matrix, raster, pracma
+LinkingTo: Rcpp (>= 0.12.4), RcppArmadillo, RcppEigen (>= 0.3.3.3.1), RcppZiggurat, BH
+SystemRequirements: A system with a recent-enough C++11 compiler
+        (such as g++-4.8 or later).
+NeedsCompilation: yes
+Encoding: UTF-8

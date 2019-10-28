@@ -1,0 +1,9 @@
+*.so
+*.o
+..Rcheck/
+.Rhistory
+*.Rproj*
+.Rapp*
+.Rproj.user
+.DS_Store
+*.tmp
