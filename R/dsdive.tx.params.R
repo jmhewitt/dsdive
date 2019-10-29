@@ -38,8 +38,8 @@ dsdive.tx.params = function(t0, num.depths, d0, d0.last = NULL, s0, beta,
     } else {
       prob.stage = 0
     }
-  } else if(s0 == 2) { # random transition to ASCENDING stage
-    prob.stage = surf.tx
+  } else if(s0 == 2) { # ASCENDING stage tx. depends on time
+    prob.stage = plogis(sum(surf.tx * c(1, t0)))
   } else { # no transition out of ASCENDING stage
     prob.stage = 0
   } 
