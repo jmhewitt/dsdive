@@ -1,0 +1,184 @@
+#' SMC estimation of likelihood for imputed dive trajectories
+#'
+#' @param Xstatic \code{(num. nodes) x (num. local covariates)} matrix  
+#'   containing location-based drivers of movement
+#' @param betaStatic \code{(num. local covariates)} long vector containign 
+#'   coefficients associated with location-based drivers of movement
+#' @param beta_ar a number specifying the strength of the autoregressive effect
+#'   for the CTDS model.  If there is no autoregressive component, setting 
+#'   \code{beta_ar = NULL} will skip the associated computations.
+#' @param Q sparse matrix that defines the discrete domain and connections 
+#'   between areal units
+#' @param coords \code{(num. nodes) x (num. dimensions)} matrix containing 
+#'   coordinates for each node; used for computing directional drivers between 
+#'   locations.
+#' @param steps.max maximum number of transitions to sample before stopping, 
+#'   regardless of whether \code{tf} is reached.
+#' @param N number of SMC particles to maintain 
+#' @param eps ABC rejection sampling tolerance; maximum distance along graph 
+#'   between simulated and observed states
+#' @param states vector of locations at which CTDS trajectory was observed
+#' @param t vector of times at which observations were made
+#' @param tries.max maximum number of attempts to find a suitable ABC trajectory 
+#'   before stopping sampling.  If \code{tries.max} is exceeded while sampling 
+#'   any location, the returned log-likelihood estimate will be \code{-Inf}
+#' @param nb list that defines the discrete domain and connections 
+#'   between areal units.  each entry contains a vector of neighbors for each 
+#'   location.
+#' @param dump.state if sampling fails and \code{dump.state==TRUE}, then the 
+#'   particles in the particle filter will be returned, along with the timepoint 
+#'   at which sampling failed
+#' @param verbose if \code{TRUE}, then various diagnostic or informational 
+#'   output will be printed while the ABC-SMC algorithm is running
+#' @param n.samples the number of imputed trajectories to return.  If 
+#'   \code{n.samples==0}, then no trajectories will be saved during sampling, 
+#'   which can potentially yield faster inference because each step of the 
+#'   ABC-SMC sampler requires fewer memory operations.
+#'   
+#' @param depths Dive bins in which the trajectory was observed
+#' @param t Times at which depths were observed
+#' 
+#' 
+#' @example examples/txparams.R
+#' 
+#' @export
+#' 
+#'
+dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depths.labels, 
+                        steps.max = 1e3, N, depths, t, tries.max, eps,
+                        dump.state = FALSE, verbose = FALSE, n.samples = 0,
+                        stage.init = 1) {
+  
+  # extract dimensional information
+  nt = length(t)
+  NN = N-1
+  
+  # initialize log-density with the constant term
+  ld = (nt-1) * log(NN)
+  ld.M = NULL
+  
+  #
+  # initialize particle collections
+  #
+  
+  particle = list(
+    depths = depths[1],
+    stages = stage.init,
+    durations = NULL,
+    times = t[1]
+  )
+  
+  particles = list(
+    resampling = rep(list(particle), NN),
+    alive = list()
+  )
+  
+  # sample particles for timepoint
+  for(j in 2:nt) {
+    
+    if(verbose) {
+      message(paste('Sampling timepoint', j))
+    }
+    
+    # total sampling effort for timepoint
+    M = 0
+    
+    # sample each particle
+    for(i in 1:N) {
+      
+      err = eps
+      
+      # rejection sample to find acceptable particle
+      for(m in 1:tries.max) {
+        # resample an alive particle
+        particle = particles$resampling[[sample(x = 1:NN, size = 1)]]
+        len = length(particle$depths)
+        
+        # propose particle; compute error
+        p = dsdive.fwdsample(depths.labels = depths.labels, 
+                             d0 = particle$depths[len], beta = beta, 
+                             lambda = lambda, sub.tx = sub.tx, 
+                             surf.tx = surf.tx, t0 = particle$times[len], 
+                             tf = t[j], steps.max = steps.max, 
+                             dur0 = particle$durations[len], 
+                             s0 = particle$stages[len])
+        
+        # continue resampling if particle is not observable at required time
+        if(length(p$times) > 0) {
+          err = abs(p$depths[length(p$depths)] - depths[j])
+        } else {
+          err = eps
+        }
+        
+        # stop sampling if acceptable particle is found
+        if(err < eps)
+          break
+      }
+      
+      if(err < eps) {
+        # update sampling effort for this timepoint
+        M = M + m
+        
+        # save first N-1 particles
+        if(i < N) {
+          if(n.samples>0) { # update particle - save complete trajectory
+            if(length(particle$durations) != length(particle$depths)) {
+              particle$durations = c(particle$durations, p$durations)
+            } else {
+              particle$durations = c(particle$durations, p$durations[-1])
+            }
+            particle$depths = c(particle$depths, p$depths[-1])
+            particle$times = c(particle$times, p$times[-1])
+            particle$stages = c(particle$stages, p$stages[-1])
+            
+            
+          } else { # update particle - only save last depth, duration, and stage
+            particle$durations = p$durations[length(p$durations)]
+            particle$depths = p$depths[length(p$depths)]
+            particle$times = p$times[length(p$times)]
+            particle$stages = p$stages[length(p$stages)]
+          }
+          
+          # save particle
+          particles$alive[[i]] = particle
+          
+        }
+      } else {
+        # failed to find suitable proposal; fail sampling
+        break
+      }
+    }
+    
+    ld.M = c(ld.M, M)
+    
+    if(err < eps) { 
+      # update log-density estimate
+      lognbhdsize = log(2*eps)
+      ld = ld - log(M-1) - lognbhdsize
+      
+      # swap alive particles with resampling particles
+      particles$resampling = particles$alive
+      particles$alive = list()
+    } else {
+      # stop approximation if sampling has failed
+      ld = -Inf
+      break
+    }
+  }
+  
+  # package results
+  res = list(
+    ld = ld,
+    sim = particles$resampling[sample(x = 1:N, size = n.samples, 
+                                      replace = FALSE)],
+    ld.M = ld.M
+  )
+  
+  if(ld == -Inf) {
+    if(dump.state) {
+      res$particles = particles
+      res$j = j
+    }
+  }
+  res
+}
