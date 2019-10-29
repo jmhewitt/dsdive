@@ -25,6 +25,7 @@
 #'   duration in state \code{d0} will be sampled, otherwise a new state will 
 #'   be sampled first, then sampling will continue from the new state at time 
 #'   \code{t0 + dur0}.
+#' @param s0 dive stage in which forward simulation begins
 #' 
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
 #'   vectors:
@@ -41,7 +42,7 @@
 #' 
 #'
 dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx, 
-                            t0, tf, steps.max, dur0 = NULL, nsteps = NULL) {
+                            t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0) {
   
   # extract information about discretized depth domain
   num.depths = length(depths.labels) - 1
@@ -50,7 +51,7 @@ dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx,
   depths = d0
   durations = dur0
   times = t0
-  stages = 1
+  stages = s0
   
   # validate time window
   if(t0 > tf) {
