@@ -39,7 +39,7 @@
 #' @param t Times at which depths were observed
 #' 
 #' 
-#' @example examples/txparams.R
+#' @example examples/ldabc.R
 #' 
 #' @export
 #' 
@@ -153,8 +153,8 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depths.labels,
     
     if(err < eps) { 
       # update log-density estimate
-      lognbhdsize = log(2*eps)
-      ld = ld - log(M-1) - lognbhdsize
+      # lognbhdsize = log(2*eps)
+      ld = ld - log(M-1) #- lognbhdsize
       
       # swap alive particles with resampling particles
       particles$resampling = particles$alive
@@ -166,10 +166,16 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depths.labels,
     }
   }
   
+  if(n.samples > NN) {
+    warning('Requested number of samples exceeds size of saved particles;
+             returning all saved particles instead.')
+    n.samples = NN
+  }
+  
   # package results
   res = list(
     ld = ld,
-    sim = particles$resampling[sample(x = 1:N, size = n.samples, 
+    sim = particles$resampling[sample(x = 1:NN, size = n.samples, 
                                       replace = FALSE)],
     ld.M = ld.M
   )

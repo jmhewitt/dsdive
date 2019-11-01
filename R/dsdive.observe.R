@@ -4,7 +4,7 @@
 #' @param times Times at which each of \code{depths} was visited
 #' @param t.obs Times at which the trajectory should be observed
 #' 
-#' @example examples/txparams.R
+#' @example examples/observe.R
 #' 
 #' @export
 #' 

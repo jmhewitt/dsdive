@@ -6,95 +6,20 @@
 \usage{
 dsdive.observe(depths, times, t.obs)
 }
+\arguments{
+\item{depths}{Complete record of depth bins visited}
+
+\item{times}{Times at which each of \code{depths} was visited}
+
+\item{t.obs}{Times at which the trajectory should be observed}
+}
 \description{
 Simulate observing a fully observed dive trajectory at specified timepoints
 }
 \examples{
-# define depth domain
-max.depths = seq(from = 0, to = 1e3, by = 5)
-num.depths = length(max.depths)
+data('dive.sim')
+attach(dive.sim)
 
-# define transition parameters
-beta = matrix(c(2.5,   0, -1.5, 
-                -.5, -.5, -.75), 
-              nrow = 2, byrow = TRUE)
-lambda = 1/c(3, 3, 3)
-sub.tx = c(50, .02)
-surf.tx = 5e-3
-
-#
-# explore transition parameters
-#
-
-dsdive.tx.params(t0 = 0, num.depths = num.depths, d0 = 0, d0.last = NULL, 
-                 s0 = 1, beta = beta, lambda = lambda, sub.tx = sub.tx, 
-                 surf.tx = surf.tx)
-
-dsdive.tx.params(t0 = 0, num.depths = num.depths, d0 = 60, d0.last = 61, 
-                 s0 = 1, beta = beta, lambda = lambda, sub.tx = sub.tx, 
-                 surf.tx = surf.tx)
-
-dsdive.tx.params(t0 = 0, num.depths = num.depths, d0 = 60, d0.last = 61, s0 = 2, 
-                 beta = beta, lambda = lambda, sub.tx = sub.tx, 
-                 surf.tx = surf.tx)
-
-#
-# simulate and observe a dive
-#
-
-# simulate dive
-x = dsdive.fwdsample(depths.labels = max.depths, d0 = 0, beta = beta, 
-                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-                     t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL)
-
-# observe dive at regular time intervals
-obs = dsdive.observe(depths = x$depths, times = x$times, 
-                     t.obs = seq(from = 0, to = max(x$times), by = 1*60))
-
-#
-# summarize and plot dive
-#
-
-library(dplyr)
-library(ggplot2)
-library(ggthemes)
-
-x.df = x
-class(x.df) = 'list'
-x.df = data.frame(x.df) \%>\% mutate(min = times/60,
-                                   min.start = min,
-                                   min.end = min + durations/60, 
-                                   p.min = max.depths[depths + 1],
-                                   p.max = max.depths[depths + 2])
-
-obs.df = data.frame(obs) \%>\% mutate(min = times/60,
-                                    p = max.depths[depths+1] + 
-                                        .5 * (max.depths[depths+2] - 
-                                              max.depths[depths+1]))
-                                      
-# time spent in each dive stage
-x.df \%>\% 
-  group_by(stages) \%>\% 
-  filter(!is.na(durations)) \%>\%
-  summarise(total.mins = sum(durations)/60)
-
-# plot dive
-ggplot(x.df, aes(x=min, y=p.max)) + 
-  # plot trajectory
-  geom_rect(mapping = aes(xmin = min.start, xmax = min.end, 
-                          ymin = p.min, ymax = p.max,
-                          fill = factor(stages))) + 
-  # plot subsampled trajectory
-  geom_vline(xintercept = obs.df$min, lty = 3, col = 'grey80') + 
-  geom_point(mapping = aes(x=min, y=p), inherit.aes = FALSE, data = obs.df,
-             pch = 18) + 
-  # formatting
-  scale_fill_brewer('Dive stage', type = 'qual', palette = 'Set2') + 
-  scale_y_reverse() + 
-  xlab('Time (min)') + 
-  ylab('Depth (m)') + 
-  theme_few() + 
-  theme(panel.border = element_blank(),
-        legend.position = 'top')
+obs = dsdive.observe(depths = sim$depths, times = sim$times, 
+                     t.obs = seq(from = 0, to = max(sim$times)+60, by = 60))
 }
