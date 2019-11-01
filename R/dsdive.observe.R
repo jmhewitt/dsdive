@@ -9,8 +9,12 @@
 #' @export
 #' 
 dsdive.observe = function(depths, times, t.obs) {
-  list(
+  res = list(
     depths = depths[findInterval(t.obs, times)],
     times = t.obs
   )
+  
+  class(res) = 'dsobs'
+  
+  res
 }
