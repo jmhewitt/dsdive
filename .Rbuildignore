@@ -1,6 +1,7 @@
 ^\.travis\.yml$
 README.md
 examples/
+data_gen/
 cran-comments.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
