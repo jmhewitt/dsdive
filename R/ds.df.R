@@ -26,6 +26,7 @@ ds.df = function(depths, times, depth.bins, stages = NULL) {
   } else {
     df$stages = rep(NA, nrow(df))
   }
+  df$stages = factor(df$stages)
   
   # convert seconds to minutes
   df$min = df$times/60
