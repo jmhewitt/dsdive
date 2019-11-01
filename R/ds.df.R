@@ -3,13 +3,14 @@
 #' Converts raw dive information to a tidy dataframe that
 #' is suitable for plotting with \code{ggplot2}.
 #' 
+#' @importFrom stringr str_extract_all
+#' 
 #' @param depths Record of observed depth bins
 #' @param times Times (in seconds) at which depth bin observations were made
 #' @param stages Vector of guesses for which dive stage the trajectory was 
 #'   in at each observation
 #' @param depth.bins Vector that defines the depth bins (i.e., bin labels)
 #' 
-#' @importFrom stringr str_extract
 #' 
 #' @example examples/ds.df.R
 #' 
