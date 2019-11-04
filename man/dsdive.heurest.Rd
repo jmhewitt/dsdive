@@ -8,14 +8,16 @@ dsdive.heurest(depths, times, stages.est, depth.bins, priors = rep(5,
   12), sub.tx1)
 }
 \arguments{
-\item{depths}{Record of observed depth bins}
+\item{depths}{Record of observed depth bin indices}
 
 \item{times}{Times at which depth bin observations were made}
 
 \item{stages.est}{Vector of guesses for which dive stage the trajectory was 
 in at each observation}
 
-\item{depth.bins}{Vector that defines the depth bins (i.e., bin labels)}
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 
 \item{priors}{Standard deviations for mean-0 normal priors on model 
 parameters, after transformation to real line}
@@ -32,9 +34,7 @@ posterior distributions.
 data('dive.sim')
 attach(dive.sim)
 
-stages.est = c(rep(1,4), rep(2,15), rep(3, 7))
-
 est = dsdive.heurest(depths = sim.obs$depths, times = sim.obs$times, 
-                     stages.est = stages.est, depth.bins = depth.bins, 
+                     stages.est = sim.obs$stages, depth.bins = depth.bins, 
                      sub.tx1 = params$sub.tx[1])
 }

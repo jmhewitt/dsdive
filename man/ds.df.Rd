@@ -7,11 +7,13 @@
 ds.df(depths, times, depth.bins, stages = NULL)
 }
 \arguments{
-\item{depths}{Record of observed depth bins}
+\item{depths}{Record of observed depth bin indices}
 
 \item{times}{Times (in seconds) at which depth bin observations were made}
 
-\item{depth.bins}{Vector that defines the depth bins (i.e., bin labels)}
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 
 \item{stages}{Vector of guesses for which dive stage the trajectory was 
 in at each observation}

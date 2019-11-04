@@ -7,10 +7,9 @@ library(dsdive)
 #
 
 # define depth domain
-max.depths = seq(from = 0, to = 1e3, by = 5)
-num.depths = length(max.depths)
-depth.bins = paste('[', max.depths[1:(num.depths-1)], ', ', max.depths[-1],
-                   ')', sep = '')
+bin.width = 5
+bin.centers = seq(from = bin.width/2, to = 1e3)
+depths = cbind(center = bin.centers, halfwidth = bin.width/2)
 
 # define transition parameters
 beta = matrix(c(2.5,   0, -1.5, 
@@ -26,13 +25,13 @@ surf.tx = c(-10, 5e-3)
 #
 
 # simulate dive
-x = dsdive.fwdsample(depths.labels = depth.bins, d0 = 0, beta = beta, 
+x = dsdive.fwdsample(depths.labels = depths, d0 = 0, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
                      nsteps = NULL, s0 = 1)
 
 # observe dive at regular time intervals
-obs = dsdive.observe(depths = x$depths, times = x$times, 
+obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages,
                      t.obs = seq(from = 0, to = max(x$times)+60, by = 1*60))
 
 
@@ -43,7 +42,7 @@ obs = dsdive.observe(depths = x$depths, times = x$times,
 dive.sim = list(
   params = list(beta = beta, lambda = lambda, sub.tx = sub.tx, 
                 surf.tx = surf.tx),
-  depth.bins = depth.bins,
+  depth.bins = depths,
   sim = x,
   sim.obs = obs
 )

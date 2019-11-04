@@ -5,7 +5,9 @@
 #' has been exceeded.  The dive simulation is bridged, so the trajectory will
 #' also stop diving after returning to the surface.
 #' 
-#' @param depths.labels character vector that defines the depth bins
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
 #' @param d0 the depth bin at which transition parameters should be computed
 #' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
 #'  preference and directional persistence parameters for the DIVING, SUBMERGED, 
@@ -30,7 +32,7 @@
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
 #'   vectors:
 #'   \describe{
-#'     \item{depths}{Record of which depth bins the trajectory visited}
+#'     \item{depths}{Record of which depth bin indices the trajectory visited}
 #'     \item{durations}{Record of amount of time spent in each depth bin}
 #'     \item{times}{The time at which each depth bin was entered}
 #'     \item{stages}{The stage at which each depth bin was entered}
@@ -45,7 +47,7 @@ dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx,
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0) {
   
   # extract information about discretized depth domain
-  num.depths = length(depths.labels) - 1
+  num.depths = nrow(depths.labels) - 1
   
   # initialize output components
   depths = d0

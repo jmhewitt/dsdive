@@ -6,11 +6,13 @@
 #'
 #' @importFrom stringr str_extract_all
 #' 
-#' @param depths Record of observed depth bins
+#' @param depths Record of observed depth bin indices
 #' @param times Times at which depth bin observations were made
 #' @param stages.est Vector of guesses for which dive stage the trajectory was 
 #'   in at each observation
-#' @param depth.bins Vector that defines the depth bins (i.e., bin labels)
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
 #' @param priors Standard deviations for mean-0 normal priors on model 
 #'   parameters, after transformation to real line
 #' @param sub.tx1 Index of minimum depth bin at which transition to intermediate 

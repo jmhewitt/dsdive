@@ -11,7 +11,7 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
   
   # extract dimensional information
   nt = length(times)
-  num.depths = length(depths.labels) - 1
+  num.depths = nrow(depths.labels) - 1
   
   # initialize log-density
   ld = 0

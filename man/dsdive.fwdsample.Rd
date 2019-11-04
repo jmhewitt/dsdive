@@ -8,8 +8,6 @@ dsdive.fwdsample(depths.labels, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
   steps.max, dur0 = NULL, nsteps = NULL, s0)
 }
 \arguments{
-\item{depths.labels}{character vector that defines the depth bins}
-
 \item{d0}{the depth bin at which transition parameters should be computed}
 
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
@@ -39,12 +37,16 @@ be sampled first, then sampling will continue from the new state at time
 \code{t0 + dur0}.}
 
 \item{s0}{dive stage in which forward simulation begins}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 }
 \value{
 A \code{dsdive} object, which is a \code{list} with the following 
   vectors:
   \describe{
-    \item{depths}{Record of which depth bins the trajectory visited}
+    \item{depths}{Record of which depth bin indices the trajectory visited}
     \item{durations}{Record of amount of time spent in each depth bin}
     \item{times}{The time at which each depth bin was entered}
     \item{stages}{The stage at which each depth bin was entered}

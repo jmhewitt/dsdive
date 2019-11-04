@@ -3,13 +3,13 @@
 #' Converts raw dive information to a tidy dataframe that
 #' is suitable for plotting with \code{ggplot2}.
 #' 
-#' @importFrom stringr str_extract_all
-#' 
-#' @param depths Record of observed depth bins
+#' @param depths Record of observed depth bin indices
 #' @param times Times (in seconds) at which depth bin observations were made
 #' @param stages Vector of guesses for which dive stage the trajectory was 
 #'   in at each observation
-#' @param depth.bins Vector that defines the depth bins (i.e., bin labels)
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
 #' 
 #' 
 #' @example examples/ds.df.R
@@ -33,13 +33,9 @@ ds.df = function(depths, times, depth.bins, stages = NULL) {
   df$min = df$times/60
   
   # extract bin midpoints and ranges
-  raw.depths = str_extract_all(depth.bins, '[0-9]+')
-  depths.formatted = data.frame(do.call('rbind', 
-                                        lapply(raw.depths, function(r) {
-                                          r = as.numeric(r)
-                                          c(r, mean(r))
-                                        })))
-  colnames(depths.formatted) = c('depth.min', 'depth.max', 'depth.mid')
+  depths.formatted = cbind(depth.min = depth.bins[,1] - depth.bins[,2],
+                           depth.max = depth.bins[,1] + depth.bins[,2],
+                           depth.mid = depth.bins[,1])
   
   # enrich with depth bin information
   df = cbind(df, depths.formatted[df$depths+1,])

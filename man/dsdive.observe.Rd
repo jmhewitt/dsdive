@@ -4,12 +4,14 @@
 \alias{dsdive.observe}
 \title{Simulate observing a fully observed dive trajectory at specified timepoints}
 \usage{
-dsdive.observe(depths, times, t.obs)
+dsdive.observe(depths, times, stages, t.obs)
 }
 \arguments{
-\item{depths}{Complete record of depth bins visited}
+\item{depths}{Complete record of depth bin indices visited}
 
 \item{times}{Times at which each of \code{depths} was visited}
+
+\item{stages}{Stages at which each of the \code{depths} was visited}
 
 \item{t.obs}{Times at which the trajectory should be observed}
 }
@@ -21,5 +23,6 @@ data('dive.sim')
 attach(dive.sim)
 
 obs = dsdive.observe(depths = sim$depths, times = sim$times, 
+                     stages = sim$stages, 
                      t.obs = seq(from = 0, to = max(sim$times)+60, by = 60))
 }
