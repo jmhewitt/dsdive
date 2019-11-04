@@ -1,17 +1,5 @@
 #' SMC estimation of likelihood for imputed dive trajectories
 #'
-#' @param Xstatic \code{(num. nodes) x (num. local covariates)} matrix  
-#'   containing location-based drivers of movement
-#' @param betaStatic \code{(num. local covariates)} long vector containign 
-#'   coefficients associated with location-based drivers of movement
-#' @param beta_ar a number specifying the strength of the autoregressive effect
-#'   for the CTDS model.  If there is no autoregressive component, setting 
-#'   \code{beta_ar = NULL} will skip the associated computations.
-#' @param Q sparse matrix that defines the discrete domain and connections 
-#'   between areal units
-#' @param coords \code{(num. nodes) x (num. dimensions)} matrix containing 
-#'   coordinates for each node; used for computing directional drivers between 
-#'   locations.
 #' @param steps.max maximum number of transitions to sample before stopping, 
 #'   regardless of whether \code{tf} is reached.
 #' @param N number of SMC particles to maintain 

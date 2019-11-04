@@ -37,23 +37,6 @@ output will be printed while the ABC-SMC algorithm is running}
 which can potentially yield faster inference because each step of the 
 ABC-SMC sampler requires fewer memory operations.}
 
-\item{Xstatic}{\code{(num. nodes) x (num. local covariates)} matrix
-containing location-based drivers of movement}
-
-\item{betaStatic}{\code{(num. local covariates)} long vector containign 
-coefficients associated with location-based drivers of movement}
-
-\item{beta_ar}{a number specifying the strength of the autoregressive effect
-for the CTDS model.  If there is no autoregressive component, setting 
-\code{beta_ar = NULL} will skip the associated computations.}
-
-\item{Q}{sparse matrix that defines the discrete domain and connections 
-between areal units}
-
-\item{coords}{\code{(num. nodes) x (num. dimensions)} matrix containing 
-coordinates for each node; used for computing directional drivers between 
-locations.}
-
 \item{states}{vector of locations at which CTDS trajectory was observed}
 
 \item{nb}{list that defines the discrete domain and connections 
