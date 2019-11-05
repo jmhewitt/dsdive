@@ -2,8 +2,8 @@
 #' 
 #' Dives have 3 stages, DIVING, SUBMERGED, and SURFACING.
 #'   
-#' @param num.depths The total number of non-surface depth bins.  Specifies the 
-#'   depth bins 0, 1, ..., \code{num.depths} the model will use.  Note that the 
+#' @param num.depths The total number of depth bins.  Specifies the 
+#'   depth bins 1, ..., \code{num.depths} the model will use.  Note that the 
 #'   model does not explicitly use the depth ranges the bins represent 
 #'   (i.e., the bin labels) to compute transition parameters.
 #' @param d0 the depth bin at which transition parameters should be computed
@@ -45,8 +45,8 @@ dsdive.tx.params = function(t0, num.depths, d0, d0.last = NULL, s0, beta,
   } 
   
   # define neighboring dive bins
-  if(d0 == 0) { # surface can only transition downward
-    nbrs = 1
+  if(d0 == 1) { # surface can only transition downward
+    nbrs = 2
   } else if(d0 == num.depths) { # max depth can only transition upward
     nbrs = num.depths - 1
   } else { # all other depths can go up or down one bin

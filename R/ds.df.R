@@ -38,7 +38,7 @@ ds.df = function(depths, times, depth.bins, stages = NULL) {
                            depth.mid = depth.bins[,1])
   
   # enrich with depth bin information
-  df = cbind(df, depths.formatted[df$depths+1,])
+  df = cbind(df, depths.formatted[df$depths,])
  
   df 
 }

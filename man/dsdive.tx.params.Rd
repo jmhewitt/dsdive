@@ -10,8 +10,8 @@ dsdive.tx.params(t0, num.depths, d0, d0.last = NULL, s0, beta, lambda,
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
 
-\item{num.depths}{The total number of non-surface depth bins.  Specifies the 
-depth bins 0, 1, ..., \code{num.depths} the model will use.  Note that the 
+\item{num.depths}{The total number of depth bins.  Specifies the 
+depth bins 1, ..., \code{num.depths} the model will use.  Note that the 
 model does not explicitly use the depth ranges the bins represent 
 (i.e., the bin labels) to compute transition parameters.}
 
@@ -45,15 +45,15 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-dsdive.tx.params(t0 = 0, num.depths = length(depth.bins)-1, d0 = 0, 
+dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 0, 
                  d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
                  sub.tx = sub.tx, surf.tx = surf.tx)
 
-dsdive.tx.params(t0 = 0, num.depths = length(depth.bins)-1, d0 = 60, 
+dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
                  d0.last = 61, s0 = 1, beta = beta, lambda = lambda, 
                  sub.tx = sub.tx, surf.tx = surf.tx)
 
-dsdive.tx.params(t0 = 0, num.depths = length(depth.bins)-1, d0 = 60, 
+dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
                  d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
                  sub.tx = sub.tx, surf.tx = surf.tx)
 }

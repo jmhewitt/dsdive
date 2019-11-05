@@ -47,7 +47,7 @@ dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx,
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0) {
   
   # extract information about discretized depth domain
-  num.depths = nrow(depths.labels) - 1
+  num.depths = nrow(depths.labels)
   
   # initialize output components
   depths = d0
@@ -125,7 +125,7 @@ dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx,
       if(current$t >= tf)
         break
       # or stop sampling once trajectory returns to surface
-      else if(current$depth == 0)
+      else if(current$depth == 1)
         break
     }
     
@@ -134,7 +134,7 @@ dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx,
     if(any(times.observable)) {
       inds = 1:(min(times.observable) - 1)
     } else {
-      if(current$depth == 0) {
+      if(current$depth == 1) {
         inds = 1:length(depths)
       } else if(!is.null(nsteps)) {
         inds = 1:(nsteps+1)
