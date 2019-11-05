@@ -32,10 +32,12 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
   num.depths = nrow(depth.bins)
   n = num.depths + 1
   
-  # initialize storage for nonzero entries
-  x = c()
-  im = c()
-  jm = c()
+  # initialize storage for nonzero entries (overcommit space)
+  nd = n^2 * 3
+  x = numeric(length = nd)
+  im = numeric(length = nd)
+  jm = numeric(length = nd)
+  next.entry = 1
   
   # loop over depth bins (skip over transitions starting in "null" depth)
   for(i in 1:num.depths) {
@@ -46,9 +48,10 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
       # all returns to the surface are absorbing
       for(s in 1:3) {
         ind = toInd(x = 2, y = 1, z = s, x.max = n, y.max = n)
-        x = c(x, 1)
-        im = c(im, ind)
-        jm = c(jm, ind)
+        x[next.entry] = 1
+        im[next.entry] = ind
+        jm[next.entry] = ind
+        next.entry = next.entry + 1
       }
       
       #
@@ -64,27 +67,30 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
       self.tx = 1 - lambda[1]/lambda.max
       from.ind = toInd(x = n, y = 1, z = 1, x.max = n, y.max = n)
       if(self.tx > 0) {
-        x = c(x, self.tx)
-        im = c(im, from.ind)
-        jm = c(jm, from.ind)
+        x[next.entry] = self.tx
+        im[next.entry] = from.ind
+        jm[next.entry] = from.ind
+        next.entry = next.entry + 1
       }
       
       # transition to depth 2, stage 1
       to.ind = toInd(x = 1, y = 2, z = 1, x.max = n, y.max = n)
       prob = (1-self.tx) * (1-p$prob.stage)
       if(prob > 0) {
-        x = c(x, prob)
-        im = c(im, from.ind)
-        jm = c(jm, to.ind)
+        x[next.entry] = prob
+        im[next.entry] = from.ind
+        jm[next.entry] = to.ind
+        next.entry = next.entry + 1
       }
       
       # transition to depth 2, stage 2
       to.ind = toInd(x = 1, y = 2, z = 2, x.max = n, y.max = n)
       prob = (1-self.tx) * p$prob.stage
       if(prob > 0) {
-        x = c(x, prob)
-        im = c(im, from.ind)
-        jm = c(jm, to.ind)
+        x[next.entry] = prob
+        im[next.entry] = from.ind
+        jm[next.entry] = to.ind
+        next.entry = next.entry + 1
       }
       
     } 
@@ -108,9 +114,10 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
           # compute and save probability of null-transition
           self.tx = 1 - lambda[s]/lambda.max
           if(self.tx > 0) {
-            x = c(x, self.tx)
-            im = c(im, from.ind)
-            jm = c(jm, from.ind)
+            x[next.entry] = self.tx
+            im[next.entry] = from.ind
+            jm[next.entry] = from.ind
+            next.entry = next.entry + 1
           }
           
           # potential transitions to new stage
@@ -121,9 +128,10 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
                              x.max = n, y.max = n)
               prob = (1-self.tx) * p$prob.stage * p$probs[k, s+1]
               if(prob > 0) {
-                x = c(x, prob)
-                im = c(im, from.ind)
-                jm = c(jm, to.ind)
+                x[next.entry] = prob
+                im[next.entry] = from.ind
+                jm[next.entry] = to.ind
+                next.entry = next.entry + 1
               }
             }
           } 
@@ -134,9 +142,10 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
                            x.max = n, y.max = n)
             prob = (1-self.tx) * (1-p$prob.stage) * p$probs[k, s]
             if(prob > 0) {
-              x = c(x, prob)
-              im = c(im, from.ind)
-              jm = c(jm, to.ind)
+              x[next.entry] = prob
+              im[next.entry] = from.ind
+              jm[next.entry] = to.ind
+              next.entry = next.entry + 1
             }
           }
         }
@@ -144,8 +153,13 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
     }
   }
   
+  # remove entries with null probabilities
+  keep.inds = which(x > 0)
+  x = x[keep.inds]
+  im = im[keep.inds]
+  jm = jm[keep.inds]
+  
   # build and return matrix
-  nd = n^2 * 3
   m = sparseMatrix(i = im, j = jm, x = x, dims = rep(nd, 2))
   m
 }
