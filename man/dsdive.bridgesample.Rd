@@ -5,7 +5,8 @@
 \title{Simulate dive trajectories across discrete depth bins}
 \usage{
 dsdive.bridgesample(depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
-  surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE)
+  surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
+  precompute.bridges = FALSE)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -59,5 +60,5 @@ br = dsdive.bridgesample(depth.bins = depth.bins, d0 = sim.obs$depths[1],
                          d0.last = NULL, df = sim.obs$depths[2], beta = beta, 
                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                          t0 = sim.obs$times[1], tf = sim.obs$times[2], s0 = 1,
-                         verbose = TRUE)
+                         verbose = TRUE, precompute.bridges = TRUE)
 }

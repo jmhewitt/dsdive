@@ -42,7 +42,8 @@
 #'
 dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda, 
                                sub.tx, surf.tx, t0, tf, s0, 
-                               inflation.factor.lambda = 1.1, verbose = FALSE) {
+                               inflation.factor.lambda = 1.1, verbose = FALSE,
+                               precompute.bridges = FALSE) {
   
   #
   # build basic simulation parameters
@@ -69,6 +70,10 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   lambda.tmp = T.win * lambda.thick
   N = rtpois(n = 1, lambda = lambda.tmp, a = min.tx)
   
+  if(verbose) {
+    message(paste('Simulating', N, 'potential transitions', sep =' '))
+  }
+  
   # update log-density for sample
   ld = ld + dtpois(x = N, lambda = lambda.tmp, a = min.tx, log = TRUE)
   
@@ -79,6 +84,10 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   #
   # bridge sample a trajectory
   #
+  
+  if(verbose) {
+    message('Computing transition matrices at potential transition times')
+  }
   
   # build complete transition matrices for each arrival time
   tx.mat = vector('list', N+1)
@@ -109,9 +118,28 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     }
   }
   
+  if(precompute.bridges) {
+    
+    if(verbose) {
+      message('Pre-computing bridging weights')
+    }
+    
+    pBridge.pre = vector('list', N)
+    
+    pBridge.pre[[N]] = sparseMatrix(i = end.inds, j = end.inds, 
+                                    x = rep(1, length(end.inds)))
+    
+    pBridge.pre[[N-1]] = tx.mat[[N]]
+    
+    for(k in (N-2):1) {
+      pBridge.pre[[k]] = tx.mat[[k+1]] %*% pBridge.pre[[k+1]]
+    }
+  }
+  
   # initialize bridged path
   path.inds = numeric(length = N)
-    
+  
+  
   # sample transitions
   for(k in 1:N) {
     
@@ -123,17 +151,21 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     # compute local transition probabilities
     #
     
-    # compute bridging probabilities 
-    pBridge = tx.mat[[k+1]]
-    if(k + 2 <= N) {
-      for(j in (k+2):N) {
-        pBridge = pBridge %*% tx.mat[[j]]
+    if(precompute.bridges) {
+      pBridge = pBridge.pre[[k]]
+    } else {
+      # compute bridging probabilities 
+      pBridge = tx.mat[[k+1]]
+      if(k + 2 <= N) {
+        for(j in (k+2):N) {
+          pBridge = pBridge %*% tx.mat[[j]]
+        }
+      } 
+      # at last transition, bridging probabilities degenerate to indicator fns.
+      else if(k==N) {
+        pBridge = sparseMatrix(i = end.inds, j = end.inds, 
+                               x = rep(1, length(end.inds)))
       }
-    } 
-    # at last transition, bridging probabilities degenerate to indicator fns.
-    else if(k==N) {
-      pBridge = sparseMatrix(i = end.inds, j = end.inds, 
-                             x = rep(1, length(end.inds)))
     }
     
     # define transition support
