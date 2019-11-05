@@ -75,7 +75,8 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   }
   
   # update log-density for sample
-  ld = ld + dtpois(x = N, lambda = lambda.tmp, a = min.tx, log = TRUE)
+  ld = ld + dtpois(x = N, lambda = lambda.tmp, a = min.tx, log = TRUE) + 
+    lfactorial(N) - N * log(T.win)
   
   # sample arrival times, including initial time
   t.thick = c(t0, t0 + T.win * sort(runif(n = N)))
