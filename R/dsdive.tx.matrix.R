@@ -23,10 +23,11 @@
 #' 
 #' @export
 #' 
-dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx) {
+dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
+                            inflation.factor.lambda) {
   
   # find maximum transition rate, to compute self-transitions
-  lambda.max = max(lambda)
+  lambda.max = max(lambda) * inflation.factor.lambda
   
   # add a "null" depth bin to allow trajectory initialization
   num.depths = nrow(depth.bins)
