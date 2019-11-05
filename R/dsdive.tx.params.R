@@ -82,7 +82,7 @@ dsdive.tx.params = function(t0, num.depths, d0, d0.last = NULL, s0, beta,
   # package results
   res = list(rate = lambda[s0],
              prob.stage = prob.stage,
-             probs = probs,
+             probs = matrix(probs, ncol = 3),
              labels = nbrs)
   
   res
