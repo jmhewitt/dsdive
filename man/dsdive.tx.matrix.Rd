@@ -5,7 +5,7 @@
 \title{Build transition matrix for dive trajectories across discrete depths}
 \usage{
 dsdive.tx.matrix(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
-  inflation.factor.lambda)
+  inflation.factor.lambda = 1)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}

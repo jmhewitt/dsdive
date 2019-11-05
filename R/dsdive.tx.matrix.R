@@ -24,7 +24,7 @@
 #' @export
 #' 
 dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
-                            inflation.factor.lambda) {
+                            inflation.factor.lambda = 1) {
   
   # find maximum transition rate, to compute self-transitions
   lambda.max = max(lambda) * inflation.factor.lambda
