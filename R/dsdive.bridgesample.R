@@ -94,8 +94,9 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   min.depth = max(1, d0 - N)
   max.depth = min(nrow(depth.bins), d0 + N)
   
-  tx.mat = vector('list', N+1)
-  for(i in 1:(N+1)) {
+  # compute transition matrices at times t(0), t(1), ... t(N-1)
+  tx.mat = vector('list', N)
+  for(i in 1:N) {
     tx.mat[[i]] = dsdive.tx.matrix(t0 = t.thick[i], depth.bins = depth.bins, 
                                    beta = beta, lambda = lambda, 
                                    sub.tx = sub.tx, surf.tx = surf.tx,
@@ -131,6 +132,7 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     
     pBridge.pre = vector('list', N)
     
+    # construct degenerate prob. of ending at a target node in 0 transitions
     pBridge.pre[[N]] = sparseMatrix(i = end.inds, j = end.inds, 
                                     x = rep(1, length(end.inds)))
     
