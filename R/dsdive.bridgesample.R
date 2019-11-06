@@ -131,10 +131,11 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     }
     
     pBridge.pre = vector('list', N)
-    
+  
     # construct degenerate prob. of ending at a target node in 0 transitions
     pBridge.pre[[N]] = sparseMatrix(i = end.inds, j = end.inds, 
-                                    x = rep(1, length(end.inds)))
+                                    x = rep(1, length(end.inds)), 
+                                    dims = rep(n^2 * 3, 2))
     
     pBridge.pre[[N-1]] = tx.mat[[N]]
     
