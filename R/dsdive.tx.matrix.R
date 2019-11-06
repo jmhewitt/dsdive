@@ -24,7 +24,8 @@
 #' @export
 #' 
 dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
-                            inflation.factor.lambda = 1) {
+                            inflation.factor.lambda = 1, min.depth = 1, 
+                            max.depth = nrow(depth.bins)) {
   
   # find maximum transition rate, to compute self-transitions
   lambda.max = max(lambda) * inflation.factor.lambda
@@ -41,7 +42,8 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   next.entry = 1
   
   # loop over depth bins (skip over transitions starting in "null" depth)
-  for(i in 1:num.depths) {
+  build.depths = min.depth:max.depth
+  for(i in build.depths) {
     
     # special rules for surface bin
     if(i==1) {

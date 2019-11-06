@@ -91,13 +91,17 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   }
   
   # build complete transition matrices for each arrival time
+  min.depth = max(1, d0 - N)
+  max.depth = min(nrow(depth.bins), d0 + N)
+  
   tx.mat = vector('list', N+1)
   for(i in 1:(N+1)) {
     tx.mat[[i]] = dsdive.tx.matrix(t0 = t.thick[i], depth.bins = depth.bins, 
                                    beta = beta, lambda = lambda, 
                                    sub.tx = sub.tx, surf.tx = surf.tx,
                                    inflation.factor.lambda = 
-                                     inflation.factor.lambda)
+                                     inflation.factor.lambda,
+                                   min.depth = min.depth, max.depth = max.depth)
   }
   
   # add a "null" depth bin to allow trajectory initialization
