@@ -8,7 +8,7 @@ library(dsdive)
 
 # define depth domain
 bin.width = 5
-bin.centers = seq(from = bin.width/2, to = 1e3)
+bin.centers = seq(from = bin.width/2, to = 1e3, by = bin.width)
 depths = cbind(center = bin.centers, halfwidth = bin.width/2)
 
 # define transition parameters
