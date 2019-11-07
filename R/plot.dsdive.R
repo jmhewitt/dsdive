@@ -14,8 +14,8 @@
 #' 
 #' @export
 #'
-plot.dsdive = function(x, depth.bins, dsobs = NULL, imputed.list = NULL, 
-                       imputed.alpha = .3, ...) {
+plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL, 
+                       imputed.list = NULL, underlay = NULL, ...) {
 
   # convert x to a plottable object
   df = ds.df(depths = x$depths, times = x$times, depth.bins = depth.bins, 
@@ -42,6 +42,11 @@ plot.dsdive = function(x, depth.bins, dsobs = NULL, imputed.list = NULL,
   
   # initialize plot
   pl = ggplot(df)
+  
+  # underlay optional plot layers
+  if(!is.null(underlay)) {
+    pl = pl + underlay
+  }
   
   # underlay imputed trajectories, if provided
   if(!is.null(imputed.list)) {

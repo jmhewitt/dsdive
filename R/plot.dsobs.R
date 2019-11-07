@@ -16,7 +16,8 @@
 #' 
 #' @export
 #'
-plot.dsobs = function(x, depth.bins, stages = NULL, errorbars = FALSE, ...) {
+plot.dsobs = function(x, depth.bins, stages = NULL, errorbars = FALSE, 
+                      underlay = NULL, ...) {
   
   # convert x to a plottable object
   df = ds.df(depths = x$depths, times = x$times, depth.bins = depth.bins, 
@@ -44,7 +45,15 @@ plot.dsobs = function(x, depth.bins, stages = NULL, errorbars = FALSE, ...) {
   }
   
   # build plot
-  pl = ggplot(df) + 
+  pl = ggplot(df)
+  
+  # underlay optional plot layers
+  if(!is.null(underlay)) {
+    pl = pl + underlay
+  }
+  
+  # main plot elements
+  pl = pl + 
     # observations and depth bin ranges
     geom_pointrange(mapping = m, pch = 18) +
     # formatting

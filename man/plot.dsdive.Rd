@@ -4,8 +4,8 @@
 \alias{plot.dsdive}
 \title{Plotting functions for completely observed dive trajectories}
 \usage{
-\method{plot}{dsdive}(x, depth.bins, dsobs = NULL, imputed.list = NULL,
-  imputed.alpha = 0.3, ...)
+plot.dsdive(x, depth.bins, imputed.alpha = 0.3, dsobs = NULL,
+  imputed.list = NULL, underlay = NULL, ...)
 }
 \arguments{
 \item{x}{\code{dsdive} object with complete record of dive trajectory}
