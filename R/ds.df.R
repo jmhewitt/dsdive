@@ -16,7 +16,7 @@
 #' 
 #' @export
 #' 
-ds.df = function(depths, times, depth.bins, stages = NULL) {
+ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL) {
   
   # initialize output
   df = data.frame(depths = depths, times = times)
@@ -28,6 +28,18 @@ ds.df = function(depths, times, depth.bins, stages = NULL) {
     df$stages = rep(NA, nrow(df))
   }
   df$stages = factor(df$stages)
+  
+  # add duration information
+  if(!is.null(durations)) {
+    if(length(depths) != length(durations)) {
+      df$durations = c(durations, NA)
+    } else {
+      df$durations = durations
+    }
+  } else {
+    df$durations = rep(NA, nrow(df))
+  }
+  df$durations.min = df$durations/60
   
   # convert seconds to minutes
   df$min = df$times/60
