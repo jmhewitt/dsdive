@@ -34,6 +34,11 @@ x = dsdive.fwdsample(depths.labels = depths, d0 = 1, beta = beta,
 obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages,
                      t.obs = seq(from = 0, to = max(x$times)+60, by = 1*60))
 
+# impute trajectory
+imputed = dsdive.impute(depth.bins = depths, depths = obs$depths, 
+                        times = obs$times, s0 = 1, beta = beta, lambda = lambda, 
+                        sub.tx = sub.tx, surf.tx = surf.tx)
+
 
 #
 # package and export dive
@@ -44,7 +49,8 @@ dive.sim = list(
                 surf.tx = surf.tx),
   depth.bins = depths,
   sim = x,
-  sim.obs = obs
+  sim.obs = obs,
+  imputed = imputed
 )
 
 save(dive.sim, file = 'data/dive.sim.RData')
