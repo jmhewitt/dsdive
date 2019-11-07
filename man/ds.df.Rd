@@ -4,7 +4,7 @@
 \alias{ds.df}
 \title{Builds a tidy data frame for observations of a dive}
 \usage{
-ds.df(depths, times, depth.bins, stages = NULL)
+ds.df(depths, times, depth.bins, stages = NULL, durations = NULL)
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}

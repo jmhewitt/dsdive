@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsdive.bridgesample.R
 \name{dsdive.bridgesample}
 \alias{dsdive.bridgesample}
-\title{Simulate dive trajectories across discrete depth bins}
+\title{Impute dive trajectories that meet start and end times}
 \usage{
 dsdive.bridgesample(depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
   surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
@@ -46,10 +46,7 @@ A \code{dsdive} object, which is a \code{list} with the following
   }
 }
 \description{
-The method will simulate dive trajectories from initial conditions until the 
-trajectory is observable at \code{tf}, or a maximum number of transitions 
-has been exceeded.  The dive simulation is bridged, so the trajectory will
-also stop diving after returning to the surface.
+Impute dive trajectories that meet start and end times
 }
 \examples{
 data('dive.sim')
