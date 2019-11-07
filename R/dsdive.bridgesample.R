@@ -1,9 +1,6 @@
-#' Simulate dive trajectories across discrete depth bins
+#' Impute dive trajectories that meet start and end times
 #'
-#' The method will simulate dive trajectories from initial conditions until the 
-#' trajectory is observable at \code{tf}, or a maximum number of transitions 
-#' has been exceeded.  The dive simulation is bridged, so the trajectory will
-#' also stop diving after returning to the surface.
+#' 
 #' 
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
@@ -220,16 +217,16 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     })
   )
   
-  # remove self-transitions and initial state
-  true.tx.inds = diff(path.full[2,]) != 0
-  path.full = path.full[,-1][,true.tx.inds]
+  # remove self-transitions, and include initial state
+  true.tx.inds = c(TRUE, diff(path.full[2,]) != 0)
+  path.full = path.full[,true.tx.inds]
   
   # package and return results
   res = list(
     depths = path.full[2,],
     stages = path.full[3,],
-    t = t.thick[true.tx.inds][-1],
-    durations = diff(t.thick[true.tx.inds])[-1],
+    t = t.thick[true.tx.inds],
+    durations = diff(t.thick[true.tx.inds]),
     ld = ld
   )
   
