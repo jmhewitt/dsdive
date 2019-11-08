@@ -69,6 +69,8 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
         dir.nbrs = c(-1,1)
         # compute direction to last node
         dir.last = dir.nbrs[which(d0.last==nbrs)]
+        # scale direction by relative bin sizes
+        dir.last = dir.last * depth.bins[d0.last, 2] / depth.bins[d0, 2]
         # add autoregressive component
         dirs.ar = dir.nbrs * dir.last
         for(i in 1:3) {
@@ -82,7 +84,7 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   
   
   # package results
-  res = list(rate = lambda[s0],
+  res = list(rate = lambda[s0] / (2 * depth.bins[d0, 2]),
              prob.stage = prob.stage,
              probs = matrix(probs, ncol = 3),
              labels = nbrs)

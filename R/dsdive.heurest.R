@@ -63,8 +63,8 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   # initial parameters for model parameters
   #
   
-  # estimate diving rate magnitude between observations (bins/sec)
-  dy = abs(diff(depths) / diff(times))
+  # estimate diving rate magnitude between observations (m/sec)
+  dy = abs(diff(2*depth.bins[depths,2]) / diff(times))
   
   # "moment" estimates for lambda
   stages.tx = which(diff(stages.est) == 1)

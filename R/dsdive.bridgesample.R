@@ -72,7 +72,8 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   #
   
   # get rate for thick poisson process
-  lambda.thick = max(lambda) * inflation.factor.lambda
+  lambda.thick = inflation.factor.lambda * 
+    max(outer(lambda, 2 * depth.bins[,2], '/'))
   
   # sample number of unthinned arrivals
   lambda.tmp = T.win * lambda.thick
