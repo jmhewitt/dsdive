@@ -5,7 +5,7 @@
 \title{Plotting functions for completely observed dive trajectories}
 \usage{
 \method{plot}{dsdive}(x, depth.bins, imputed.alpha = 0.3, dsobs = NULL,
-  imputed.list = NULL, underlay = NULL, ...)
+  imputed.list = NULL, underlay = NULL, time.as.POSIXct = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{dsdive} object with complete record of dive trajectory}
@@ -26,6 +26,8 @@ underneath the main \code{dsdive} trajectory \code{x}.  The intent is that
 
 \item{underlay}{additional \code{ggplot2} layers to place before the main 
 plot layers}
+
+\item{time.as.POSIXct}{if \code{TRUE}, will convert plotting times to POSIXct}
 
 \item{...}{(currently unused) additional plotting parameters}
 }

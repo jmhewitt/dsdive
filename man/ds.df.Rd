@@ -4,7 +4,8 @@
 \alias{ds.df}
 \title{Builds a tidy data frame for dive objects}
 \usage{
-ds.df(depths, times, depth.bins, stages = NULL, durations = NULL)
+ds.df(depths, times, depth.bins, stages = NULL, durations = NULL,
+  time.as.POSIXct = FALSE)
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -19,6 +20,8 @@ column defines the half-width of each bin.}
 in at each observation}
 
 \item{durations}{Vector specifying the amount of time spent in each depth bin}
+
+\item{time.as.POSIXct}{if \code{TRUE}, will convert plotting times to POSIXct}
 }
 \description{
 Converts raw dive information to a tidy dataframe that

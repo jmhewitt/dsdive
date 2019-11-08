@@ -15,6 +15,7 @@
 #'   \code{imputed.list} will contain imputed trajectories.
 #' @param underlay additional \code{ggplot2} layers to place before the main 
 #'   plot layers
+#' @param time.as.POSIXct if \code{TRUE}, will convert plotting times to POSIXct
 #' @param ... (currently unused) additional plotting parameters
 #' 
 #' @example examples/plot.dsdive.R
@@ -24,11 +25,13 @@
 #' @export
 #'
 plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL, 
-                       imputed.list = NULL, underlay = NULL, ...) {
+                       imputed.list = NULL, underlay = NULL, 
+                       time.as.POSIXct = FALSE, ...) {
 
   # convert x to a plottable object
   df = ds.df(depths = x$depths, times = x$times, depth.bins = depth.bins, 
-             stages = x$stages, durations = x$durations)
+             stages = x$stages, durations = x$durations, 
+             time.as.POSIXct = time.as.POSIXct)
   
   # enrich duration information
   if(is.na(df$durations[nrow(df)])) {
@@ -46,7 +49,7 @@ plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL,
   #
   
   # base elements
-  m = aes(xmin = min, xmax = min + durations.min, ymin = depth.min, 
+  m = aes(xmin = t.start, xmax = t.end, ymin = depth.min, 
           ymax = depth.max, fill = stages)
   
   # initialize plot
@@ -72,7 +75,8 @@ plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL,
                          times = imputed.list[[i]]$times, 
                          depth.bins = depth.bins, 
                          stages = imputed.list[[i]]$stages, 
-                         durations = imputed.list[[i]]$durations)
+                         durations = imputed.list[[i]]$durations,
+                         time.as.POSIXct = time.as.POSIXct)
       # enrich duration information
       if(is.na(df.imputed$durations[nrow(df.imputed)])) {
         if(!is.null(dsobs)) {
@@ -94,7 +98,7 @@ plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL,
     # formatting
     scale_fill_brewer('Dive stage', type = 'qual', palette = 'Set2') + 
     scale_y_reverse() + 
-    xlab('Time (min)') + 
+    xlab('Time') + 
     ylab('Depth (m)') + 
     theme_few() + 
     theme(panel.border = element_blank(),
@@ -105,10 +109,10 @@ plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL,
     
     # convert dsobs to a plottable object
     df.obs = ds.df(depths = dsobs$depths, times = dsobs$times, 
-                   depth.bins = depth.bins)
+                   depth.bins = depth.bins, time.as.POSIXct = time.as.POSIXct)
     
     # base mapping
-    m.obs = aes(x = min, y = depth.mid)
+    m.obs = aes(x = t.start, y = depth.mid)
     
     # overlay observations
     pl = pl + 

@@ -5,7 +5,8 @@
 \title{Plotting functions for observations of dive trajectories}
 \usage{
 \method{plot}{dsobs}(x, depth.bins, stages = NULL, errorbars = FALSE,
-  underlay = NULL, ...)
+  underlay = NULL, imputed.alpha = 0.3, imputed.list = NULL,
+  time.as.POSIXct = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{dsobs} object with record of observed depth bins}
@@ -23,6 +24,15 @@ bin will be included in the plot.}
 \item{underlay}{additional \code{ggplot2} layers to place before the main 
 plot layers}
 
+\item{imputed.alpha}{transparency value used for plotting imputed 
+trajectories, if provided}
+
+\item{imputed.list}{A \code{list} of \code{dsdive} objects to be plotted 
+underneath the main \code{dsdive} trajectory \code{x}.  The intent is that 
+\code{imputed.list} will contain imputed trajectories.}
+
+\item{time.as.POSIXct}{if \code{TRUE}, will convert plotting times to POSIXct}
+
 \item{...}{(currently unused) additional plotting parameters}
 }
 \description{
@@ -37,4 +47,7 @@ pl = plot(x = sim.obs, depth.bins = depth.bins)
 
 # plot with stages overlaid
 pl2 = plot(x = sim.obs, depth.bins = depth.bins, stages = sim.obs$stages)
+
+# plot with trajectory underlaid
+pl3 = plot(x = sim.obs, depth.bins = depth.bins, imputed.list = sim)
 }

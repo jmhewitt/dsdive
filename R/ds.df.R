@@ -12,13 +12,15 @@
 #' @param stages Vector of (guesses) for which dive stage the trajectory was 
 #'   in at each observation
 #' @param durations Vector specifying the amount of time spent in each depth bin
+#' @param time.as.POSIXct if \code{TRUE}, will convert plotting times to POSIXct
 #' 
 #' 
 #' @example examples/ds.df.R
 #' 
 #' @export
 #' 
-ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL) {
+ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL,
+                 time.as.POSIXct = FALSE) {
   
   # initialize output
   df = data.frame(depths = depths, times = times)
@@ -45,6 +47,16 @@ ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL) {
   
   # convert seconds to minutes
   df$min = df$times/60
+  
+  # extract plottable times
+  if(time.as.POSIXct) {
+    df$t.start = as.POSIXct(df$times, origin = "1970-01-01", tz = "UTC")
+    df$t.end = as.POSIXct(df$times + df$durations, 
+                          origin = "1970-01-01", tz = "UTC")
+  } else {
+    df$t.start = df$min
+    df$t.end = df$min + df$durations.min
+  }
   
   # extract bin midpoints and ranges
   depths.formatted = cbind(depth.min = depth.bins[,1] - depth.bins[,2],
