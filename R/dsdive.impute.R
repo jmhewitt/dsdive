@@ -51,6 +51,9 @@ dsdive.impute = function(depth.bins, depths, times, s0, beta, lambda, sub.tx,
     ld = 0
   )
   
+  # pre-compute the common max transition rate
+  lambda.max = max(outer(lambda, 2 * depth.bins[,2], '/'))
+  
   # impute segments
   for(i in 1:(nt-1)) {
     
@@ -69,7 +72,8 @@ dsdive.impute = function(depth.bins, depths, times, s0, beta, lambda, sub.tx,
                              s0 = res$stages[length(res$stages)], 
                              inflation.factor.lambda = inflation.factor.lambda,
                              verbose = verbose, 
-                             precompute.bridges = precompute.bridges)
+                             precompute.bridges = precompute.bridges,
+                             lambda.max = lambda.max)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {

@@ -39,6 +39,10 @@
 #' @param precompute.bridges If \code{TRUE}, then the bridged transition 
 #'   matrices will be precomputed.  Enabling this option will increase the 
 #'   memory overhead of the method, but will reduce its runtime.
+#' @param lambda.max Arrival rate for the parent Poisson process that will
+#'   be thinned.  \code{lambda.max} will be scaled by 
+#'   \code{inflation.factor.lambda}, and if \code{lambda.max==NULL} then the 
+#'   method will compute this on its own.
 #' 
 #' @example examples/dsdive.bridgesample.R
 #' 
@@ -51,7 +55,7 @@
 dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda, 
                                sub.tx, surf.tx, t0, tf, s0, 
                                inflation.factor.lambda = 1.1, verbose = FALSE,
-                               precompute.bridges = TRUE) {
+                               precompute.bridges = TRUE, lambda.max = NULL) {
   
   #
   # build basic simulation parameters
@@ -72,8 +76,11 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   #
   
   # get rate for thick poisson process
-  lambda.thick = inflation.factor.lambda * 
-    max(outer(lambda, 2 * depth.bins[,2], '/'))
+  if(is.null(lambda.max)) {
+    lambda.max = max(outer(lambda, 2 * depth.bins[,2], '/'))
+  }
+  lambda.thick = inflation.factor.lambda * lambda.max
+    
   
   # sample number of unthinned arrivals
   lambda.tmp = T.win * lambda.thick

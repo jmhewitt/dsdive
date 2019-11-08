@@ -6,7 +6,7 @@
 \usage{
 dsdive.bridgesample(depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
   surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE)
+  precompute.bridges = TRUE, lambda.max = NULL)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -55,6 +55,11 @@ during sampling.}
 \item{precompute.bridges}{If \code{TRUE}, then the bridged transition 
 matrices will be precomputed.  Enabling this option will increase the 
 memory overhead of the method, but will reduce its runtime.}
+
+\item{lambda.max}{Arrival rate for the parent Poisson process that will
+be thinned.  \code{lambda.max} will be scaled by 
+\code{inflation.factor.lambda}, and if \code{lambda.max==NULL} then the 
+method will compute this on its own.}
 }
 \description{
 Sample a dive trajectory such that its start and end locations and times are 
