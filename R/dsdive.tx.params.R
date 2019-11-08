@@ -5,10 +5,9 @@
 #' (PD), INTERMEDIATE BEHAVIORS (IB), and PRIMARY ASCENT (PA).
 #'   
 #' @param t0 time at which transition parameters should be computed
-#' @param num.depths The total number of depth bins.  Specifies the 
-#'   depth bins 1, ..., \code{num.depths} the model will use.  Note that the 
-#'   model does not explicitly use the depth ranges the bins represent 
-#'   (i.e., the bin labels) to compute transition parameters.
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
 #' @param d0 the depth bin at which transition parameters should be computed
 #' @param d0.last the previous depth bin in which the trajectory was.  If 
 #'   \code{NULL}, then the autoregressive component will be skipped.
@@ -29,8 +28,10 @@
 #' 
 #' @export
 #' 
-dsdive.tx.params = function(t0, num.depths, d0, d0.last = NULL, s0, beta, 
+dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
                             lambda, sub.tx, surf.tx) {
+  
+  num.depths = nrow(depth.bins)
   
   # extract probability of transitioning to next dive stage
   if(s0 == 1) { # transition to SUBMERGED stage after minimum depth reached

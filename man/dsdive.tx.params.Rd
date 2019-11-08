@@ -4,16 +4,15 @@
 \alias{dsdive.tx.params}
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
-dsdive.tx.params(t0, num.depths, d0, d0.last = NULL, s0, beta, lambda,
+dsdive.tx.params(t0, depth.bins, d0, d0.last = NULL, s0, beta, lambda,
   sub.tx, surf.tx)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
 
-\item{num.depths}{The total number of depth bins.  Specifies the 
-depth bins 1, ..., \code{num.depths} the model will use.  Note that the 
-model does not explicitly use the depth ranges the bins represent 
-(i.e., the bin labels) to compute transition parameters.}
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 
 \item{d0}{the depth bin at which transition parameters should be computed}
 

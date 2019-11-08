@@ -47,8 +47,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   lambda.max = max(lambda) * inflation.factor.lambda
   
   # add a "null" depth bin to allow trajectory initialization
-  num.depths = nrow(depth.bins)
-  n = num.depths + 1
+  n = nrow(depth.bins) + 1
   
   # initialize storage for nonzero entries (overcommit space)
   nd = n^2 * 3
@@ -78,7 +77,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
       #
       
       # we leave surface from stage 1, and with no last recorded depth
-      p = dsdive.tx.params(t0 = t0, num.depths = num.depths, d0 = 1, 
+      p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = 1, 
                            d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
                            sub.tx = sub.tx, surf.tx = surf.tx)
       
@@ -122,7 +121,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
         for(dd in c(-1,1)) {
           
           # transition parameters
-          p = dsdive.tx.params(t0 = t0, num.depths = num.depths, d0 = i, 
+          p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = i, 
                                d0.last = i+dd, s0 = s, beta = beta, 
                                lambda = lambda, sub.tx = sub.tx, 
                                surf.tx = surf.tx)

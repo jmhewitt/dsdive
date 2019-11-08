@@ -49,9 +49,6 @@
 dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0) {
   
-  # extract information about discretized depth domain
-  num.depths = nrow(depth.bins)
-  
   # initialize output components
   depths = d0
   durations = dur0
@@ -86,7 +83,7 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
     for(i in 1:steps.max) {
       
       # get sampling parameters for this location
-      params.tx = dsdive.tx.params(t0 = current$t, num.depths = num.depths,
+      params.tx = dsdive.tx.params(t0 = current$t, depth.bins = depth.bins,
                                    d0 = current$depth, s0 = current$stage,
                                    d0.last = current$depth.last,  beta = beta, 
                                    lambda = lambda, sub.tx = sub.tx, 
