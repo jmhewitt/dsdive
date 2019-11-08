@@ -20,7 +20,7 @@ toInd = function(x, y, z, x.max, y.max) {
 
 #' Converts array indices to (x,y,z) coordinates
 #' 
-#' Used for converting a flattened index to the \eqn(x,y,z) indices for an 
+#' Used for converting a flattened index to the \eqn{(x,y,z)} indices for an 
 #' array with dimensions \eqn{x.max x y.max x n}, where \eqn{n} is arbitrary.
 #' 
 #' @param ind index in an array

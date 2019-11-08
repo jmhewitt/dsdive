@@ -103,7 +103,7 @@ dsdive.stochit = function(depths, t, depth.bins, par, priors, max.resample,
                             lambda = exp(theta[7:9]), 
                             sub.tx = c(sub.tx1, plogis(theta[10])), 
                             surf.tx = theta[11:12], 
-                            depths.labels = depths.labels)
+                            depth.bins = depth.bins)
     }
     
     # return log-posterior
@@ -160,7 +160,7 @@ dsdive.stochit = function(depths, t, depth.bins, par, priors, max.resample,
                                       lambda = exp(theta[7:9]), 
                                       sub.tx = c(sub.tx1, plogis(theta[10])), 
                                       surf.tx = theta[11:12], 
-                                      depths.labels = depths.labels, 
+                                      depth.bins = depth.bins, 
                                       steps.max = control.abc$steps.max, 
                                       N = control.abc$N, depths = depths, t = t, 
                                       tries.max = control.abc$tries.max, 
