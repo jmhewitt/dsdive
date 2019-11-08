@@ -10,6 +10,6 @@ License: GPL-3
 RoxygenNote: 6.1.1
 Suggests: testthat
 Depends: R (>= 3.0.2)
-Imports: MHadaptive, bmk
+Imports: Matrix, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr
 Encoding: UTF-8
 LazyData: true
