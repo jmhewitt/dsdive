@@ -114,8 +114,7 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   }
   
   # add a "null" depth bin to allow trajectory initialization
-  num.depths = nrow(depth.bins)
-  n = num.depths + 1
+  n = nrow(depth.bins) + 1
   
   # set starting index for trajectory
   current.ind = toInd(x = ifelse(is.null(d0.last), n, d0.last), y = d0, z = s0, 
@@ -145,10 +144,14 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
                                     x = rep(1, length(end.inds)), 
                                     dims = rep(n^2 * 3, 2))
     
-    pBridge.pre[[N-1]] = tx.mat[[N]]
+    if(N > 1) {
+      pBridge.pre[[N-1]] = tx.mat[[N]]
+    }
     
-    for(k in (N-2):1) {
-      pBridge.pre[[k]] = tx.mat[[k+1]] %*% pBridge.pre[[k+1]]
+    if(N-2 > 0) {
+      for(k in (N-2):1) {
+        pBridge.pre[[k]] = tx.mat[[k+1]] %*% pBridge.pre[[k+1]]
+      }
     }
   }
   
@@ -230,7 +233,7 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
   
   # remove self-transitions, and include initial state
   true.tx.inds = c(TRUE, diff(path.full[2,]) != 0)
-  path.full = path.full[,true.tx.inds]
+  path.full = path.full[, true.tx.inds, drop = FALSE]
   
   # package and return results
   res = list(
