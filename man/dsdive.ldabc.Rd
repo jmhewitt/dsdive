@@ -4,11 +4,29 @@
 \alias{dsdive.ldabc}
 \title{SMC estimation of likelihood for imputed dive trajectories}
 \usage{
-dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depths.labels,
-  steps.max = 1000, N, depths, t, tries.max, eps, dump.state = FALSE,
-  verbose = FALSE, n.samples = 0, stage.init = 1)
+dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depth.bins, steps.max = 1000,
+  N, depths, t, tries.max, eps, dump.state = FALSE, verbose = FALSE,
+  n.samples = 0, stage.init = 1)
 }
 \arguments{
+\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
+preference and directional persistence parameters for the DIVING, SUBMERGED, 
+and SURFACING dive stages.}
+
+\item{lambda}{length 3 vector that specifies the transition rate, 
+respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+
+\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
+transitions to the SUBMERGED stage can occur and the probability that such 
+a transition occurs at the next depth transition}
+
+\item{surf.tx}{parameter that specifies the probability the trajectory will 
+transition to the SURFACING stage at the next depth transition}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
+
 \item{steps.max}{maximum number of transitions to sample before stopping, 
 regardless of whether \code{tf} is reached.}
 
@@ -16,14 +34,15 @@ regardless of whether \code{tf} is reached.}
 
 \item{depths}{Dive bins in which the trajectory was observed}
 
-\item{t}{vector of times at which observations were made}
+\item{t}{Times at which depths were observed}
 
 \item{tries.max}{maximum number of attempts to find a suitable ABC trajectory 
 before stopping sampling.  If \code{tries.max} is exceeded while sampling 
 any location, the returned log-likelihood estimate will be \code{-Inf}}
 
 \item{eps}{ABC rejection sampling tolerance; maximum distance along graph 
-between simulated and observed states}
+between simulated and observed states.  Set \code{eps=1} for exact 
+imputation.}
 
 \item{dump.state}{if sampling fails and \code{dump.state==TRUE}, then the 
 particles in the particle filter will be returned, along with the timepoint 
@@ -37,13 +56,7 @@ output will be printed while the ABC-SMC algorithm is running}
 which can potentially yield faster inference because each step of the 
 ABC-SMC sampler requires fewer memory operations.}
 
-\item{states}{vector of locations at which CTDS trajectory was observed}
-
-\item{nb}{list that defines the discrete domain and connections 
-between areal units.  each entry contains a vector of neighbors for each 
-location.}
-
-\item{t}{Times at which depths were observed}
+\item{stage.init}{The dive stage in which all particles should be initialized}
 }
 \description{
 SMC estimation of likelihood for imputed dive trajectories
@@ -54,7 +67,7 @@ attach(dive.sim)
 attach(dive.sim$params)
 
 ld = dsdive.ldabc(beta = beta, lambda = lambda, sub.tx = sub.tx, 
-                  surf.tx = surf.tx, depths.labels = depth.bins, 
+                  surf.tx = surf.tx, depth.bins = depth.bins, 
                   steps.max = 1e3, N = 1e1, depths = sim.obs$depths, 
                   t = sim.obs$times, tries.max = 1e5, dump.state = TRUE, 
                   verbose = TRUE, n.samples = 5, eps = 1)

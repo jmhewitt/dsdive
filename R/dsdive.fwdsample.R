@@ -27,6 +27,9 @@
 #'   duration in state \code{d0} will be sampled, otherwise a new state will 
 #'   be sampled first, then sampling will continue from the new state at time 
 #'   \code{t0 + dur0}.
+#' @param nsteps if \code{nsteps} is not \code{NULL}, then the sampler will
+#'   be reconfigured to sample exactly \code{nsteps} transitions instead of 
+#'   attempting to sample until the trajectory is observable at time \code{tf}.
 #' @param s0 dive stage in which forward simulation begins
 #' 
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
@@ -38,16 +41,16 @@
 #'     \item{stages}{The stage at which each depth bin was entered}
 #'   }
 #' 
-#' @example examples/txparams.R
+#' @example examples/dsdive.fwdsample.R
 #' 
 #' @export
 #' 
 #'
-dsdive.fwdsample = function(depths.labels, d0, beta, lambda, sub.tx, surf.tx, 
+dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0) {
   
   # extract information about discretized depth domain
-  num.depths = nrow(depths.labels)
+  num.depths = nrow(depth.bins)
   
   # initialize output components
   depths = d0

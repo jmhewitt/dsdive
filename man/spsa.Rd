@@ -2,59 +2,33 @@
 % Please edit documentation in R/spsa.R
 \name{spsa}
 \alias{spsa}
-\title{Simulate dive trajectories across discrete depth bins}
+\title{Basic implementation of stochastic optimization when the target function is only approximately known}
 \usage{
 spsa(par, fn, maxit = 100, a = 1, c = 1, A = 1, alpha = 0.5,
   gamma = 1, tol = 0.001)
 }
 \arguments{
-\item{depths.labels}{character vector that defines the depth bins}
+\item{par}{initial parameter values for function}
 
-\item{d0}{the depth bin at which transition parameters should be computed}
+\item{fn}{a function to be maximized}
 
-\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
-preference and directional persistence parameters for the DIVING, SUBMERGED, 
-and SURFACING dive stages.}
+\item{maxit}{maximum number of function evaluations before failing to converge}
 
-\item{lambda}{length 3 vector that specifies the transition rate, 
-respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+\item{a}{decay parameter for step size}
 
-\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
-a transition occurs at the next depth transition}
+\item{c}{decay parameter for step size}
 
-\item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
+\item{A}{decay parameter for step size}
 
-\item{t0}{time at which transition parameters should be computed}
+\item{alpha}{decay parameter for step size}
 
-\item{tf}{time at which sampling should end after}
+\item{gamma}{decay parameter for step size}
 
-\item{steps.max}{maximum number of transitions to sample before stopping, 
-regardless of whether \code{tf} is reached.}
-
-\item{dur0}{time spent at location \code{d0}.  If \code{NULL}, then a 
-duration in state \code{d0} will be sampled, otherwise a new state will 
-be sampled first, then sampling will continue from the new state at time 
-\code{t0 + dur0}.}
-
-\item{s0}{dive stage in which forward simulation begins}
-}
-\value{
-A \code{dsdive} object, which is a \code{list} with the following 
-  vectors:
-  \describe{
-    \item{depths}{Record of which depth bins the trajectory visited}
-    \item{durations}{Record of amount of time spent in each depth bin}
-    \item{times}{The time at which each depth bin was entered}
-    \item{stages}{The stage at which each depth bin was entered}
-  }
+\item{tol}{Relative convergence criterion}
 }
 \description{
-The method will simulate dive trajectories from initial conditions until the 
-trajectory is observable at \code{tf}, or a maximum number of transitions 
-has been exceeded.  The dive simulation is bridged, so the trajectory will
-also stop diving after returning to the surface.
+Experimental method because its theoretical convergence and recommendations 
+for setting parameters has not been fully explored.
 }
 \examples{
 data('dive.sim')
@@ -67,7 +41,7 @@ o = spsa(par = c(beta, log(lambda), log(sub.tx[-1]), surf.tx),
                              lambda = exp(theta[7:9]), 
                              sub.tx = c(sub.tx[1], exp(theta[10])), 
                              surf.tx = theta[11:12], 
-                             depths.labels = depth.bins, 
+                             depth.bins = depth.bins, 
                              steps.max = 1e3, N = 1e1, depths = sim.obs$depths, 
                              t = sim.obs$times, tries.max = 1e5, 
                              dump.state = TRUE, verbose = FALSE, n.samples = 1, 

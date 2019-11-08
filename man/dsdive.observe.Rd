@@ -16,7 +16,8 @@ dsdive.observe(depths, times, stages, t.obs)
 \item{t.obs}{Times at which the trajectory should be observed}
 }
 \description{
-Simulate observing a fully observed dive trajectory at specified timepoints
+Given the components of a completely observed dive trajectory, extract the 
+depth and stage of a trajectory at the target times \code{t.obs}.
 }
 \examples{
 data('dive.sim')

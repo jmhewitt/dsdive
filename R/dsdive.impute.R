@@ -1,14 +1,12 @@
-#' Simulate dive trajectories across discrete depth bins
+#' Use bridged sampling to impute a complete dive trajectory consistent with observations
 #'
-#' The method will simulate dive trajectories from initial conditions until the 
-#' trajectory is observable at \code{tf}, or a maximum number of transitions 
-#' has been exceeded.  The dive simulation is bridged, so the trajectory will
-#' also stop diving after returning to the surface.
 #' 
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param d0 the depth bin at which transition parameters should be computed
+#' @param depths record of depth bins the trajectory should visit
+#' @param times times at which the depth bins should be visited
+#' @param s0 dive stage at which the trajectory should be started from
 #' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
 #'  preference and directional persistence parameters for the DIVING, SUBMERGED, 
 #'  and SURFACING dive stages.
@@ -19,18 +17,19 @@
 #'   a transition occurs at the next depth transition
 #' @param surf.tx parameter that specifies the probability the trajectory will 
 #'   transition to the SURFACING stage at the next depth transition
-#' @param t0 time at which transition parameters should be computed
-#' @param tf time at which sampling should end after
-#' @param s0 dive stage in which forward simulation begins
-#' 
-#' @return A \code{dsdive} object, which is a \code{list} with the following 
-#'   vectors:
-#'   \describe{
-#'     \item{depths}{Record of which depth bin indices the trajectory visited}
-#'     \item{durations}{Record of amount of time spent in each depth bin}
-#'     \item{times}{The time at which each depth bin was entered}
-#'     \item{stages}{The stage at which each depth bin was entered}
-#'   }
+#' @param inflation.factor.lambda In order to facilitate bridged transitions, 
+#'   the transition rate of the overall process must be inflated to allow the 
+#'   possibility of self-transitions.  Self-transitions allow bridged paths to 
+#'   dynamically modify the total number of transitions between observed values
+#'   so that a valid path between observations is always possible.  The 
+#'   \code{inflation.factor.lambda} parameter implicitly controls the number of 
+#'   self-transitions that will occur.  Larger values will create more 
+#'   self-transitions.
+#' @param verbose If \code{TRUE}, then the sampler's progress will be printed 
+#'   during sampling.
+#' @param precompute.bridges If \code{TRUE}, then the bridged transition 
+#'   matrices will be precomputed.  Enabling this option will increase the 
+#'   memory overhead of the method, but will reduce its runtime.
 #' 
 #' @example examples/dsdive.impute.R
 #' 

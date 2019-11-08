@@ -1,14 +1,23 @@
 #' Plotting functions for completely observed dive trajectories
 #' 
+#' Builds a \code{ggplot2} graph.
 #'
 #' @param x \code{dsdive} object with complete record of dive trajectory
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param dsobs \code{dsobs} object with record of observed depth bins
-#' @param imputed.list 
+#' @param imputed.alpha transparency value used for plotting imputed 
+#'   trajectories, if provided
+#' @param dsobs \code{dsobs} object with record of observed depth bins to 
+#'   overlay on the main \code{dsdive} trajectory \code{x}
+#' @param imputed.list A \code{list} of \code{dsdive} objects to be plotted 
+#'   underneath the main \code{dsdive} trajectory \code{x}.  The intent is that 
+#'   \code{imputed.list} will contain imputed trajectories.
+#' @param underlay additional \code{ggplot2} layers to place before the main 
+#'   plot layers
+#' @param ... (currently unused) additional plotting parameters
 #' 
-#' @example examples/plot.dsobs.R
+#' @example examples/plot.dsdive.R
 #' 
 #' @import ggplot2 ggthemes
 #' 

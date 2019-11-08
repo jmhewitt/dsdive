@@ -14,7 +14,8 @@ fromInd(ind, x.max, y.max)
 \item{y.max}{maximum value of y coordinates}
 }
 \description{
-Converts array indices to (x,y,z) coordinates
+Used for converting a flattened index to the \eqn(x,y,z) indices for an 
+array with dimensions \eqn{x.max x y.max x n}, where \eqn{n} is arbitrary.
 }
 \examples{
 fromInd(ind = 100, x.max = 100, y.max = 100)

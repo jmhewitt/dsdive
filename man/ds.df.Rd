@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.df.R
 \name{ds.df}
 \alias{ds.df}
-\title{Builds a tidy data frame for observations of a dive}
+\title{Builds a tidy data frame for dive objects}
 \usage{
 ds.df(depths, times, depth.bins, stages = NULL, durations = NULL)
 }
@@ -15,12 +15,15 @@ ds.df(depths, times, depth.bins, stages = NULL, durations = NULL)
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
-\item{stages}{Vector of guesses for which dive stage the trajectory was 
+\item{stages}{Vector of (guesses) for which dive stage the trajectory was 
 in at each observation}
+
+\item{durations}{Vector specifying the amount of time spent in each depth bin}
 }
 \description{
 Converts raw dive information to a tidy dataframe that
-is suitable for plotting with \code{ggplot2}.
+is suitable for plotting with \code{ggplot2}.  Most importantly, the function
+converts depth bin indices to actual depths and depth ranges.
 }
 \examples{
 data('dive.sim')

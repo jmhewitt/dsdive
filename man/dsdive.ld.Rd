@@ -5,7 +5,34 @@
 \title{Likelihood for completely observed dive trajectories}
 \usage{
 dsdive.ld(depths, durations, times, stages, beta, lambda, sub.tx, surf.tx,
-  depths.labels)
+  depth.bins)
+}
+\arguments{
+\item{depths}{Depth bin indices in which the trajectory was observed}
+
+\item{durations}{Amount of time spent in each depth bin}
+
+\item{times}{Times at which each depth bin was entered}
+
+\item{stages}{Record of dive stages at each depth bin}
+
+\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
+preference and directional persistence parameters for the DIVING, SUBMERGED, 
+and SURFACING dive stages.}
+
+\item{lambda}{length 3 vector that specifies the transition rate, 
+respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+
+\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
+transitions to the SUBMERGED stage can occur and the probability that such 
+a transition occurs at the next depth transition}
+
+\item{surf.tx}{parameter that specifies the probability the trajectory will 
+transition to the SURFACING stage at the next depth transition}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 }
 \description{
 Likelihood for completely observed dive trajectories
@@ -18,5 +45,5 @@ attach(dive.sim$params)
 ld = dsdive.ld(depths = sim$depths, durations = sim$durations, 
                times = sim$times, stages = sim$stages, beta = beta, 
                lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-               depths.labels = depth.bins)
+               depth.bins = depth.bins)
 }

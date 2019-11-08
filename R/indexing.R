@@ -1,5 +1,8 @@
 #' Converts (x,y,z) coordinates to an array index
 #' 
+#' Used for getting the flattened index for an array with dimensions
+#' \eqn{x.max x y.max x n}, where \eqn{n} is arbitrary.
+#' 
 #' @param x x coordinate, ranges between 1 and \code{x.max}
 #' @param y y coordinate, ranges between 1 and \code{y.max}
 #' @param z z coordinate, must be at least 1
@@ -16,6 +19,9 @@ toInd = function(x, y, z, x.max, y.max) {
 }
 
 #' Converts array indices to (x,y,z) coordinates
+#' 
+#' Used for converting a flattened index to the \eqn(x,y,z) indices for an 
+#' array with dimensions \eqn{x.max x y.max x n}, where \eqn{n} is arbitrary.
 #' 
 #' @param ind index in an array
 #' @param x.max maximum value of x coordinates

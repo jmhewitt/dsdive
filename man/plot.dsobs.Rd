@@ -4,7 +4,7 @@
 \alias{plot.dsobs}
 \title{Plotting functions for observations of dive trajectories}
 \usage{
-plot.dsobs(x, depth.bins, stages = NULL, errorbars = FALSE,
+\method{plot}{dsobs}(x, depth.bins, stages = NULL, errorbars = FALSE,
   underlay = NULL, ...)
 }
 \arguments{
@@ -19,9 +19,14 @@ in at each observation}
 
 \item{errorbars}{If \code{TRUE}, then the minimum and maximum depth for each
 bin will be included in the plot.}
+
+\item{underlay}{additional \code{ggplot2} layers to place before the main 
+plot layers}
+
+\item{...}{(currently unused) additional plotting parameters}
 }
 \description{
-Plotting functions for observations of dive trajectories
+Builds a \code{ggplot2} graph.
 }
 \examples{
 data('dive.sim')

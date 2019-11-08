@@ -4,7 +4,7 @@
 \alias{dsdive.stochit}
 \title{Exploration of posterior surface via stochastic iteration}
 \usage{
-dsdive.stochit(depths, t, depths.labels, par, priors, max.resample, max.it,
+dsdive.stochit(depths, t, depth.bins, par, priors, max.resample, max.it,
   tol, n.paths, n.par, control.abc = NULL, control.mh = NULL,
   verbose = TRUE)
 }
@@ -13,7 +13,9 @@ dsdive.stochit(depths, t, depths.labels, par, priors, max.resample, max.it,
 
 \item{t}{Times at which depths were observed}
 
-\item{depths.labels}{character vector that defines the depth bins}
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
 
 \item{par}{List with parameter values at which to initialize the MCMC 
 algorithm. 
@@ -23,6 +25,9 @@ algorithm.
    \item{sub.tx}{vector of depth index, and a probability}
    \item{surf.tx}{Vector of two parameters}
 }}
+
+\item{priors}{Standard deviations for mean-0 normal priors on model 
+parameters, after transformation to real line}
 
 \item{max.resample}{Maximum number of times to resample imputed trajectories}
 
@@ -45,15 +50,22 @@ used for exploring the posterior distribution of model parameters, given
 imputed trajectories}
 }
 \description{
-Explore the posterior distribution by updating the imputation distribution 
-with samples from approximate posterior of parameters.
+Experimental method to explore the posterior distribution by approximating 
+the posterior distribution by running MCMC over a family of imputed 
+trajectories.  After the MCMC chain completes, the family of imputed 
+trajectories is updated, and then the process is iterated until the poster
+distribution approximation appears to converge wrt. Hellinger distance.
+}
+\details{
+The method is experimental because its theoretical convergence properties 
+are not fully explored.
 }
 \examples{
 data('dive.sim')
 attach(dive.sim)
 
 x = dsdive.stochit(depths = sim.obs$depths, t = sim.obs$times, 
-                   depths.labels = depth.bins, par = params, 
+                   depth.bins = depth.bins, par = params, 
                    priors = rep(5,12), max.resample = 5, max.it = 1e2, tol = .1, 
                    n.paths = 1e1, n.par = 1e1, verbose = TRUE, 
                    control.mh = list(burn_in = 1e2, quiet = FALSE))

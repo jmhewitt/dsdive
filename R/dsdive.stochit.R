@@ -1,18 +1,24 @@
 #' Exploration of posterior surface via stochastic iteration
 #'
-#' Explore the posterior distribution by updating the imputation distribution 
-#' with samples from approximate posterior of parameters.
+#' Experimental method to explore the posterior distribution by approximating 
+#' the posterior distribution by running MCMC over a family of imputed 
+#' trajectories.  After the MCMC chain completes, the family of imputed 
+#' trajectories is updated, and then the process is iterated until the poster
+#' distribution approximation appears to converge wrt. Hellinger distance.
+#' 
+#' The method is experimental because its theoretical convergence properties 
+#' are not fully explored.
 #' 
 #' @example examples/stochit.R
 #' 
 #' @importFrom MHadaptive Metro_Hastings
 #' @importFrom bmk bmksensitive
 #' 
-#' @export
-#' 
 #' @param depths Dive bins in which the trajectory was observed
 #' @param t Times at which depths were observed
-#' @param depths.labels character vector that defines the depth bins
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
 #' @param par List with parameter values at which to initialize the MCMC 
 #'   algorithm. 
 #'   \describe{
@@ -21,6 +27,8 @@
 #'      \item{sub.tx}{vector of depth index, and a probability}
 #'      \item{surf.tx}{Vector of two parameters}
 #'   }
+#' @param priors Standard deviations for mean-0 normal priors on model 
+#'   parameters, after transformation to real line
 #' @param max.resample Maximum number of times to resample imputed trajectories
 #' @param max.it Maximum number of MCMC iterations over parameters before 
 #'   resampling imputed trajectories
@@ -34,9 +42,8 @@
 #' @param control.mh List with arguments of \code{MHadaptive::Metro_Hastings}, 
 #'   used for exploring the posterior distribution of model parameters, given 
 #'   imputed trajectories
-#'   
 #' 
-dsdive.stochit = function(depths, t, depths.labels, par, priors, max.resample, 
+dsdive.stochit = function(depths, t, depth.bins, par, priors, max.resample, 
                           max.it, tol, n.paths, n.par, control.abc = NULL, 
                           control.mh = NULL, verbose = TRUE) {
   
@@ -72,7 +79,7 @@ dsdive.stochit = function(depths, t, depths.labels, par, priors, max.resample,
   # impute an initial family of trajectories
   paths.fam = dsdive.ldabc(beta = par$beta, lambda = par$lambda, 
                            sub.tx = par$sub.tx, surf.tx = par$surf.tx, 
-                           depths.labels = depths.labels, 
+                           depth.bins = depth.bins, 
                            steps.max = control.abc$steps.max, 
                            N = control.abc$N, depths = depths, t = t, 
                            tries.max = control.abc$tries.max, 

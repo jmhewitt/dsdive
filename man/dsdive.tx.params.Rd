@@ -20,25 +20,27 @@ model does not explicitly use the depth ranges the bins represent
 \item{d0.last}{the previous depth bin in which the trajectory was.  If 
 \code{NULL}, then the autoregressive component will be skipped.}
 
-\item{s0}{the dive stage (DIVING==1, SUBMERGED==2, SURFACING==3) for which 
-transition parameters should be computed.}
+\item{s0}{the dive stage (PRIMARY DESCENT==1, INTERMEDIATE BEHAVIORS==2, 
+PRIMARY ASCENT==3) for which transition parameters should be computed.}
 
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
-preference and directional persistence parameters for the DIVING, SUBMERGED, 
-and SURFACING dive stages.}
+preference and directional persistence parameters for the PRIMARY DESCENT 
+(PD), INTERMEDIATE BEHAVIORS (IB), and PRIMARY ASCENT (PA) dive stages.}
 
 \item{lambda}{length 3 vector that specifies the transition rate, 
-respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+respectively in the PD, IB, and PA stages.}
 
 \item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
+transitions to the IB stage can occur and the probability that such 
 a transition occurs at the next depth transition}
 
 \item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
+transition to the PA stage at the next depth transition}
 }
 \description{
-Dives have 3 stages, DIVING, SUBMERGED, and SURFACING.
+Computes elements of a transition matrix when given model parameters and 
+time/space locations for a dive model that has 3 stages, PRIMARY DESCENT 
+(PD), INTERMEDIATE BEHAVIORS (IB), and PRIMARY ASCENT (PA).
 }
 \examples{
 data('dive.sim')

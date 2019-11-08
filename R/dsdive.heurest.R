@@ -2,10 +2,13 @@
 #' 
 #' Builds heuristic estimates of dive model parameters, which is useful for 
 #' initializing methods that optimize or explore parameter surfaces and 
-#' posterior distributions.
-#'
-#' @importFrom stringr str_extract_all
+#' posterior distributions.  
 #' 
+#' The heuristic estimate begins by linearly imputing a dive trajectory that 
+#' is consistent with observations, then optimizes model parameters from the 
+#' basic imputed trajectory.  Note that the imputed trajectory is likely to be 
+#' very unrealistic, especially for datasets with sparse temporal observations.
+#'
 #' @param depths Record of observed depth bin indices
 #' @param times Times at which depth bin observations were made
 #' @param stages.est Vector of guesses for which dive stage the trajectory was 
@@ -86,7 +89,7 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         beta = matrix(theta[1:6], nrow = 2), 
                         lambda = exp(theta[7:9]), 
                         sub.tx = c(sub.tx1, plogis(theta[10])),
-                        surf.tx = theta[11:12], depths.labels = depth.bins) + 
+                        surf.tx = theta[11:12], depth.bins = depth.bins) + 
               sum(dnorm(theta, sd = priors, log = TRUE))
             }, method = 'BFGS', control = list(fnscale = -1))
   

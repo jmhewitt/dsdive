@@ -1,14 +1,18 @@
 #' Plotting functions for observations of dive trajectories
 #' 
+#' Builds a \code{ggplot2} graph.
 #'
 #' @param x \code{dsobs} object with record of observed depth bins
-#' @param stages Optional vector of for which dive stage the trajectory was 
-#'   in at each observation
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
+#' @param stages Optional vector of for which dive stage the trajectory was 
+#'   in at each observation
 #' @param errorbars If \code{TRUE}, then the minimum and maximum depth for each
 #'   bin will be included in the plot.
+#' @param underlay additional \code{ggplot2} layers to place before the main 
+#'   plot layers
+#' @param ... (currently unused) additional plotting parameters
 #' 
 #' @example examples/plot.dsobs.R
 #' 

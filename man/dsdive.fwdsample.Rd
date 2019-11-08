@@ -4,10 +4,14 @@
 \alias{dsdive.fwdsample}
 \title{Simulate dive trajectories across discrete depth bins}
 \usage{
-dsdive.fwdsample(depths.labels, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
+dsdive.fwdsample(depth.bins, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
   steps.max, dur0 = NULL, nsteps = NULL, s0)
 }
 \arguments{
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
+
 \item{d0}{the depth bin at which transition parameters should be computed}
 
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
@@ -36,11 +40,11 @@ duration in state \code{d0} will be sampled, otherwise a new state will
 be sampled first, then sampling will continue from the new state at time 
 \code{t0 + dur0}.}
 
-\item{s0}{dive stage in which forward simulation begins}
+\item{nsteps}{if \code{nsteps} is not \code{NULL}, then the sampler will
+be reconfigured to sample exactly \code{nsteps} transitions instead of 
+attempting to sample until the trajectory is observable at time \code{tf}.}
 
-\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
-column defines the depth at the center of each depth bin, and the second 
-column defines the half-width of each bin.}
+\item{s0}{dive stage in which forward simulation begins}
 }
 \value{
 A \code{dsdive} object, which is a \code{list} with the following 
@@ -63,15 +67,9 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 0, 
-                 d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
-
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
-                 d0.last = 61, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
-
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
-                 d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
+# simulate dive
+x = dsdive.fwdsample(depth.bins = depth.bins, d0 = 1, beta = beta, 
+                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
+                     t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
+                     nsteps = NULL, s0 = 1)
 }

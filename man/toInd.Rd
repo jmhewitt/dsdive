@@ -18,7 +18,8 @@ toInd(x, y, z, x.max, y.max)
 \item{y.max}{maximum value of y coordinates}
 }
 \description{
-Converts (x,y,z) coordinates to an array index
+Used for getting the flattened index for an array with dimensions
+\eqn{x.max x y.max x n}, where \eqn{n} is arbitrary.
 }
 \examples{
 toInd(x = 60, y = 13, z = 1, x.max = 100, y.max = 100)

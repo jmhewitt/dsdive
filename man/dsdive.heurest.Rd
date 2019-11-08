@@ -30,6 +30,12 @@ Builds heuristic estimates of dive model parameters, which is useful for
 initializing methods that optimize or explore parameter surfaces and 
 posterior distributions.
 }
+\details{
+The heuristic estimate begins by linearly imputing a dive trajectory that 
+is consistent with observations, then optimizes model parameters from the 
+basic imputed trajectory.  Note that the imputed trajectory is likely to be 
+very unrealistic, especially for datasets with sparse temporal observations.
+}
 \examples{
 data('dive.sim')
 attach(dive.sim)

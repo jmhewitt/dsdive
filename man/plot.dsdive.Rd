@@ -4,7 +4,7 @@
 \alias{plot.dsdive}
 \title{Plotting functions for completely observed dive trajectories}
 \usage{
-plot.dsdive(x, depth.bins, imputed.alpha = 0.3, dsobs = NULL,
+\method{plot}{dsdive}(x, depth.bins, imputed.alpha = 0.3, dsobs = NULL,
   imputed.list = NULL, underlay = NULL, ...)
 }
 \arguments{
@@ -14,20 +14,35 @@ plot.dsdive(x, depth.bins, imputed.alpha = 0.3, dsobs = NULL,
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
-\item{dsobs}{\code{dsobs} object with record of observed depth bins}
+\item{imputed.alpha}{transparency value used for plotting imputed 
+trajectories, if provided}
 
-\item{imputed.list}{}
+\item{dsobs}{\code{dsobs} object with record of observed depth bins to 
+overlay on the main \code{dsdive} trajectory \code{x}}
+
+\item{imputed.list}{A \code{list} of \code{dsdive} objects to be plotted 
+underneath the main \code{dsdive} trajectory \code{x}.  The intent is that 
+\code{imputed.list} will contain imputed trajectories.}
+
+\item{underlay}{additional \code{ggplot2} layers to place before the main 
+plot layers}
+
+\item{...}{(currently unused) additional plotting parameters}
 }
 \description{
-Plotting functions for completely observed dive trajectories
+Builds a \code{ggplot2} graph.
 }
 \examples{
 data('dive.sim')
 attach(dive.sim)
 
 # basic plot
-pl = plot(x = sim.obs, depth.bins = depth.bins)
+pl = plot(x = sim, depth.bins = depth.bins)
 
-# plot with stages overlaid
-pl2 = plot(x = sim.obs, depth.bins = depth.bins, stages = sim.obs$stages)
+# plot with observations overlaid
+pl2 = plot(x = sim, depth.bins = depth.bins, dsobs = sim.obs)
+
+# plot with imputed trajectory overlaid
+pl3 = plot(x = sim, depth.bins = depth.bins, dsobs = sim.obs, 
+           imputed.list = imputed)
 }

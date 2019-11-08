@@ -1,15 +1,17 @@
-#' Builds a tidy data frame for observations of a dive
+#' Builds a tidy data frame for dive objects
 #' 
 #' Converts raw dive information to a tidy dataframe that
-#' is suitable for plotting with \code{ggplot2}.
+#' is suitable for plotting with \code{ggplot2}.  Most importantly, the function
+#' converts depth bin indices to actual depths and depth ranges.
 #' 
 #' @param depths Record of observed depth bin indices
 #' @param times Times (in seconds) at which depth bin observations were made
-#' @param stages Vector of guesses for which dive stage the trajectory was 
-#'   in at each observation
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
+#' @param stages Vector of (guesses) for which dive stage the trajectory was 
+#'   in at each observation
+#' @param durations Vector specifying the amount of time spent in each depth bin
 #' 
 #' 
 #' @example examples/ds.df.R

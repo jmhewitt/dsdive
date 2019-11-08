@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsdive.impute.R
 \name{dsdive.impute}
 \alias{dsdive.impute}
-\title{Simulate dive trajectories across discrete depth bins}
+\title{Use bridged sampling to impute a complete dive trajectory consistent with observations}
 \usage{
 dsdive.impute(depth.bins, depths, times, s0, beta, lambda, sub.tx, surf.tx,
   inflation.factor.lambda = 1.1, verbose = FALSE,
@@ -13,7 +13,11 @@ dsdive.impute(depth.bins, depths, times, s0, beta, lambda, sub.tx, surf.tx,
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
-\item{s0}{dive stage in which forward simulation begins}
+\item{depths}{record of depth bins the trajectory should visit}
+
+\item{times}{times at which the depth bins should be visited}
+
+\item{s0}{dive stage at which the trajectory should be started from}
 
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
 preference and directional persistence parameters for the DIVING, SUBMERGED, 
@@ -29,27 +33,24 @@ a transition occurs at the next depth transition}
 \item{surf.tx}{parameter that specifies the probability the trajectory will 
 transition to the SURFACING stage at the next depth transition}
 
-\item{d0}{the depth bin at which transition parameters should be computed}
+\item{inflation.factor.lambda}{In order to facilitate bridged transitions, 
+the transition rate of the overall process must be inflated to allow the 
+possibility of self-transitions.  Self-transitions allow bridged paths to 
+dynamically modify the total number of transitions between observed values
+so that a valid path between observations is always possible.  The 
+\code{inflation.factor.lambda} parameter implicitly controls the number of 
+self-transitions that will occur.  Larger values will create more 
+self-transitions.}
 
-\item{t0}{time at which transition parameters should be computed}
+\item{verbose}{If \code{TRUE}, then the sampler's progress will be printed 
+during sampling.}
 
-\item{tf}{time at which sampling should end after}
-}
-\value{
-A \code{dsdive} object, which is a \code{list} with the following 
-  vectors:
-  \describe{
-    \item{depths}{Record of which depth bin indices the trajectory visited}
-    \item{durations}{Record of amount of time spent in each depth bin}
-    \item{times}{The time at which each depth bin was entered}
-    \item{stages}{The stage at which each depth bin was entered}
-  }
+\item{precompute.bridges}{If \code{TRUE}, then the bridged transition 
+matrices will be precomputed.  Enabling this option will increase the 
+memory overhead of the method, but will reduce its runtime.}
 }
 \description{
-The method will simulate dive trajectories from initial conditions until the 
-trajectory is observable at \code{tf}, or a maximum number of transitions 
-has been exceeded.  The dive simulation is bridged, so the trajectory will
-also stop diving after returning to the surface.
+Use bridged sampling to impute a complete dive trajectory consistent with observations
 }
 \examples{
 data('dive.sim')
