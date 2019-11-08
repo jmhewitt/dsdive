@@ -36,7 +36,7 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
   for(j in 1:(nt-1)) {
     
     # get transition parameters
-    p = dsdive.tx.params(t0 = times[j], num.depths = num.depths, 
+    p = dsdive.tx.params(t0 = times[j], depth.bins = depth.bins, 
                          d0 = depths[j], s0 = stages[j], beta = beta, 
                          d0.last = ifelse(j==1, NULL, depths[j-1]), 
                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx)

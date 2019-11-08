@@ -25,7 +25,7 @@ surf.tx = c(-10, 5e-3)
 #
 
 # simulate dive
-x = dsdive.fwdsample(depths.labels = depths, d0 = 1, beta = beta, 
+x = dsdive.fwdsample(depth.bins = depths, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
                      nsteps = NULL, s0 = 1)
