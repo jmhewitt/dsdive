@@ -86,7 +86,9 @@ dsdive.impute = function(depth.bins, depths, times, s0, beta, lambda, sub.tx,
     res$depths = c(res$depths, br$depths[-1])
     res$stages = c(res$stages, br$stages[-1])
     res$times = c(res$times, br$t[-1])
-    res$durations = c(res$durations, br$durations)
+    if(length(br$depths) > 1) {
+      res$durations = c(res$durations, br$durations)
+    }
     
     # update log-density for proposed trajectory
     res$ld = res$ld + br$ld
