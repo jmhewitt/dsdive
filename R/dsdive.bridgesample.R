@@ -255,5 +255,9 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
     ld = ld
   )
   
+  if(ncol(path.full)==1) {
+    res$durations = tf - t0
+  }
+  
   res
 }
