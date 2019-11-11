@@ -65,6 +65,7 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     durations = NULL,
     times = t[1]
   )
+  class(particle) = 'dsdive'
   
   particles = list(
     resampling = rep(list(particle), NN),
