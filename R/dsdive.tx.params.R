@@ -38,17 +38,8 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   num.depths = nrow(depth.bins)
   
   # extract probability of transitioning to next dive stage
-  if(s0 == 1) { # transition to SUBMERGED stage after minimum depth reached
-    if(d0 >= sub.tx[1] ) {
-      prob.stage = sub.tx[2]
-    } else {
-      prob.stage = 0
-    }
-  } else if(s0 == 2) { # ASCENDING stage tx. depends on time
-    prob.stage = plogis(sum(surf.tx * c(1, t0)))
-  } else { # no transition out of ASCENDING stage
-    prob.stage = 0
-  } 
+  prob.stage = dsdive.tx.stage(t0 = t0, d0 = d0, sub.tx = sub.tx, 
+                               surf.tx = surf.tx, t0.dive = t0.dive)[s0,]
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward
