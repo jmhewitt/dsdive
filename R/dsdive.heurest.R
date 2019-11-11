@@ -22,7 +22,7 @@
 #'   behaviors stage can occur.
 #' @param t0.dive Time at which dive started
 #' 
-#' @example examples/heurest.R
+#' # @example examples/heurest.R
 #' 
 #' @export
 #' 

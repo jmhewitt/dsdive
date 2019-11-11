@@ -25,7 +25,9 @@ parameters, after transformation to real line}
 \item{sub.tx1}{Index of minimum depth bin at which transition to intermediate 
 behaviors stage can occur.}
 
-\item{t0.dive}{Time at which dive started}
+\item{t0.dive}{Time at which dive started
+
+# @example examples/heurest.R}
 }
 \description{
 Builds heuristic estimates of dive model parameters, which is useful for 
@@ -37,14 +39,4 @@ The heuristic estimate begins by linearly imputing a dive trajectory that
 is consistent with observations, then optimizes model parameters from the 
 basic imputed trajectory.  Note that the imputed trajectory is likely to be 
 very unrealistic, especially for datasets with sparse temporal observations.
-}
-\examples{
-data('dive.sim')
-attach(dive.sim)
-
-est = dsdive.heurest(depths = sim.obs$depths, times = sim.obs$times, 
-                     stages.est = sim.obs$stages, depth.bins = depth.bins, 
-                     sub.tx1 = params$sub.tx[1], t0.dive = 0)
-
-detach(dive.sim)
 }
