@@ -5,7 +5,7 @@
 \title{Simulate dive trajectories across discrete depth bins}
 \usage{
 dsdive.fwdsample(depth.bins, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
-  steps.max, dur0 = NULL, nsteps = NULL, s0)
+  steps.max, dur0 = NULL, nsteps = NULL, s0, t0.dive)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -45,6 +45,8 @@ be reconfigured to sample exactly \code{nsteps} transitions instead of
 attempting to sample until the trajectory is observable at time \code{tf}.}
 
 \item{s0}{dive stage in which forward simulation begins}
+
+\item{t0.dive}{Time at which dive started}
 }
 \value{
 A \code{dsdive} object, which is a \code{list} with the following 
@@ -71,5 +73,8 @@ attach(dive.sim$params)
 x = dsdive.fwdsample(depth.bins = depth.bins, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1)
+                     nsteps = NULL, s0 = 1, t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }

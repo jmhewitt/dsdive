@@ -35,6 +35,7 @@
 #'   which can potentially yield faster inference because each step of the 
 #'   ABC-SMC sampler requires fewer memory operations.
 #' @param stage.init The dive stage in which all particles should be initialized
+#' @param t0.dive Time at which dive started
 #' 
 #' @example examples/ldabc.R
 #' 
@@ -44,7 +45,7 @@
 dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins, 
                         steps.max = 1e3, N, depths, t, tries.max, eps,
                         dump.state = FALSE, verbose = FALSE, n.samples = 0,
-                        stage.init = 1) {
+                        stage.init = 1, t0.dive) {
   
   # extract dimensional information
   nt = length(t)
@@ -98,7 +99,7 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
                              surf.tx = surf.tx, t0 = particle$times[len], 
                              tf = t[j], steps.max = steps.max, 
                              dur0 = particle$durations[len], 
-                             s0 = particle$stages[len])
+                             s0 = particle$stages[len], t0.dive = t0.dive)
         
         # continue resampling if particle is not observable at required time
         if(length(p$times) > 0) {

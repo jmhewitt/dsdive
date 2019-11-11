@@ -6,7 +6,7 @@
 \usage{
 dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depth.bins, steps.max = 1000,
   N, depths, t, tries.max, eps, dump.state = FALSE, verbose = FALSE,
-  n.samples = 0, stage.init = 1)
+  n.samples = 0, stage.init = 1, t0.dive)
 }
 \arguments{
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
@@ -57,6 +57,8 @@ which can potentially yield faster inference because each step of the
 ABC-SMC sampler requires fewer memory operations.}
 
 \item{stage.init}{The dive stage in which all particles should be initialized}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 SMC estimation of likelihood for imputed dive trajectories
@@ -69,6 +71,9 @@ attach(dive.sim$params)
 ld = dsdive.ldabc(beta = beta, lambda = lambda, sub.tx = sub.tx, 
                   surf.tx = surf.tx, depth.bins = depth.bins, 
                   steps.max = 1e3, N = 1e1, depths = sim.obs$depths, 
-                  t = sim.obs$times, tries.max = 1e5, dump.state = TRUE, 
-                  verbose = TRUE, n.samples = 5, eps = 1)
+                  t = sim.obs$times, tries.max = 1e2, dump.state = TRUE, 
+                  verbose = TRUE, n.samples = 5, eps = 1, t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }

@@ -30,11 +30,12 @@
 #' @param burn number of iterations to discard at end of sampling
 #' @param verbose If \code{verbose=TRUE}, then print diagnostic output while 
 #'   sampling.
+#' @param t0.dive Time at which dive started
 #' 
 #' @export
 #'
 fit.fixedimputation = function(par, priors = rep(5, 12), imputed.list, it, 
-                               burn = round(it/2), verbose = FALSE) {
+                               burn = round(it/2), verbose = FALSE, t0.dive) {
   
   # update iterations to allow for initialization
   it = it+1
@@ -101,7 +102,7 @@ fit.fixedimputation = function(par, priors = rep(5, 12), imputed.list, it,
                            depths = imputed.list[[j]]$depths, 
                            durations = imputed.list[[j]]$durations, 
                            times = imputed.list[[j]]$times, 
-                           depth.bins = depth.bins)
+                           depth.bins = depth.bins, t0.dive = t0.dive)
       breaks = c(sample(x = d$x, size = 1, prob = d$prob), breaks[2])
       stage.vec = stagevec(length.out = nt, breaks = breaks)
       # update transition to third stage
@@ -110,7 +111,7 @@ fit.fixedimputation = function(par, priors = rep(5, 12), imputed.list, it,
                            depths = imputed.list[[j]]$depths, 
                            durations = imputed.list[[j]]$durations, 
                            times = imputed.list[[j]]$times, 
-                           depth.bins = depth.bins)
+                           depth.bins = depth.bins, t0.dive = t0.dive)
       breaks = c(breaks[1], sample(x = d$x, size = 1, prob = d$prob))
       stage.vec = stagevec(length.out = nt, breaks = breaks)
       # save mcmc output

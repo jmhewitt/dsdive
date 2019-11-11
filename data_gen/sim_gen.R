@@ -28,7 +28,7 @@ surf.tx = c(-10, 5e-3)
 x = dsdive.fwdsample(depth.bins = depths, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1)
+                     nsteps = NULL, s0 = 1, t0.dive = 0)
 
 # observe dive at regular time intervals
 obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages,
@@ -37,7 +37,7 @@ obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages,
 # impute trajectory
 imputed = dsdive.impute(depth.bins = depths, depths = obs$depths, 
                         times = obs$times, s0 = 1, beta = beta, lambda = lambda, 
-                        sub.tx = sub.tx, surf.tx = surf.tx)
+                        sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
 
 
 #

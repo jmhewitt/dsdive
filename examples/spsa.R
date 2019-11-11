@@ -15,3 +15,6 @@ o = spsa(par = c(beta, log(lambda), log(sub.tx[-1]), surf.tx),
                              eps = 1)$ld
             -r
           }, c = 2^(-6), a = 2^(-12), alpha = 1/3)
+
+detach(dive.sim$params)
+detach(dive.sim)

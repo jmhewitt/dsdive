@@ -32,7 +32,8 @@
 #'   transition parameters for depth bins at and above \code{min.depth}.
 #' @param max.depth As a computational efficiency option, only compute 
 #'   transition parameters for depth bins at and below \code{max.depth}.
-#'   
+#' @param t0.dive Time at which dive started
+#' 
 #' @example examples/txmatrix.R
 #' 
 #' @importFrom Matrix sparseMatrix
@@ -41,7 +42,7 @@
 #' 
 dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
                             inflation.factor.lambda = 1, min.depth = 1, 
-                            max.depth = nrow(depth.bins)) {
+                            max.depth = nrow(depth.bins), t0.dive) {
   
   # find maximum transition rate, to compute self-transitions
   lambda.max = max(lambda) * inflation.factor.lambda
@@ -79,7 +80,8 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
       # we leave surface from stage 1, and with no last recorded depth
       p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = 1, 
                            d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
-                           sub.tx = sub.tx, surf.tx = surf.tx)
+                           sub.tx = sub.tx, surf.tx = surf.tx, 
+                           t0.dive = t0.dive)
       
       # compute and save probability of null-transition
       self.tx = 1 - lambda[1]/lambda.max
@@ -124,7 +126,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
           p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = i, 
                                d0.last = i+dd, s0 = s, beta = beta, 
                                lambda = lambda, sub.tx = sub.tx, 
-                               surf.tx = surf.tx)
+                               surf.tx = surf.tx, t0.dive = t0.dive)
           
           # compute starting index
           from.ind = toInd(x = i+dd, y = i, z = s, x.max = n, y.max = n)

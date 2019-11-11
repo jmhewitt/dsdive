@@ -32,13 +32,14 @@
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
+#' @param t0.dive Time at which dive started
 #'   
 #' @example examples/dsdive.ld.stages.R
 #' 
 #' @export
 #'
 dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
-                            depths, durations, times, depth.bins) {
+                            depths, durations, times, depth.bins, t0.dive) {
   
   # extract dimensions
   nt = length(times)
@@ -69,7 +70,7 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
     log.wts[i] = dsdive.ld(depths = depths, durations = durations, 
                            times = times, stages = stage.vec, beta = beta, 
                            lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                           depth.bins = depth.bins)
+                           depth.bins = depth.bins, t0.dive = t0.dive)
   }
   
   # center weights and transform to probability scale

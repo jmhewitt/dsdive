@@ -5,7 +5,7 @@
 \title{Heuristic estimate of model parameters given observations}
 \usage{
 dsdive.heurest(depths, times, stages.est, depth.bins, priors = rep(5,
-  12), sub.tx1)
+  12), sub.tx1, t0.dive)
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -24,6 +24,8 @@ parameters, after transformation to real line}
 
 \item{sub.tx1}{Index of minimum depth bin at which transition to intermediate 
 behaviors stage can occur.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Builds heuristic estimates of dive model parameters, which is useful for 
@@ -42,5 +44,7 @@ attach(dive.sim)
 
 est = dsdive.heurest(depths = sim.obs$depths, times = sim.obs$times, 
                      stages.est = sim.obs$stages, depth.bins = depth.bins, 
-                     sub.tx1 = params$sub.tx[1])
+                     sub.tx1 = params$sub.tx[1], t0.dive = 0)
+
+detach(dive.sim)
 }

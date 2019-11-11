@@ -5,7 +5,7 @@
 \title{Full conditional distribution for dive stages given data and parameters}
 \usage{
 dsdive.ld.stages(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx, depths,
-  durations, times, depth.bins)
+  durations, times, depth.bins, t0.dive)
 }
 \arguments{
 \item{breaks}{the two indices where a new dive stage is entered}
@@ -36,6 +36,8 @@ transition to the SURFACING stage at the next depth transition}
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 The 3 stage dive model has two breakpoints where the dive stage changes.  
@@ -57,8 +59,11 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-dens = dsdive.ld.stages(breaks = c(200, 400), fixed.ind = 2, beta = beta, 
+dens = dsdive.ld.stages(breaks = c(25, 50), fixed.ind = 2, beta = beta, 
                         lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                         depths = sim$depths, durations = sim$durations, 
-                        times = sim$times, depth.bins = depth.bins)
+                        times = sim$times, depth.bins = depth.bins, t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }

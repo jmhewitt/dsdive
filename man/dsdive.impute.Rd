@@ -6,7 +6,7 @@
 \usage{
 dsdive.impute(depth.bins, depths, times, s0, beta, lambda, sub.tx, surf.tx,
   inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE)
+  precompute.bridges = TRUE, t0.dive)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -48,6 +48,8 @@ during sampling.}
 \item{precompute.bridges}{If \code{TRUE}, then the bridged transition 
 matrices will be precomputed.  Enabling this option will increase the 
 memory overhead of the method, but will reduce its runtime.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Use bridged sampling to impute a complete dive trajectory consistent with observations
@@ -59,5 +61,9 @@ attach(params)
 
 imputed = dsdive.impute(depth.bins = depth.bins, depths = sim.obs$depths, 
                         times = sim.obs$times, s0 = 1, beta = beta, 
-                        lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx)
+                        lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
+                        t0.dive = 0)
+
+detach(params)
+detach(dive.sim)
 }

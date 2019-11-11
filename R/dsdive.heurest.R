@@ -20,6 +20,7 @@
 #'   parameters, after transformation to real line
 #' @param sub.tx1 Index of minimum depth bin at which transition to intermediate 
 #'   behaviors stage can occur.
+#' @param t0.dive Time at which dive started
 #' 
 #' @example examples/heurest.R
 #' 
@@ -27,7 +28,7 @@
 #' 
 #'
 dsdive.heurest = function(depths, times, stages.est, depth.bins, 
-                          priors = rep(5, 12), sub.tx1) {
+                          priors = rep(5, 12), sub.tx1, t0.dive) {
   
   #
   # linearly impute a complete trajectory
@@ -89,7 +90,8 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         beta = matrix(theta[1:6], nrow = 2), 
                         lambda = exp(theta[7:9]), 
                         sub.tx = c(sub.tx1, plogis(theta[10])),
-                        surf.tx = theta[11:12], depth.bins = depth.bins) + 
+                        surf.tx = theta[11:12], depth.bins = depth.bins, 
+                        t0.dive = t0.dive) + 
               sum(dnorm(theta, sd = priors, log = TRUE))
             }, method = 'BFGS', control = list(fnscale = -1))
   

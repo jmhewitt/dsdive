@@ -23,13 +23,17 @@
 #'   a transition occurs at the next depth transition
 #' @param surf.tx parameter that specifies the probability the trajectory will 
 #'   transition to the PA stage at the next depth transition
+#' @param t0.dive Time at which dive started
 #' 
 #' @example examples/txparams.R
 #' 
 #' @export
 #' 
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
-                            lambda, sub.tx, surf.tx) {
+                            lambda, sub.tx, surf.tx, t0.dive) {
+  
+  # shift times so that they are centered with respect to dive start time
+  t0 = t0 - t0.dive
   
   num.depths = nrow(depth.bins)
   

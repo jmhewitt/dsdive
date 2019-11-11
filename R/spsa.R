@@ -13,7 +13,7 @@
 #' @param gamma decay parameter for step size
 #' @param tol Relative convergence criterion
 #' 
-#' @example examples/spsa.R
+#' # @example examples/spsa.R
 #' 
 #' 
 #'

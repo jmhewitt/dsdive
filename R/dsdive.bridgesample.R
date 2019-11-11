@@ -43,6 +43,7 @@
 #'   be thinned.  \code{lambda.max} will be scaled by 
 #'   \code{inflation.factor.lambda}, and if \code{lambda.max==NULL} then the 
 #'   method will compute this on its own.
+#' @param t0.dive Time at which dive started
 #' 
 #' @example examples/dsdive.bridgesample.R
 #' 
@@ -55,7 +56,8 @@
 dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda, 
                                sub.tx, surf.tx, t0, tf, s0, 
                                inflation.factor.lambda = 1.1, verbose = FALSE,
-                               precompute.bridges = TRUE, lambda.max = NULL) {
+                               precompute.bridges = TRUE, lambda.max = NULL,
+                               t0.dive) {
   
   #
   # build basic simulation parameters
@@ -118,7 +120,8 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
                                    sub.tx = sub.tx, surf.tx = surf.tx,
                                    inflation.factor.lambda = 
                                      inflation.factor.lambda,
-                                   min.depth = min.depth, max.depth = max.depth)
+                                   min.depth = min.depth, max.depth = max.depth,
+                                   t0.dive = t0.dive)
   }
   
   # add a "null" depth bin to allow trajectory initialization

@@ -30,6 +30,7 @@
 #' @param precompute.bridges If \code{TRUE}, then the bridged transition 
 #'   matrices will be precomputed.  Enabling this option will increase the 
 #'   memory overhead of the method, but will reduce its runtime.
+#' @param t0.dive Time at which dive started
 #' 
 #' @example examples/dsdive.impute.R
 #' 
@@ -37,7 +38,7 @@
 #'
 dsdive.impute = function(depth.bins, depths, times, s0, beta, lambda, sub.tx, 
                          surf.tx, inflation.factor.lambda = 1.1, 
-                         verbose = FALSE, precompute.bridges = TRUE) {
+                         verbose = FALSE, precompute.bridges = TRUE, t0.dive) {
   
   # extract dimensions
   nt = length(times)
@@ -73,7 +74,7 @@ dsdive.impute = function(depth.bins, depths, times, s0, beta, lambda, sub.tx,
                              inflation.factor.lambda = inflation.factor.lambda,
                              verbose = verbose, 
                              precompute.bridges = precompute.bridges,
-                             lambda.max = lambda.max)
+                             lambda.max = lambda.max, t0.dive = t0.dive)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {

@@ -6,7 +6,7 @@
 \usage{
 dsdive.tx.matrix(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   inflation.factor.lambda = 1, min.depth = 1,
-  max.depth = nrow(depth.bins))
+  max.depth = nrow(depth.bins), t0.dive)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
@@ -43,6 +43,8 @@ transition parameters for depth bins at and above \code{min.depth}.}
 
 \item{max.depth}{As a computational efficiency option, only compute 
 transition parameters for depth bins at and below \code{max.depth}.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Given model parameters and transition times, the 3 stage dive model can be 
@@ -57,5 +59,9 @@ attach(dive.sim)
 attach(dive.sim$params)
 
 m = dsdive.tx.matrix(t0 = 60, depth.bins = depth.bins, beta = beta, 
-                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx)
+                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
+                     t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }

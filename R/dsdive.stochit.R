@@ -9,7 +9,7 @@
 #' The method is experimental because its theoretical convergence properties 
 #' are not fully explored.
 #' 
-#' @example examples/stochit.R
+#' # @example examples/stochit.R
 #' 
 #' @importFrom MHadaptive Metro_Hastings
 #' @importFrom bmk bmksensitive

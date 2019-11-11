@@ -5,7 +5,7 @@
 \title{Likelihood for completely observed dive trajectories}
 \usage{
 dsdive.ld(depths, durations, times, stages, beta, lambda, sub.tx, surf.tx,
-  depth.bins)
+  depth.bins, t0.dive)
 }
 \arguments{
 \item{depths}{Depth bin indices in which the trajectory was observed}
@@ -33,6 +33,8 @@ transition to the SURFACING stage at the next depth transition}
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Likelihood for completely observed dive trajectories
@@ -45,5 +47,8 @@ attach(dive.sim$params)
 ld = dsdive.ld(depths = sim$depths, durations = sim$durations, 
                times = sim$times, stages = sim$stages, beta = beta, 
                lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-               depth.bins = depth.bins)
+               depth.bins = depth.bins, t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }

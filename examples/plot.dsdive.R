@@ -10,3 +10,5 @@ pl2 = plot(x = sim, depth.bins = depth.bins, dsobs = sim.obs)
 # plot with imputed trajectory overlaid
 pl3 = plot(x = sim, depth.bins = depth.bins, dsobs = sim.obs, 
            imputed.list = imputed)
+
+detach(dive.sim)

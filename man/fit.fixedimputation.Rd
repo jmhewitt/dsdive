@@ -5,7 +5,7 @@
 \title{Gibbs sampler to estimate 3 stage dive model}
 \usage{
 fit.fixedimputation(par, priors = rep(5, 12), imputed.list, it,
-  burn = round(it/2), verbose = FALSE)
+  burn = round(it/2), verbose = FALSE, t0.dive)
 }
 \arguments{
 \item{par}{List with parameter values at which to initialize the MCMC 
@@ -29,6 +29,8 @@ data for posterior approximation.}
 
 \item{verbose}{If \code{verbose=TRUE}, then print diagnostic output while 
 sampling.}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Approximate the posterior distribution of parameters for the 3 stage dive 
@@ -49,5 +51,7 @@ data('dive.sim')
 attach(dive.sim)
 
 out = fit.fixedimputation(par = params, imputed.list = list(imputed), 
-                          it = 5, burn = 1, verbose = TRUE)
+                          it = 5, burn = 1, verbose = TRUE, t0.dive = 0)
+
+detach(dive.sim)
 }

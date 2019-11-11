@@ -3,4 +3,8 @@ attach(dive.sim)
 attach(dive.sim$params)
 
 m = dsdive.tx.matrix(t0 = 60, depth.bins = depth.bins, beta = beta, 
-                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx)
+                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
+                     t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)

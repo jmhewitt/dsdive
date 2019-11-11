@@ -5,7 +5,7 @@
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
 dsdive.tx.params(t0, depth.bins, d0, d0.last = NULL, s0, beta, lambda,
-  sub.tx, surf.tx)
+  sub.tx, surf.tx, t0.dive)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
@@ -35,6 +35,8 @@ a transition occurs at the next depth transition}
 
 \item{surf.tx}{parameter that specifies the probability the trajectory will 
 transition to the PA stage at the next depth transition}
+
+\item{t0.dive}{Time at which dive started}
 }
 \description{
 Computes elements of a transition matrix when given model parameters and 
@@ -46,15 +48,18 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 0, 
+dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 0, 
                  d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
+                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
 
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
+dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
                  d0.last = 61, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
+                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
 
-dsdive.tx.params(t0 = 0, num.depths = nrow(depth.bins), d0 = 60, 
+dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
                  d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx)
+                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }
