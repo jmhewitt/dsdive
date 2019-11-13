@@ -127,8 +127,11 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       if(current$t >= tf)
         break
       # or stop sampling once trajectory returns to surface
-      else if(current$depth == 1)
+      else if(current$depth == 1) {
+        current$duration = Inf
         break
+      }
+        
     }
     
     # only retain samples so that the trajectory is observable at tf
