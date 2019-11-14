@@ -21,6 +21,7 @@
 #' @param sub.tx1 Index of minimum depth bin at which transition to intermediate 
 #'   behaviors stage can occur.
 #' @param t0.dive Time at which dive started
+#' @param method Method to use in \code{optim} search for initial parameters
 #' 
 #' # @example examples/heurest.R
 #' 
@@ -28,7 +29,8 @@
 #' 
 #'
 dsdive.heurest = function(depths, times, stages.est, depth.bins, 
-                          priors = rep(5, 12), sub.tx1, t0.dive) {
+                          priors = rep(5, 12), sub.tx1, t0.dive, 
+                          method = 'Nelder-Mead') {
   
   #
   # linearly impute a complete trajectory
@@ -93,7 +95,7 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         surf.tx = theta[11:12], depth.bins = depth.bins, 
                         t0.dive = t0.dive) + 
               sum(dnorm(theta, sd = priors, log = TRUE))
-            }, method = 'BFGS', control = list(fnscale = -1))
+            }, method = method, control = list(fnscale = -1))
   
   # package results
   list(
