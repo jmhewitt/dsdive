@@ -32,9 +32,6 @@
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
                             lambda, sub.tx, surf.tx, t0.dive) {
   
-  # shift times so that they are centered with respect to dive start time
-  t0 = t0 - t0.dive
-  
   num.depths = nrow(depth.bins)
   
   # extract probability of transitioning to next dive stage
