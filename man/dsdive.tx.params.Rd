@@ -5,7 +5,7 @@
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
 dsdive.tx.params(t0, depth.bins, d0, d0.last = NULL, s0, beta, lambda,
-  sub.tx, surf.tx, t0.dive)
+  sub.tx, surf.tx, t0.dive, shift.params = NULL)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
@@ -37,6 +37,18 @@ a transition occurs at the next depth transition}
 transition to the PA stage at the next depth transition}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{shift.params}{If not \code{NULL}, then will apply a directional bias 
+to depth bin transition probabilities.  \code{shift.params} should be a
+vector, and the first element should be the target depth bin to travel to.
+The second element controls the strenght of the bias.  The second element 
+should be a positive value, with 1.125 being the recommended value.  Using 
+\code{shift.params[2] = 1.125} will reinforce natural movement in good 
+directions of travel, and replace "poor" directions of travel with bias in 
+"good" directions of travel.  Setting \code{shift.params[2] = 1} will 
+replace "poor" directions of travel with random walk proposals.  Values 
+less than 1 will push poor directions of travel closer toward random walks
+from their natural tendencies.}
 }
 \description{
 Computes elements of a transition matrix when given model parameters and 
@@ -59,6 +71,11 @@ dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60,
 dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
                  d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
                  sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
+
+dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
+                 d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
+                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, 
+                 shift.params = c(50, 1.125))
 
 detach(dive.sim$params)
 detach(dive.sim)

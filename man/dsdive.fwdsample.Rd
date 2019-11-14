@@ -5,7 +5,8 @@
 \title{Simulate dive trajectories across discrete depth bins}
 \usage{
 dsdive.fwdsample(depth.bins, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
-  steps.max, dur0 = NULL, nsteps = NULL, s0, t0.dive)
+  steps.max, dur0 = NULL, nsteps = NULL, s0, t0.dive,
+  shift.params = NULL)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -47,6 +48,9 @@ attempting to sample until the trajectory is observable at time \code{tf}.}
 \item{s0}{dive stage in which forward simulation begins}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{shift.params}{Optional arguments to bias sampling toward a specific 
+node.  See documentation for \code{dsdive.tx.params} for more detail.}
 }
 \value{
 A \code{dsdive} object, which is a \code{list} with the following 

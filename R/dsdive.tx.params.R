@@ -24,13 +24,25 @@
 #' @param surf.tx parameter that specifies the probability the trajectory will 
 #'   transition to the PA stage at the next depth transition
 #' @param t0.dive Time at which dive started
+#' @param shift.params If not \code{NULL}, then will apply a directional bias 
+#'   to depth bin transition probabilities.  \code{shift.params} should be a
+#'   vector, and the first element should be the target depth bin to travel to.
+#'   The second element controls the strenght of the bias.  The second element 
+#'   should be a positive value, with 1.125 being the recommended value.  Using 
+#'   \code{shift.params[2] = 1.125} will reinforce natural movement in good 
+#'   directions of travel, and replace "poor" directions of travel with bias in 
+#'   "good" directions of travel.  Setting \code{shift.params[2] = 1} will 
+#'   replace "poor" directions of travel with random walk proposals.  Values 
+#'   less than 1 will push poor directions of travel closer toward random walks
+#'   from their natural tendencies.
 #' 
 #' @example examples/txparams.R
 #' 
 #' @export
 #' 
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
-                            lambda, sub.tx, surf.tx, t0.dive) {
+                            lambda, sub.tx, surf.tx, t0.dive, 
+                            shift.params = NULL) {
   
   num.depths = nrow(depth.bins)
   
@@ -70,6 +82,31 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
         }
       }
     }
+    
+    # bias probabilities for computational efficiency
+    if(!is.null(shift.params)) {
+      if(length(nbrs) > 1) {
+        # define directions to neighbors
+        dir.nbrs = c(-1,1)
+        # extract desired destination node
+        df = shift.params[1]
+        # compute direction to destination node
+        dir.df = df - d0
+        # add bias if there is a clear direction of desired travel
+        if(dir.df != 0 ) {
+          # bias probabilities across stages
+          for(i in 1:3) {
+            # determine bias
+            nbr.preferred = which.max(logit.probs[,i])
+            clogit = ifelse(nbr.preferred == which.max(c(d0,df)),
+                            1, -1) * shift.params[2]
+            # apply bias
+            logit.probs[,i] = logit.probs[,i] * (1 + clogit)
+          }
+        }
+      }
+    }
+    
     # convert probabilities
     probs = plogis(logit.probs)
   }

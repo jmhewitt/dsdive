@@ -6,7 +6,7 @@
 \usage{
 dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depth.bins, steps.max = 1000,
   N, depths, t, tries.max, eps, dump.state = FALSE, verbose = FALSE,
-  n.samples = 0, stage.init = 1, t0.dive)
+  n.samples = 0, stage.init = 1, t0.dive, shift.scale = NULL)
 }
 \arguments{
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
@@ -59,6 +59,9 @@ ABC-SMC sampler requires fewer memory operations.}
 \item{stage.init}{The dive stage in which all particles should be initialized}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{shift.params}{Optional arguments to bias sampling toward a specific 
+node.  See documentation for \code{dsdive.tx.params} for more detail.}
 }
 \description{
 SMC estimation of likelihood for imputed dive trajectories

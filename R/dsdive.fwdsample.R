@@ -32,6 +32,8 @@
 #'   attempting to sample until the trajectory is observable at time \code{tf}.
 #' @param s0 dive stage in which forward simulation begins
 #' @param t0.dive Time at which dive started
+#' @param shift.params Optional arguments to bias sampling toward a specific 
+#'   node.  See documentation for \code{dsdive.tx.params} for more detail.
 #' 
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
 #'   vectors:
@@ -49,13 +51,16 @@
 #'
 dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0,
-                            t0.dive) {
+                            t0.dive, shift.params = NULL) {
   
   # initialize output components
   depths = d0
   durations = dur0
   times = t0
   stages = s0
+  if(!is.null(shift.params)) {
+    logW = 0
+  }
   
   # validate time window
   if(t0 > tf) {
@@ -89,7 +94,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
                                    d0 = current$depth, s0 = current$stage,
                                    d0.last = current$depth.last,  beta = beta, 
                                    lambda = lambda, sub.tx = sub.tx, 
-                                   surf.tx = surf.tx, t0.dive = t0.dive)
+                                   surf.tx = surf.tx, t0.dive = t0.dive, 
+                                   shift.params = shift.params)
       
       # if necessary, sample and save duration for current state
       if(is.null(current$duration)) {
@@ -107,6 +113,23 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       } else {
         d = sample(x = params.tx$labels, size = 1, 
                    prob = params.tx$probs[, stage])
+        
+        # compute importance sampling weight
+        if(!is.null(shift.params)) {
+          params.tx.unbiased = dsdive.tx.params(t0 = current$t, 
+                                                depth.bins = depth.bins,
+                                                d0 = current$depth, 
+                                                s0 = current$stage,
+                                                d0.last = current$depth.last,  
+                                                beta = beta, lambda = lambda, 
+                                                sub.tx = sub.tx, 
+                                                surf.tx = surf.tx, 
+                                                t0.dive = t0.dive, 
+                                                shift.params = NULL)
+          ind = which(d == params.tx$labels)
+          logW = logW + log(params.tx.unbiased$probs[ind, stage]) - 
+            log(params.tx$probs[ind, stage])
+        }
       }
       
       # update state to prep for next transition
@@ -165,6 +188,12 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
     times = times,
     stages = stages
   )
+  
+  if(!is.null(shift.params)) {
+    res$logW = logW
+  } else {
+    res$logW = 0
+  }
   
   class(res) = 'dsdive'
   

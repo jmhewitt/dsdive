@@ -36,7 +36,9 @@
 #'   ABC-SMC sampler requires fewer memory operations.
 #' @param stage.init The dive stage in which all particles should be initialized
 #' @param t0.dive Time at which dive started
-#' 
+#' @param shift.params Optional arguments to bias sampling toward a specific 
+#'   node.  See documentation for \code{dsdive.tx.params} for more detail.
+#'   
 #' @example examples/ldabc.R
 #' 
 #' @export
@@ -45,7 +47,7 @@
 dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins, 
                         steps.max = 1e3, N, depths, t, tries.max, eps,
                         dump.state = FALSE, verbose = FALSE, n.samples = 0,
-                        stage.init = 1, t0.dive) {
+                        stage.init = 1, t0.dive, shift.scale = NULL) {
   
   # extract dimensional information
   nt = length(t)
@@ -63,7 +65,8 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     depths = depths[1],
     stages = stage.init,
     durations = NULL,
-    times = t[1]
+    times = t[1],
+    logW = 0
   )
   class(particle) = 'dsdive'
   
@@ -82,6 +85,13 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     # total sampling effort for timepoint
     M = 0
     
+    # set biased sampling parameters
+    if(is.null(shift.scale)) {
+      shift.params = NULL
+    } else {
+      shift.params = c(depths[j], shift.scale)
+    }
+    
     # sample each particle
     for(i in 1:N) {
       
@@ -89,8 +99,11 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
       
       # rejection sample to find acceptable particle
       for(m in 1:tries.max) {
+        # compute sampling weights
+        W = exp(scale(x = sapply(particles$resampling, function(p) p$logW ), 
+                      center = TRUE, scale = FALSE))
         # resample an alive particle
-        particle = particles$resampling[[sample(x = 1:NN, size = 1)]]
+        particle = particles$resampling[[sample(x = 1:NN, size = 1, prob = W)]]
         len = length(particle$depths)
         
         # propose particle; compute error
@@ -100,7 +113,8 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
                              surf.tx = surf.tx, t0 = particle$times[len], 
                              tf = t[j], steps.max = steps.max, 
                              dur0 = particle$durations[len], 
-                             s0 = particle$stages[len], t0.dive = t0.dive)
+                             s0 = particle$stages[len], t0.dive = t0.dive, 
+                             shift.params = shift.params)
         
         # continue resampling if particle is not observable at required time
         if(length(p$times) > 0) {
@@ -139,6 +153,7 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
           }
           
           # save particle
+          particle$logW = p$logW
           particles$alive[[i]] = particle
           
         }
