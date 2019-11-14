@@ -36,8 +36,9 @@
 #'   ABC-SMC sampler requires fewer memory operations.
 #' @param stage.init The dive stage in which all particles should be initialized
 #' @param t0.dive Time at which dive started
-#' @param shift.params Optional arguments to bias sampling toward a specific 
-#'   node.  See documentation for \code{dsdive.tx.params} for more detail.
+#' @param shift.cfg vector: Optional arguments to bias sampling toward a 
+#'   specific node.  See documentation for \code{dsdive.tx.params} for more 
+#'   detail. c(depth.bias, rate.p).
 #'   
 #' @example examples/ldabc.R
 #' 
@@ -47,7 +48,7 @@
 dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins, 
                         steps.max = 1e3, N, depths, t, tries.max, eps,
                         dump.state = FALSE, verbose = FALSE, n.samples = 0,
-                        stage.init = 1, t0.dive, shift.scale = NULL) {
+                        stage.init = 1, t0.dive, shift.cfg = NULL) {
   
   # extract dimensional information
   nt = length(t)
@@ -86,11 +87,15 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     M = 0
     
     # set biased sampling parameters
-    if(is.null(shift.scale)) {
+    if(is.null(shift.cfg)) {
       shift.params = NULL
     } else {
-      shift.params = c(depths[j], shift.scale)
+      shift.params = c(depths[j], shift.cfg[1], t[j], shift.cfg[2])
     }
+    
+    # compute sampling weights
+    W = exp(scale(x = sapply(particles$resampling, function(p) p$logW ), 
+                  center = TRUE, scale = FALSE))
     
     # sample each particle
     for(i in 1:N) {
@@ -99,9 +104,6 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
       
       # rejection sample to find acceptable particle
       for(m in 1:tries.max) {
-        # compute sampling weights
-        W = exp(scale(x = sapply(particles$resampling, function(p) p$logW ), 
-                      center = TRUE, scale = FALSE))
         # resample an alive particle
         particle = particles$resampling[[sample(x = 1:NN, size = 1, prob = W)]]
         len = length(particle$depths)
@@ -186,11 +188,15 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     n.samples = NN
   }
   
+  # compute sampling weights
+  W = exp(scale(x = sapply(particles$resampling, function(p) p$logW ), 
+                center = TRUE, scale = FALSE))
+  
   # package results
   res = list(
     ld = ld,
     sim = particles$resampling[sample(x = 1:NN, size = n.samples, 
-                                      replace = FALSE)],
+                                      replace = FALSE, prob = W)],
     ld.M = ld.M
   )
   

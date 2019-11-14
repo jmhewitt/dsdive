@@ -26,8 +26,9 @@
 #' @param t0.dive Time at which dive started
 #' @param shift.params If not \code{NULL}, then will apply a directional bias 
 #'   to depth bin transition probabilities.  \code{shift.params} should be a
-#'   vector, and the first element should be the target depth bin to travel to.
-#'   The second element controls the strenght of the bias.  The second element 
+#'   vector \code{c(df, p.bias, tf, lambda.bias)}. The first element is the 
+#'   target depth bin to travel to.
+#'   The second element controls the strength of the bias.  The second element 
 #'   should be a positive value, with 1.125 being the recommended value.  Using 
 #'   \code{shift.params[2] = 1.125} will reinforce natural movement in good 
 #'   directions of travel, and replace "poor" directions of travel with bias in 
@@ -111,9 +112,20 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
     probs = plogis(logit.probs)
   }
   
+  # extract transition rate
+  rates = lambda[s0] / (2 * depth.bins[d0, 2])
+  
+  # bias transition rate for computational efficiency
+  if(!is.null(shift.params)) {
+    # compute target rate
+    lambda.tgt = abs(diff(depth.bins[c(d0, shift.params[1]),1])) / 
+      (shift.params[3] - t0) / (2 * depth.bins[d0, 2])
+    # biased rate is convex combination of target and actual rate
+    rates = rates + shift.params[4] * (as.numeric(lambda.tgt) - rates)
+  }
   
   # package results
-  res = list(rate = lambda[s0] / (2 * depth.bins[d0, 2]),
+  res = list(rate = rates,
              prob.stage = prob.stage,
              probs = matrix(probs, ncol = 3),
              labels = nbrs)

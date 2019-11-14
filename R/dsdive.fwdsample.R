@@ -101,8 +101,10 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       if(is.null(current$duration)) {
         dur = rexp(n = 1, rate = params.tx$rate) 
         durations = c(durations, dur)
+        sampled.duration = TRUE
       } else {
         dur = current$duration
+        sampled.duration = FALSE
       }
       
       # sample stage
@@ -113,22 +115,33 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       } else {
         d = sample(x = params.tx$labels, size = 1, 
                    prob = params.tx$probs[, stage])
-        
-        # compute importance sampling weight
-        if(!is.null(shift.params)) {
-          params.tx.unbiased = dsdive.tx.params(t0 = current$t, 
-                                                depth.bins = depth.bins,
-                                                d0 = current$depth, 
-                                                s0 = current$stage,
-                                                d0.last = current$depth.last,  
-                                                beta = beta, lambda = lambda, 
-                                                sub.tx = sub.tx, 
-                                                surf.tx = surf.tx, 
-                                                t0.dive = t0.dive, 
-                                                shift.params = NULL)
-          ind = which(d == params.tx$labels)
-          logW = logW + log(params.tx.unbiased$probs[ind, stage]) - 
-            log(params.tx$probs[ind, stage])
+      }
+      
+      # compute importance sampling weight
+      if(!is.null(shift.params)) {
+        # compute unbiased transition parameters
+        params.tx.unbiased = dsdive.tx.params(t0 = current$t, 
+                                              depth.bins = depth.bins,
+                                              d0 = current$depth, 
+                                              s0 = current$stage,
+                                              d0.last = current$depth.last,  
+                                              beta = beta, lambda = lambda, 
+                                              sub.tx = sub.tx, 
+                                              surf.tx = surf.tx, 
+                                              t0.dive = t0.dive, 
+                                              shift.params = NULL)
+        # determine which transition was taken
+        ind = which(d == params.tx$labels)
+        # update log of importance sampling weight
+        logW = logW + 
+          # depth bin transition effect
+          log(params.tx.unbiased$probs[ind, stage]) - 
+          log(params.tx$probs[ind, stage])
+        if(sampled.duration) {
+          # bin duration effect
+          logW = logW + dexp(x = dur, rate = params.tx.unbiased$rate, 
+                             log = TRUE) - 
+                        dexp(x = dur, rate = params.tx$rate, log = TRUE)
         }
       }
       

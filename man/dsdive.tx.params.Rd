@@ -40,8 +40,9 @@ transition to the PA stage at the next depth transition}
 
 \item{shift.params}{If not \code{NULL}, then will apply a directional bias 
 to depth bin transition probabilities.  \code{shift.params} should be a
-vector, and the first element should be the target depth bin to travel to.
-The second element controls the strenght of the bias.  The second element 
+vector \code{c(df, p.bias, tf, lambda.bias)}. The first element is the 
+target depth bin to travel to.
+The second element controls the strength of the bias.  The second element 
 should be a positive value, with 1.125 being the recommended value.  Using 
 \code{shift.params[2] = 1.125} will reinforce natural movement in good 
 directions of travel, and replace "poor" directions of travel with bias in 
@@ -75,7 +76,7 @@ dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60,
 dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
                  d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
                  sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, 
-                 shift.params = c(50, 1.125))
+                 shift.params = c(50, 1.125, 3, .5))
 
 detach(dive.sim$params)
 detach(dive.sim)

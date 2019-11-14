@@ -6,7 +6,7 @@
 \usage{
 dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depth.bins, steps.max = 1000,
   N, depths, t, tries.max, eps, dump.state = FALSE, verbose = FALSE,
-  n.samples = 0, stage.init = 1, t0.dive, shift.scale = NULL)
+  n.samples = 0, stage.init = 1, t0.dive, shift.cfg = NULL)
 }
 \arguments{
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
@@ -60,8 +60,9 @@ ABC-SMC sampler requires fewer memory operations.}
 
 \item{t0.dive}{Time at which dive started}
 
-\item{shift.params}{Optional arguments to bias sampling toward a specific 
-node.  See documentation for \code{dsdive.tx.params} for more detail.}
+\item{shift.cfg}{vector: Optional arguments to bias sampling toward a 
+specific node.  See documentation for \code{dsdive.tx.params} for more 
+detail. c(depth.bias, rate.p).}
 }
 \description{
 SMC estimation of likelihood for imputed dive trajectories
