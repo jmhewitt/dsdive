@@ -19,9 +19,6 @@
 #' 
 dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive) {
   
-  # shift times so that they are centered with respect to dive start time
-  t0 = t0 - t0.dive
-  
   # initialize results
   res = matrix(data = 0, nrow = 3, ncol = length(t0))
   
@@ -31,7 +28,7 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive) {
   res[1, d0 >= sub.tx[1]] = sub.tx[2]
   
   # probability of transition to stage 3
-  res[2,] = plogis(surf.tx[1] + surf.tx[2] * t0)
+  res[2,] = plogis(surf.tx[1] + surf.tx[2] * (t0 - t0.dive))
   
   # probability of transition out of stage 3 remains 0
    
