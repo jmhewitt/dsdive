@@ -33,6 +33,8 @@
 #' @param max.depth As a computational efficiency option, only compute 
 #'   transition parameters for depth bins at and below \code{max.depth}.
 #' @param t0.dive Time at which dive started
+#' @param lambda.max Arrival rate for the parent Poisson process that will
+#'   be thinned.  \code{lambda.max} will be scaled by 
 #' 
 #' @example examples/txmatrix.R
 #' 
@@ -42,10 +44,14 @@
 #' 
 dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
                             inflation.factor.lambda = 1, min.depth = 1, 
-                            max.depth = nrow(depth.bins), t0.dive) {
+                            max.depth = nrow(depth.bins), t0.dive, 
+                            lambda.max = NULL) {
   
-  # find maximum transition rate, to compute self-transitions
-  lambda.max = max(lambda) * inflation.factor.lambda
+  # get rate for thick poisson process
+  if(is.null(lambda.max)) {
+    lambda.max = max(outer(lambda, 2 * depth.bins[,2], '/'))
+  }
+  lambda.max = inflation.factor.lambda * lambda.max
   
   # add a "null" depth bin to allow trajectory initialization
   n = nrow(depth.bins) + 1
@@ -84,7 +90,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
                            t0.dive = t0.dive)
       
       # compute and save probability of null-transition
-      self.tx = 1 - lambda[1]/lambda.max
+      self.tx = 1 - p$rate/lambda.max
       from.ind = toInd(x = n, y = 1, z = 1, x.max = n, y.max = n)
       if(self.tx > 0) {
         x[next.entry] = self.tx
@@ -132,7 +138,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
           from.ind = toInd(x = i+dd, y = i, z = s, x.max = n, y.max = n)
           
           # compute and save probability of null-transition
-          self.tx = 1 - lambda[s]/lambda.max
+          self.tx = 1 - p$rate/lambda.max
           if(self.tx > 0) {
             x[next.entry] = self.tx
             im[next.entry] = from.ind
