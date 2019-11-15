@@ -73,6 +73,16 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   # minimum number of transitions required for bridging
   min.tx = abs(df-d0)
   
+  # convert d0.last to vector if not already provided
+  if(length(d0.last) != M) {
+    d0.last = rep(d0.last[1], M)
+  }
+  
+  # convert s0 to vector if not already provided
+  if(length(s0) != M) {
+    s0 = rep(s0[1], M)
+  }
+  
   
   #
   # sample homogeneous poisson process for thinning 
@@ -100,9 +110,13 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   # update log-density for sample
   ld = ld + 
     # log-density for number of arrivals
-    dtpois(x = N, lambda = lambda.tmp, a = min.tx, log = TRUE) + 
+    # note: a = min.tx - 1 accounts for bug in dtpois support
+    dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) + 
     # log-density for arrival times (as order statistics of uniform sample)
     lfactorial(N) - N * log(T.win)
+  if(any(is.infinite(ld))) {
+    browser()
+  }
     
   
   #
@@ -136,13 +150,9 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     # add a "null" depth bin to allow trajectory initialization
     n = nrow(depth.bins) + 1
     
-    # set starting index for trajectories
-    init.ind = toInd(x = ifelse(is.null(d0.last), n, d0.last), y = d0, z = s0, 
-                     x.max = n, y.max = n)
-    
     # get ending indices for trajectory (any previous depth, any dive stage)
     end.inds = c()
-    for(s in s0:3) {
+    for(s in min(s0):3) {
       for(dd in c(-1,0,1)) {
         if(((df + dd) > 0) & ((df + dd) < n)) {
           end.inds = c(end.inds, toInd(x = df + dd, y = df, z = s, 
@@ -173,6 +183,10 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     
     # sample paths
     for(i in 1:length(N)) {
+      
+      # set starting index for trajectory
+      init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), y = d0, 
+                       z = s0[i], x.max = n, y.max = n)
       
       # extract path length
       N.i = N[i]
@@ -228,10 +242,10 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       #
       # package path
       #
-      
+
       # extract raw path, including initial state
       path.full = cbind( 
-        c(ifelse(is.null(d0.last), n, d0.last), d0, s0), 
+        c(ifelse(is.null(d0.last[i]), n, d0.last[i]), d0, s0[i]), 
         sapply(path.inds, function(ind){
           fromInd(ind = ind, x.max = n, y.max = n)
         })
@@ -250,7 +264,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       ))
       
       if(ncol(path.full)==1) {
-        paths.out[i]$durations = tf - t0
+        paths.out[[i]]$durations = tf - t0
       }
       
       class(paths.out[i]) = 'dsdive'
@@ -260,7 +274,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     
   } else {
     # build null-transitions
-    p = list(depths = d0, stages = s0, times = t0, durations = tf - t0, 
+    p = list(depths = d0, stages = s0[1], times = t0, durations = tf - t0, 
              ld = ld[1])
     paths.out = list(rep(p,M))
   }
