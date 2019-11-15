@@ -63,6 +63,9 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   jm = numeric(length = nd)
   next.entry = 1
   
+  # initialize storage for out-edges from nodes (overcommit space)
+  out.inds = vector('list', nd)
+  
   # loop over depth bins (skip over transitions starting in "null" depth)
   build.depths = min.depth:max.depth
   for(i in build.depths) {
@@ -77,6 +80,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
         im[next.entry] = ind
         jm[next.entry] = ind
         next.entry = next.entry + 1
+        out.inds[[ind]] = c(out.inds[[ind]], ind)
       }
       
       #
@@ -97,6 +101,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
         im[next.entry] = from.ind
         jm[next.entry] = from.ind
         next.entry = next.entry + 1
+        out.inds[[from.ind]] = c(out.inds[[from.ind]], from.ind)
       }
       
       # transition to depth 2, stage 1
@@ -107,6 +112,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
         im[next.entry] = from.ind
         jm[next.entry] = to.ind
         next.entry = next.entry + 1
+        out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
       }
       
       # transition to depth 2, stage 2
@@ -117,6 +123,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
         im[next.entry] = from.ind
         jm[next.entry] = to.ind
         next.entry = next.entry + 1
+        out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
       }
       
     } 
@@ -144,6 +151,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
             im[next.entry] = from.ind
             jm[next.entry] = from.ind
             next.entry = next.entry + 1
+            out.inds[[from.ind]] = c(out.inds[[from.ind]], from.ind)
           }
           
           # potential transitions to new stage
@@ -158,6 +166,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
                 im[next.entry] = from.ind
                 jm[next.entry] = to.ind
                 next.entry = next.entry + 1
+                out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
               }
             }
           } 
@@ -172,6 +181,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
               im[next.entry] = from.ind
               jm[next.entry] = to.ind
               next.entry = next.entry + 1
+              out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
             }
           }
         }
@@ -179,7 +189,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
     }
   }
   
-  # remove entries with null probabilities
+  # remove entries with null probabilities so that sparse matrix is compressed
   keep.inds = which(x > 0)
   x = x[keep.inds]
   im = im[keep.inds]
@@ -187,5 +197,8 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   
   # build and return matrix
   m = sparseMatrix(i = im, j = jm, x = x, dims = rep(nd, 2))
-  m
+  list(
+    m = m,
+    out.inds = out.inds
+  )
 }

@@ -121,7 +121,7 @@ dsdive.bridgesample = function(depth.bins, d0, d0.last, df, beta, lambda,
                                    inflation.factor.lambda = 
                                      inflation.factor.lambda,
                                    min.depth = min.depth, max.depth = max.depth,
-                                   t0.dive = t0.dive)
+                                   t0.dive = t0.dive)$m
   }
   
   # add a "null" depth bin to allow trajectory initialization

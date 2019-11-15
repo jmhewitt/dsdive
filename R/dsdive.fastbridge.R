@@ -124,12 +124,14 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     # note: in ideal cases, the transition matrix only has a weak dependence on 
     # t0, so we accelerate the sampling process by basing all proposals off of a
     # single transition matrix
-    tx.mat = dsdive.tx.matrix(t0 = t0, depth.bins = depth.bins, beta = beta, 
-                              lambda = lambda, sub.tx = sub.tx, 
-                              surf.tx = surf.tx,
-                              inflation.factor.lambda = 1,
-                              min.depth = min.depth, max.depth = max.depth,
-                              t0.dive = t0.dive, lambda.max = lambda.thick)
+    tx.mat.raw = dsdive.tx.matrix(t0 = t0, depth.bins = depth.bins, beta = beta, 
+                                  lambda = lambda, sub.tx = sub.tx, 
+                                  surf.tx = surf.tx,
+                                  inflation.factor.lambda = 1,
+                                  min.depth = min.depth, max.depth = max.depth,
+                                  t0.dive = t0.dive, lambda.max = lambda.thick)
+    tx.mat = tx.mat.raw$m
+    out.inds.lookup = tx.mat.raw$out.inds
     
     # add a "null" depth bin to allow trajectory initialization
     n = nrow(depth.bins) + 1
@@ -190,7 +192,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       for(k in 1:N.i) {
         
         # define transition support
-        out.inds = which(tx.mat[current.ind,] > 0)
+        out.inds = out.inds.lookup[[current.ind]]
         
         # extract bridging weights
         pBr = pBridge.pre[[N.i - k + 1]]
