@@ -175,6 +175,8 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       # extract path length
       N.i = N[i]
       
+      # TODO: allow 0-length paths
+      
       if(verbose) {
         message(paste('Sampling', N.i, 'potential transitions for trajectory', 
                       i, sep = ' '))
@@ -256,6 +258,9 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     
   } else {
     # build null-transitions
+    p = list(depths = d0, stages = s0, times = t0, durations = tf - t0, 
+             ld = ld[1])
+    paths.out = list(rep(p,M))
   }
   
   # package and return results
