@@ -73,13 +73,15 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
       d0.last = sapply(res, function(r) r$depths[length(r$depths) - 1])
     } 
     
+    # extract current state indices
+    s0.current = sapply(res, function(r) r$stages[length(r$stages)])
+    
     # impute trajectory segment
     br = dsdive.fastbridge(M = M, depth.bins = depth.bins, d0 = depths[i], 
                            d0.last = d0.last, df = depths[i+1], beta = beta, 
                            lambda = lambda, sub.tx = sub.tx, 
                            surf.tx = surf.tx, t0 = times[i], tf = times[i+1], 
-                           s0 = sapply(res, 
-                                       function(r) r$stages[length(r$stages)]),
+                           s0 = s0.current,
                            inflation.factor.lambda = inflation.factor.lambda,
                            verbose = verbose, 
                            precompute.bridges = precompute.bridges,
@@ -104,10 +106,20 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
         res[[j]]$durations = c(res[[j]]$durations, br[[j]]$durations)
       }
       
-      # update log-density for proposed trajectory
+      # update log-density for proposal
       res[[j]]$ld = res[[j]]$ld + br[[j]]$ld
     }
     
+  }
+  
+  # compute log-densities under true model
+  for(j in 1:M) {
+    rj = res[[j]]
+    res[[j]]$ld.true = dsdive.ld(depths = rj$depths, durations = rj$durations, 
+                                 times = rj$times, stages = rj$stages,
+                                 beta = beta, lambda = lambda, sub.tx = sub.tx, 
+                                 surf.tx = surf.tx, depth.bins = depth.bins, 
+                                 t0.dive = t0.dive)
   }
   
   res

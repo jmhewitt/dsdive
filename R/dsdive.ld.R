@@ -34,28 +34,35 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
   ld = 0
   
   # loop over transitions
-  for(j in 1:(nt-1)) {
+  for(j in 1:max(nt-1,1)) {
+    
+    if(j==1) {
+      d0.last = NULL
+    } else {
+      d0.last = depths[j-1]
+    }
     
     # get transition parameters
     p = dsdive.tx.params(t0 = times[j], depth.bins = depth.bins, 
                          d0 = depths[j], s0 = stages[j], beta = beta, 
-                         d0.last = ifelse(j==1, NULL, depths[j-1]), 
+                         d0.last = d0.last, 
                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
                          t0.dive = t0.dive)
     #
     # build likelihood
     #
     
-    ld = ld +
-      # duration
-      dexp(x = durations[j], rate = p$rate, log = TRUE) + 
-      # stage transition
-      dbinom(x = stages[j] != stages[j+1], size = 1, prob = p$prob.stage, 
-             log = TRUE)
-    
-    # add state transition
-    if(length(p$labels) > 1) {
-      ld = ld + log(p$probs[which(depths[j+1] == p$labels), stages[j+1]])
+    # duration
+    ld = ld + dexp(x = durations[j], rate = p$rate, log = TRUE)
+    # stage transition
+    if(length(stages) > 1) {
+      ld = ld + dbinom(x = stages[j] != stages[j+1], size = 1, 
+                       prob = p$prob.stage, log = TRUE)
+      
+      # add state transition
+      if(length(p$labels) > 1) {
+        ld = ld + log(p$probs[which(depths[j+1] == p$labels), stages[j+1]])
+      }
     }
     
   }

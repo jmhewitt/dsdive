@@ -114,9 +114,6 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) + 
     # log-density for arrival times (as order statistics of uniform sample)
     lfactorial(N) - N * log(T.win)
-  if(any(is.infinite(ld))) {
-    browser()
-  }
     
   
   #
@@ -255,17 +252,21 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       true.tx.inds = c(TRUE, diff(path.full[2,]) != 0)
       path.full = path.full[, true.tx.inds, drop = FALSE]
       
-      paths.out[i] = list(list(
+      # package trajectory
+      p = list(
         depths = path.full[2,],
         stages = path.full[3,],
         times = t.thick[true.tx.inds],
         durations = diff(t.thick[true.tx.inds]),
         ld = ld[i]
-      ))
+      )
       
       if(ncol(path.full)==1) {
-        paths.out[[i]]$durations = tf - t0
+        p$durations = tf - t0
       }
+      
+      # save trajectory
+      paths.out[i] = list(p)
       
       class(paths.out[i]) = 'dsdive'
       
