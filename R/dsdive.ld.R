@@ -18,13 +18,16 @@
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
 #' @param t0.dive Time at which dive started
+#' @param d0.last If the depth bin that proceeded the first depth bin in 
+#'   \code{depths}.  If the trajectory to be analyzed was started at the 
+#'   surface, then set \code{c0.last=NULL}.
 #' 
 #' @example examples/ld.R
 #' 
 #' @export
 #' 
 dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
-                     surf.tx, depth.bins, t0.dive) {
+                     surf.tx, depth.bins, t0.dive, d0.last = NULL) {
   
   # extract dimensional information
   nt = length(times)
@@ -36,9 +39,7 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
   # loop over transitions
   for(j in 1:max(nt-1,1)) {
     
-    if(j==1) {
-      d0.last = NULL
-    } else {
+    if(j>1) {
       d0.last = depths[j-1]
     }
     

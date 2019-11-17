@@ -5,7 +5,7 @@
 \title{Likelihood for completely observed dive trajectories}
 \usage{
 dsdive.ld(depths, durations, times, stages, beta, lambda, sub.tx, surf.tx,
-  depth.bins, t0.dive)
+  depth.bins, t0.dive, d0.last = NULL)
 }
 \arguments{
 \item{depths}{Depth bin indices in which the trajectory was observed}
@@ -35,6 +35,10 @@ column defines the depth at the center of each depth bin, and the second
 column defines the half-width of each bin.}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{d0.last}{If the depth bin that proceeded the first depth bin in 
+\code{depths}.  If the trajectory to be analyzed was started at the 
+surface, then set \code{c0.last=NULL}.}
 }
 \description{
 Likelihood for completely observed dive trajectories
