@@ -6,7 +6,7 @@
 \usage{
 dsdive.fastimpute(M, depth.bins, depths, times, s0, beta, lambda, sub.tx,
   surf.tx, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE, t0.dive)
+  precompute.bridges = TRUE, t0.dive, resample = TRUE)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}
@@ -52,6 +52,8 @@ matrices will be precomputed.  Enabling this option will increase the
 memory overhead of the method, but will reduce its runtime.}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{resample}{Resample particles at each step if \code{TRUE}.}
 }
 \description{
 The sampling method is designed to sample many trajectories simultaneously, 

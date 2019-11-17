@@ -34,6 +34,7 @@
 #'   matrices will be precomputed.  Enabling this option will increase the 
 #'   memory overhead of the method, but will reduce its runtime.
 #' @param t0.dive Time at which dive started
+#' @param resample Resample particles at each step if \code{TRUE}.
 #' 
 #' @example examples/dsdive.impute.R
 #' 
@@ -42,7 +43,7 @@
 dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda, 
                              sub.tx, surf.tx, inflation.factor.lambda = 1.1, 
                              verbose = FALSE, precompute.bridges = TRUE, 
-                             t0.dive) {
+                             t0.dive, resample = TRUE) {
   
   # extract dimensions
   nt = length(times)
@@ -53,7 +54,9 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
     stages = s0,
     times = times[1],
     durations = c(),
-    ld = 0
+    ld = 0,
+    ld.true = 0,
+    w = 0
   )
   
   class(res.single) = 'dsdive'
@@ -95,7 +98,7 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
           res[[j]]$times[length(res[[j]]$times)]
       }
     }
-    
+  
     for(j in 1:M) {
       
       # merge segments
@@ -108,6 +111,17 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
       
       # update log-density for proposal
       res[[j]]$ld = res[[j]]$ld + br[[j]]$ld
+      
+      # compute sampling log-weight
+      res[[j]]$w = res[[j]]$w + br[[j]]$ld.true - br[[j]]$ld
+    }
+    
+    # resample particles
+    if(resample) {
+      W = exp(sapply(res, function(r) r$w))
+      W = W / sum(W)
+      message(M / (1 + var(W)/mean(W)^2))
+      res = res[sample(x = M, size = M, replace = TRUE, prob = W)]
     }
     
   }
