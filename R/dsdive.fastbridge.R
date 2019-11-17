@@ -64,7 +64,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   # build basic simulation parameters
   #
   
-  # initialize log-density for samples
+  # initialize log-proposal density for samples
   ld = numeric(M)
   
   # transition time window
@@ -99,15 +99,22 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   lambda.tmp = T.win * lambda.thick
   N = rtpois(n = M, lambda = lambda.tmp, a = min.tx)
   
+  # quick fix to resample infinite draws
+  N.inf = is.infinite(N)
+  if(any(N.inf)) {  
+    N[N.inf] = sample(x = N[-N.inf], size = sum(N.inf), replace = TRUE)
+  } 
+  
   # get most number of arrivals required during sampling
   N.max = max(N)
+  
   
   if(verbose) {
     message(paste('Simulating total of', sum(N), 'potential transitions', 
                   sep =' '))
   }
   
-  # update log-density for sample
+  # update log-proposal density for sample
   ld = ld + 
     # log-density for number of arrivals
     # note: a = min.tx - 1 accounts for bug in dtpois support
@@ -264,6 +271,14 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       if(ncol(path.full)==1) {
         p$durations = tf - t0
       }
+      
+      # compute density under true model 
+      durations.tmp = c(p$durations, tf - p$times[length(p$times)])
+      p$ld.true = dsdive.ld(depths = p$depths, durations = durations.tmp, 
+                            times = p$times, stages = p$stages, beta = beta, 
+                            lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
+                            depth.bins = depth.bins, t0.dive = t0.dive, 
+                            d0.last = d0.last[i])
       
       # save trajectory
       paths.out[i] = list(p)
