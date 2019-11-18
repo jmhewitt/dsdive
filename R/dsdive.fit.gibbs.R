@@ -288,9 +288,11 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
         tmp = list(
           par = trace,
           ld = ld,
-          sigma = sigma,
-          trace.imputed = trace.imputed
+          sigma = sigma
         )
+        if(partially.observed) {
+          tmp$trace.imputed = trace.imputed
+        }
         save.time = date()
         save(tmp, save.time, file = state.backup$file)
         tick.dump = tock
