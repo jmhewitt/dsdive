@@ -45,6 +45,16 @@
 #'   \code{inflation.factor.lambda}, and if \code{lambda.max==NULL} then the 
 #'   method will compute this on its own.
 #' @param t0.dive Time at which dive started
+#' @param trajectory.conditional If not \code{NULL}, then 
+#'   \code{trajectory.conditional} must be the dive information for a 
+#'   completely observed \code{dsdive} object.  The first entries in the 
+#'   initialization vectors \code{d0.last} and \code{s0} must be 
+#'   associated with the trajectory observed in \code{trajectory.conditional}.
+#'   Providing a non \code{NULL} value for \code{trajectory.conditional} will 
+#'   cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
+#'   the value of \code{trajectory.conditional} will be returned.  The 
+#'   importance of this function argument is that \code{dsdive.fastbridge}
+#'   will evaluate the proposal density for \code{trajectory.conditional}.
 #' 
 #' @example examples/dsdive.fastbridge.R
 #' 
@@ -58,11 +68,19 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                              sub.tx, surf.tx, t0, tf, s0, 
                              inflation.factor.lambda = 1.1, verbose = FALSE,
                              precompute.bridges = TRUE, lambda.max = NULL,
-                             t0.dive) {
+                             t0.dive, trajectory.conditional = NULL) {
   
   #
   # build basic simulation parameters
   #
+  
+  # determine the actual number of trajectories that must be sampled
+  cond.sim = !is.null(trajectory.conditional)
+  if(cond.sim) {
+    M.sim = M - 1
+  } else { 
+    M.sim = M
+  }
   
   # initialize log-proposal density for samples
   ld = numeric(M)
@@ -97,7 +115,12 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   
   # sample number of unthinned arrivals
   lambda.tmp = T.win * lambda.thick
-  N = rtpois(n = M, lambda = lambda.tmp, a = min.tx)
+  N = rtpois(n = M.sim, lambda = lambda.tmp, a = min.tx)
+  
+  # preprend the number of transitions for trajectory.conditional
+  if(cond.sim) {
+    N = c(length(trajectory.conditional$depths)-1, N)
+  }
   
   # quick fix to resample infinite draws
   N.inf = is.infinite(N)
@@ -115,10 +138,10 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   }
   
   # update log-proposal density for sample
-  ld = ld + 
+  ld = ld +
     # log-density for number of arrivals
     # note: a = min.tx - 1 accounts for bug in dtpois support
-    dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) + 
+    dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) +
     # log-density for arrival times (as order statistics of uniform sample)
     lfactorial(N) - N * log(T.win)
     
@@ -126,8 +149,6 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   #
   # bridge sample trajectories
   #
-  
-  if(N.max > 0) {
     
     if(verbose) {
       message('Computing transition matrices at potential transition times')
@@ -183,19 +204,17 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     }
     
     # initialize bridged path output
-    paths.out = vector('list', length(N))
+    paths.out = vector('list', M)
     
     # sample paths
-    for(i in 1:length(N)) {
+    for(i in 1:M) {
       
       # set starting index for trajectory
-      init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), y = d0, 
-                       z = s0[i], x.max = n, y.max = n)
+      init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), 
+                       y = d0, z = s0[i], x.max = n, y.max = n)
       
       # extract path length
       N.i = N[i]
-      
-      # TODO: allow 0-length paths
       
       if(verbose) {
         message(paste('Sampling', N.i, 'potential transitions for trajectory', 
@@ -207,41 +226,62 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       path.inds = numeric(N.i)
       
       # sample path transitions
-      for(k in 1:N.i) {
+      if(N.i == 0) {
         
-        # define transition support
-        out.inds = out.inds.lookup[[current.ind]]
+        # extract raw path, including initial state
+        path.inds = init.ind
         
-        # extract bridging weights
-        pBr = pBridge.pre[[N.i - k + 1]]
-        if(length(out.inds) > 1) {
-          wts = rowSums(pBr[out.inds,end.inds])
-        } else {
-          wts = sum(pBr[out.inds,end.inds])
-        }
+        t.thick = c(t0, tf)
         
-        # compute transition probability
-        tx.dens = tx.mat[current.ind, out.inds] * wts
-        tx.dens = tx.dens / sum(tx.dens)
-        
-        #
-        # sample and update path
-        #
-        
-        if(length(out.inds) > 1) {
-          current.ind = sample(x = out.inds, size = 1, prob = tx.dens)
-          # update log-density for non-deterministic transition
+      } else {
+        for(k in 1:N.i) {
+          
+          # define transition support
+          out.inds = out.inds.lookup[[current.ind]]
+          
+          # extract bridging weights
+          pBr = pBridge.pre[[N.i - k + 1]]
+          if(length(out.inds) > 1) {
+            wts = rowSums(pBr[out.inds,end.inds])
+          } else {
+            wts = sum(pBr[out.inds,end.inds])
+          }
+          
+          # compute transition probability
+          tx.dens = tx.mat[current.ind, out.inds] * wts
+          tx.dens = tx.dens / sum(tx.dens)
+          
+          #
+          # sample and update path
+          #
+          
+          if(cond.sim & i==1) {
+            current.ind = toInd(x = trajectory.conditional$depths[k],  
+                                y = trajectory.conditional$depths[k+1], 
+                                z = trajectory.conditional$stages[k+1], 
+                                x.max = n, y.max = n)
+          } else {
+            if(length(out.inds) > 1) {
+              current.ind = sample(x = out.inds, size = 1, prob = tx.dens)
+            } else {
+              current.ind = out.inds
+            }
+          }
+          
+          # update log-density
           ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
-        } else {
-          current.ind = out.inds
+          
+          path.inds[k] = current.ind
+          
         }
         
-        path.inds[k] = current.ind
-        
+        if(cond.sim & i==1) {
+          t.thick = trajectory.conditional$times
+        } else {
+          # sample arrival times, including initial time
+          t.thick = c(t0, t0 + T.win * sort(runif(n = N[i])))
+        }
       }
-      
-      # sample arrival times, including initial time
-      t.thick = c(t0, t0 + T.win * sort(runif(n = N[i])))
       
       #
       # package path
@@ -286,14 +326,6 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
       class(paths.out[i]) = 'dsdive'
       
     }
-      
-    
-  } else {
-    # build null-transitions
-    p = list(depths = d0, stages = s0[1], times = t0, durations = tf - t0, 
-             ld = ld[1])
-    paths.out = list(rep(p,M))
-  }
   
   # package and return results
   paths.out

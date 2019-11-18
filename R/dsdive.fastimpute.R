@@ -35,6 +35,16 @@
 #'   memory overhead of the method, but will reduce its runtime.
 #' @param t0.dive Time at which dive started
 #' @param resample Resample particles at each step if \code{TRUE}.
+#' @param trajectory.conditional If not \code{NULL}, then 
+#'   \code{trajectory.conditional} must be the dive information for a 
+#'   completely observed \code{dsdive} object.  The first entries in the 
+#'   initialization vectors \code{d0}, \code{d0.last}, \code{s0} must be 
+#'   associated with the trajectory observed in \code{trajectory.conditional}.
+#'   Providing a non \code{NULL} value for \code{trajectory.conditional} will 
+#'   cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
+#'   the value of \code{trajectory.conditional} will be returned.  The 
+#'   importance of this function argument is that \code{dsdive.fastbridge}
+#'   will evaluate the proposal density for \code{trajectory.conditional}.
 #' 
 #' @example examples/dsdive.impute.R
 #' 
@@ -43,7 +53,14 @@
 dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda, 
                              sub.tx, surf.tx, inflation.factor.lambda = 1.1, 
                              verbose = FALSE, precompute.bridges = TRUE, 
-                             t0.dive, resample = TRUE) {
+                             t0.dive, resample = TRUE, 
+                             trajectory.conditional = NULL) {
+  
+  # set flag for conditional simulation
+  cond.sim = !is.null(trajectory.conditional)
+  if(cond.sim) {
+    resample = TRUE
+  }
   
   # extract dimensions
   nt = length(times)
@@ -61,6 +78,7 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
   
   class(res.single) = 'dsdive'
   
+  # initialize results
   res = replicate(M, list(res.single))
   
   # pre-compute the common max transition rate
@@ -79,6 +97,18 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
     # extract current state indices
     s0.current = sapply(res, function(r) r$stages[length(r$stages)])
     
+    # set conditional simulation parameters
+    if(cond.sim) {
+      segment.conditional = dsdive.extract(
+        depths = trajectory.conditional$depths, 
+        times = trajectory.conditional$times, 
+        stages = trajectory.conditional$stages, 
+        durations = trajectory.conditional$durations, 
+        t0 = times[i], tf = times[i+1])
+    } else {
+      segment.conditional = NULL
+    }
+    
     # impute trajectory segment
     br = dsdive.fastbridge(M = M, depth.bins = depth.bins, d0 = depths[i], 
                            d0.last = d0.last, df = depths[i+1], beta = beta, 
@@ -88,14 +118,16 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                            inflation.factor.lambda = inflation.factor.lambda,
                            verbose = verbose, 
                            precompute.bridges = precompute.bridges,
-                           lambda.max = lambda.max, t0.dive = t0.dive)
+                           lambda.max = lambda.max, t0.dive = t0.dive, 
+                           trajectory.conditional = segment.conditional)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {
       for(j in 1:M) {
-        br[[j]]$durations[1] = 
-          br[[j]]$durations[1] + times[i] - 
-          res[[j]]$times[length(res[[j]]$times)]
+        if(!(cond.sim & j==1)) {
+          br[[j]]$durations[1] = br[[j]]$durations[1] + times[i] - 
+            res[[j]]$times[length(res[[j]]$times)]
+        }
       }
     }
   
@@ -113,15 +145,19 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
       res[[j]]$ld = res[[j]]$ld + br[[j]]$ld
       
       # compute sampling log-weight
-      res[[j]]$w = res[[j]]$w + br[[j]]$ld.true - br[[j]]$ld
+      res[[j]]$w = br[[j]]$ld.true - br[[j]]$ld
     }
     
     # resample particles
     if(resample) {
       W = exp(sapply(res, function(r) r$w))
       W = W / sum(W)
-      message(M / (1 + var(W)/mean(W)^2))
-      res = res[sample(x = M, size = M, replace = TRUE, prob = W)]
+      if(cond.sim) {
+        res = c(res[1], res[sample(x = M, size = M - 1, replace = TRUE, 
+                                   prob = W)])
+      } else{
+        res = res[sample(x = M, size = M, replace = TRUE, prob = W)]
+      }
     }
     
   }

@@ -6,7 +6,8 @@
 \usage{
 dsdive.fastimpute(M, depth.bins, depths, times, s0, beta, lambda, sub.tx,
   surf.tx, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE, t0.dive, resample = TRUE)
+  precompute.bridges = TRUE, t0.dive, resample = TRUE,
+  trajectory.conditional = NULL)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}
@@ -54,6 +55,17 @@ memory overhead of the method, but will reduce its runtime.}
 \item{t0.dive}{Time at which dive started}
 
 \item{resample}{Resample particles at each step if \code{TRUE}.}
+
+\item{trajectory.conditional}{If not \code{NULL}, then 
+\code{trajectory.conditional} must be the dive information for a 
+completely observed \code{dsdive} object.  The first entries in the 
+initialization vectors \code{d0}, \code{d0.last}, \code{s0} must be 
+associated with the trajectory observed in \code{trajectory.conditional}.
+Providing a non \code{NULL} value for \code{trajectory.conditional} will 
+cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
+the value of \code{trajectory.conditional} will be returned.  The 
+importance of this function argument is that \code{dsdive.fastbridge}
+will evaluate the proposal density for \code{trajectory.conditional}.}
 }
 \description{
 The sampling method is designed to sample many trajectories simultaneously, 

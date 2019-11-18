@@ -6,7 +6,8 @@
 \usage{
 dsdive.fastbridge(M, depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
   surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE, lambda.max = NULL, t0.dive)
+  precompute.bridges = TRUE, lambda.max = NULL, t0.dive,
+  trajectory.conditional = NULL)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}
@@ -60,6 +61,17 @@ be thinned.  \code{lambda.max} will be scaled by
 method will compute this on its own.}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{trajectory.conditional}{If not \code{NULL}, then 
+\code{trajectory.conditional} must be the dive information for a 
+completely observed \code{dsdive} object.  The first entries in the 
+initialization vectors \code{d0.last} and \code{s0} must be 
+associated with the trajectory observed in \code{trajectory.conditional}.
+Providing a non \code{NULL} value for \code{trajectory.conditional} will 
+cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
+the value of \code{trajectory.conditional} will be returned.  The 
+importance of this function argument is that \code{dsdive.fastbridge}
+will evaluate the proposal density for \code{trajectory.conditional}.}
 }
 \description{
 Sample a dive trajectory such that its start and end locations and times are 
