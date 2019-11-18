@@ -150,7 +150,12 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
     
     # resample particles
     if(resample) {
+      # get raw weights
       W = exp(sapply(res, function(r) r$w))
+      # correct for edge cases
+      W[is.infinite(W)] = sign(W[is.infinite(W)])
+      W[W==-1] = 0
+      # standardize weights
       W = W / sum(W)
       if(cond.sim) {
         res = c(res[1], res[sample(x = M, size = M - 1, replace = TRUE, 
