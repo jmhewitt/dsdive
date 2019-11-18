@@ -125,7 +125,14 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   # quick fix to resample infinite draws
   N.inf = is.infinite(N)
   if(any(N.inf)) {  
+    warning('Original N.max==Inf')
+    # crude replacement
     N[N.inf] = sample(x = N[-N.inf], size = sum(N.inf), replace = TRUE)
+    # hard replacement
+    N.inf = is.infinite(N)
+    if(any(N.inf)) {
+      N[N.inf] = min.tx + 1
+    }
   } 
   
   # get most number of arrivals required during sampling

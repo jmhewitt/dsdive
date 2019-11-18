@@ -6,7 +6,8 @@
 \usage{
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
-  inflation.factor.lambda = 1.1, init, sigma)
+  inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
+  sub.tx1)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -34,6 +35,9 @@ self-transitions.}
 \item{init}{List of parameter values at which to initialize the MCMC chain}
 
 \item{sigma}{Covariance matrix for Random walk proposals}
+
+\item{priors.sd}{vector of standard deviations for model parameters on their 
+respective transformed scales}
 
 \item{s0}{dive stage at which the trajectory should be started from}
 
@@ -64,13 +68,14 @@ using an independence proposal at each iteration.
 \examples{
 data('dive.sim')
 attach(dive.sim)
-attach(params)
+attach(dive.sim$params)
 
-imputed = dsdive.impute(depth.bins = depth.bins, depths = sim.obs$depths, 
-                        times = sim.obs$times, s0 = 1, beta = beta, 
-                        lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                        t0.dive = 0)
+x = dsdive.fit.gibbs(depths = sim.obs$depths, times = sim.obs$times, 
+                     durations = NULL, stages = NULL, depth.bins = depth.bins, 
+                     t0.dive = sim.obs$times[1], it = 50, verbose = TRUE, 
+                     init = params, priors.sd = rep(1,12), 
+                     sub.tx1 = params$sub.tx[1])
 
-detach(params)
+detach(dive.sim$params)
 detach(dive.sim)
 }
