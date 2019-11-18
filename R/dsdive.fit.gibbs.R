@@ -40,6 +40,8 @@
 #' @param sigma Covariance matrix for Random walk proposals
 #' @param priors.sd vector of standard deviations for model parameters on their 
 #'   respective transformed scales
+#' @param state.backup If not \code{NULL}, then a list that specifies a file 
+#'   to which the sampler state will be dumped every \code{t} seconds.
 #' 
 #' @importFrom MHadaptive makePositiveDefinite
 #' 
@@ -51,7 +53,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                             depth.bins, t0.dive, it, verbose = FALSE, 
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
                             priors.sd, sub.tx1,  
-                            adapt = c(100, 20, 0.5, 0.75)) {
+                            adapt = c(100, 20, 0.5, 0.75),
+                            state.backup = list(t=Inf, file='state.RData')) {
   
   # update number of iterations it to allow for initial parameters
   it = it + 1
@@ -162,7 +165,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
-    sigma.chol = t(chol(-solve(o$hessian)))
+    sigma = -solve(o$hessian)
+    sigma.chol = t(chol(sigma))
     
   }
   
@@ -175,6 +179,10 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   #
   # gibbs sample
   #
+  
+  if(!is.null(state.backup)) {
+    tick.dump = proc.time()[3]
+  }
   
   for(i in 2:it) {
     
@@ -263,6 +271,25 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       # update log-density of proposal and trace
       trace.imputed[i] = list(trajectory)
       ld[i] = trajectory$ld.true
+    }
+    
+    # dump state
+    if(!is.null(state.backup)) {
+      tock = proc.time()[3]
+      if(tock - tick.dump > state.backup$t) {
+        if(verbose) {
+          message('--- Saving state ---')
+        }
+        tmp = list(
+          par = trace,
+          ld = ld,
+          sigma = sigma,
+          trace.imputed = trace.imputed
+        )
+        save.time = date()
+        save(tmp, save.time, file = state.backup$file)
+        tick.dump = tock
+      }
     }
     
   }

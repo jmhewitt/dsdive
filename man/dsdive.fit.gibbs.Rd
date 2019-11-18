@@ -7,7 +7,8 @@
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
   inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
-  sub.tx1, adapt = c(100, 20, 0.5, 0.75))
+  sub.tx1, adapt = c(100, 20, 0.5, 0.75), state.backup = list(t = Inf,
+  file = "state.RData"))
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -38,6 +39,9 @@ self-transitions.}
 
 \item{priors.sd}{vector of standard deviations for model parameters on their 
 respective transformed scales}
+
+\item{state.backup}{If not \code{NULL}, then a list that specifies a file 
+to which the sampler state will be dumped every \code{t} seconds.}
 
 \item{s0}{dive stage at which the trajectory should be started from}
 
