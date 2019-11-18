@@ -41,6 +41,8 @@
 #' @param priors.sd vector of standard deviations for model parameters on their 
 #'   respective transformed scales
 #' 
+#' @importFrom MHadaptive makePositiveDefinite
+#' 
 #' @example examples/dsdive.fit.gibbs.R
 #' 
 #' @export
@@ -48,7 +50,8 @@
 dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL, 
                             depth.bins, t0.dive, it, verbose = FALSE, 
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
-                            priors.sd, sub.tx1) {
+                            priors.sd, sub.tx1,  
+                            adapt = c(100, 20, 0.5, 0.75)) {
   
   # update number of iterations it to allow for initial parameters
   it = it + 1
@@ -64,6 +67,10 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   
   # store log-densities for data at each iteration
   ld = numeric(length = it)
+  
+  # compute initial jacobian
+  logJ = params.toList(par = params.toVec(par = init), 
+                       sub.tx1 = sub.tx1)$logJ
   
   # if necessary, build storage for imputed trajectories, and initialize 
   #   latent trajectory
@@ -91,8 +98,6 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                                    resample = FALSE)[[1]]
     
     # add log jacobians to sample
-    logJ = params.toList(par = params.toVec(par = init), 
-                         sub.tx1 = sub.tx1)$logJ
     trajectory$ld.true = trajectory$ld.true + logJ
     trajectory$ld = trajectory$ld + logJ
     
@@ -104,7 +109,20 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     
   } else {
     # otherwise, set initial log density and trajectory object
+    trajectory = list(
+      depths = depths,
+      stages = stages,
+      times = times,
+      durations = durations
+    )
     
+    ld[1] = dsdive.ld(depths = trajectory$depths, 
+                      durations = trajectory$durations, 
+                      times = trajectory$times, stages = trajectory$stages, 
+                      beta = init$beta, lambda = init$lambda, 
+                      sub.tx = init$sub.tx, surf.tx = init$surf.tx, 
+                      depth.bins = depth.bins, t0.dive = t0.dive) + 
+      logJ
   }
   
   
@@ -153,7 +171,11 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     tick = proc.time()
   }
   
+  
+  #
   # gibbs sample
+  #
+  
   for(i in 2:it) {
     
     if(verbose) {
@@ -201,7 +223,22 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     }
     
     # adapt RW proposal distribution
-    
+    if(i > adapt[1] && i %% adapt[2] == 0 && i < (adapt[4]*it) ) {   
+      if(verbose) {
+        message('   ADAPTING')
+      }
+      # select adaptation samples
+      inds = floor(i*adapt[3]):i
+      inds.len = length(inds)
+      # get new proposal covariance
+      p.sigma = makePositiveDefinite((inds.len - 1) / inds.len * 
+                                       var(trace[inds,]))
+      # update proposal cholesky
+      if(!(0 %in% p.sigma)) {
+        sigma = p.sigma
+        sigma.chol = t(chol(sigma))
+      } 
+    }
     
     if(partially.observed) {
       # propose trajectory
@@ -241,7 +278,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   
   res = list(
     par = trace,
-    ld = ld
+    ld = ld,
+    sigma = sigma
   )
   
   if(partially.observed) {

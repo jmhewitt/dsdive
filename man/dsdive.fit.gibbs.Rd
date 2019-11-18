@@ -7,7 +7,7 @@
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
   inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
-  sub.tx1)
+  sub.tx1, adapt = c(100, 20, 0.5, 0.75))
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
