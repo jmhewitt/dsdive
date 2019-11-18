@@ -87,6 +87,7 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   
   o = optim(par = c(rep(0,6), log(lambda.est), qlogis(sub.tx2), rep(0,2)), 
             fn = function(theta) {
+              theta.logJ = params.toList(par = theta, sub.tx1 = sub.tx1)$logJ
               dsdive.ld(depths = depths.complete, stages = stages.complete, 
                         durations = durations.complete, times = times.complete,
                         beta = matrix(theta[1:6], nrow = 2), 
@@ -94,7 +95,7 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         sub.tx = c(sub.tx1, plogis(theta[10])),
                         surf.tx = theta[11:12], depth.bins = depth.bins, 
                         t0.dive = t0.dive) + 
-              sum(dnorm(theta, sd = priors, log = TRUE))
+              sum(dnorm(theta, sd = priors, log = TRUE)) + theta.logJ
             }, method = method, control = list(fnscale = -1))
   
   # package results
