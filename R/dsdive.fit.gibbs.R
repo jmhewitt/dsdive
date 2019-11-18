@@ -260,8 +260,13 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                                t0.dive = t0.dive, 
                                trajectory.conditional = trajectory)
 
-      # sample dive
+      # get raw sampling weights
       W = exp(sapply(prop, function(p) p$w))
+      # correct for edge cases in weights
+      W[is.infinite(W)] = sign(W[is.infinite(W)])
+      W[W==-1] = 0
+      
+      # sample dive 
       trajectory = prop[[sample(x = 2, size = 1, prob = W)]]
       
       # add jacobians
