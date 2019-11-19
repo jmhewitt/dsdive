@@ -7,7 +7,7 @@
 dsdive.fastbridge(M, depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
   surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
   precompute.bridges = TRUE, lambda.max = NULL, t0.dive,
-  trajectory.conditional = NULL)
+  trajectory.conditional = NULL, t.stage2)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}
@@ -72,6 +72,8 @@ cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as
 the value of \code{trajectory.conditional} will be returned.  The 
 importance of this function argument is that \code{dsdive.fastbridge}
 will evaluate the proposal density for \code{trajectory.conditional}.}
+
+\item{t.stage2}{vector of times at which stage 2 was entered.}
 }
 \description{
 Sample a dive trajectory such that its start and end locations and times are 
@@ -93,7 +95,7 @@ br = dsdive.fastbridge(M = 1e2, depth.bins = depth.bins, d0 = sim.obs$depths[1],
                        d0.last = NULL, df = sim.obs$depths[2], beta = beta, 
                        lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                        t0 = sim.obs$times[1], tf = sim.obs$times[2], s0 = 1,
-                       verbose = FALSE, t0.dive = 0)
+                       verbose = TRUE, t0.dive = 0, t.stage2 = NA)
 
 detach(params)
 detach(dive.sim)

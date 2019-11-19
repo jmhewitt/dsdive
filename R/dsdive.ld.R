@@ -27,7 +27,7 @@
 #' @export
 #' 
 dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
-                     surf.tx, depth.bins, t0.dive, d0.last = NULL) {
+                     surf.tx, depth.bins, t0.dive, d0.last = NULL, t.stage2) {
   
   # extract dimensional information
   nt = length(times)
@@ -48,7 +48,7 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
                          d0 = depths[j], s0 = stages[j], beta = beta, 
                          d0.last = d0.last, 
                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                         t0.dive = t0.dive)
+                         t0.dive = t0.dive, t.stage2 = t.stage2)
     #
     # build likelihood
     #

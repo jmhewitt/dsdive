@@ -5,7 +5,7 @@
 \title{Likelihood for completely observed dive trajectories}
 \usage{
 dsdive.ld(depths, durations, times, stages, beta, lambda, sub.tx, surf.tx,
-  depth.bins, t0.dive, d0.last = NULL)
+  depth.bins, t0.dive, d0.last = NULL, t.stage2)
 }
 \arguments{
 \item{depths}{Depth bin indices in which the trajectory was observed}
@@ -51,7 +51,7 @@ attach(dive.sim$params)
 ld = dsdive.ld(depths = sim$depths, durations = sim$durations, 
                times = sim$times, stages = sim$stages, beta = beta, 
                lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-               depth.bins = depth.bins, t0.dive = 0)
+               depth.bins = depth.bins, t0.dive = 0, t.stage2 = NA)
 
 detach(dive.sim$params)
 detach(dive.sim)

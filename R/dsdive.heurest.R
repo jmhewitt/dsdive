@@ -61,13 +61,20 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   durations.complete = c(durations.complete, NA)
   stages.complete = c(stages.complete, 3)
   
+  # extract time at which stage 2 was entered, if any
+  stage2.inds = which(stages.complete==2)
+  if(length(stage2.inds)==0) {
+    t.stage2tmp = NA
+  } else {
+    t.stage2tmp = times.complete[min(stage2.inds)]
+  }
   
   #
   # initial parameters for model parameters
   #
   
   # estimate diving rate magnitude between observations (m/sec)
-  dy = abs(diff(2*depth.bins[depths,2]) / diff(times))
+  dy = abs(diff(2*depth.bins[depths,1]) / diff(times))
   
   # "moment" estimates for lambda
   stages.tx = which(diff(stages.est) == 1)
@@ -87,22 +94,17 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   
   o = optim(par = c(rep(0,6), log(lambda.est), qlogis(sub.tx2), rep(0,2)), 
             fn = function(theta) {
-              theta.logJ = params.toList(par = theta, sub.tx1 = sub.tx1)$logJ
+              theta.list = params.toList(par = theta, sub.tx1 = sub.tx1)
               dsdive.ld(depths = depths.complete, stages = stages.complete, 
                         durations = durations.complete, times = times.complete,
-                        beta = matrix(theta[1:6], nrow = 2), 
-                        lambda = exp(theta[7:9]), 
-                        sub.tx = c(sub.tx1, plogis(theta[10])),
-                        surf.tx = theta[11:12], depth.bins = depth.bins, 
-                        t0.dive = t0.dive) + 
-              sum(dnorm(theta, sd = priors, log = TRUE)) + theta.logJ
+                        beta = theta.list$beta, 
+                        lambda = theta.list$lambda, 
+                        sub.tx = theta.list$sub.tx,
+                        surf.tx = theta.list$surf.tx, depth.bins = depth.bins, 
+                        t0.dive = t0.dive, t.stage2 = t.stage2tmp) + 
+              sum(dnorm(theta, sd = priors, log = TRUE)) + theta.list$logJ
             }, method = method, control = list(fnscale = -1))
   
   # package results
-  list(
-    beta = matrix(o$par[1:6], nrow = 2),
-    lambda = exp(o$par[7:9]),
-    sub.tx = c(sub.tx1, plogis(o$par[10])),
-    surf.tx = o$par[11:12]
-  )
+  params.toList(par = o$par, sub.tx1 = sub.tx1)
 }

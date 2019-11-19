@@ -36,6 +36,7 @@
 #'   replace "poor" directions of travel with random walk proposals.  Values 
 #'   less than 1 will push poor directions of travel closer toward random walks
 #'   from their natural tendencies.
+#' @param t.stage2 time at which second stage was entered.
 #' 
 #' @example examples/txparams.R
 #' 
@@ -43,13 +44,14 @@
 #' 
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
                             lambda, sub.tx, surf.tx, t0.dive, 
-                            shift.params = NULL) {
+                            shift.params = NULL, t.stage2) {
   
   num.depths = nrow(depth.bins)
   
   # extract probability of transitioning to next dive stage
   prob.stage = dsdive.tx.stage(t0 = t0, d0 = d0, sub.tx = sub.tx, 
-                               surf.tx = surf.tx, t0.dive = t0.dive)[s0,]
+                               surf.tx = surf.tx, t0.dive = t0.dive, 
+                               t.stage2 = t.stage2)[s0,]
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward

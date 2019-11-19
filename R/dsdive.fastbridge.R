@@ -55,6 +55,7 @@
 #'   the value of \code{trajectory.conditional} will be returned.  The 
 #'   importance of this function argument is that \code{dsdive.fastbridge}
 #'   will evaluate the proposal density for \code{trajectory.conditional}.
+#' @param t.stage2 vector of times at which stage 2 was entered.
 #' 
 #' @example examples/dsdive.fastbridge.R
 #' 
@@ -68,7 +69,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                              sub.tx, surf.tx, t0, tf, s0, 
                              inflation.factor.lambda = 1.1, verbose = FALSE,
                              precompute.bridges = TRUE, lambda.max = NULL,
-                             t0.dive, trajectory.conditional = NULL) {
+                             t0.dive, trajectory.conditional = NULL, t.stage2) {
   
   #
   # build basic simulation parameters
@@ -99,6 +100,11 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   # convert s0 to vector if not already provided
   if(length(s0) != M) {
     s0 = rep(s0[1], M)
+  }
+  
+  # convert t.stage2 to vector if not already provided
+  if(length(t.stage2) != M) {
+    t.stage2 = rep(t.stage2[1], M)
   }
   
   
@@ -156,6 +162,26 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
   #
   # bridge sample trajectories
   #
+  
+  # initialize bridged path output
+  paths.out = vector('list', M)
+  
+  # add a "null" depth bin to allow trajectory initialization
+  n = nrow(depth.bins) + 1
+  
+  # get ending indices for trajectory (any previous depth, any dive stage)
+  end.inds = c()
+  for(s in min(s0):3) {
+    for(dd in c(-1,0,1)) {
+      if(((df + dd) > 0) & ((df + dd) < n)) {
+        end.inds = c(end.inds, toInd(x = df + dd, y = df, z = s, 
+                                     x.max = n, y.max = n))
+      }
+    }
+  }
+    
+  # due to different t.stage2 times, trajectories must be sampled sequentially
+  for(i in 1:M) {
     
     if(verbose) {
       message('Computing transition matrices at potential transition times')
@@ -175,125 +201,110 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                                   surf.tx = surf.tx,
                                   inflation.factor.lambda = 1,
                                   min.depth = min.depth, max.depth = max.depth,
-                                  t0.dive = t0.dive, lambda.max = lambda.thick)
+                                  t0.dive = t0.dive, lambda.max = lambda.thick, 
+                                  t.stage2 = t.stage2[i])
     tx.mat = tx.mat.raw$m
     out.inds.lookup = tx.mat.raw$out.inds
-    
-    # add a "null" depth bin to allow trajectory initialization
-    n = nrow(depth.bins) + 1
-    
-    # get ending indices for trajectory (any previous depth, any dive stage)
-    end.inds = c()
-    for(s in min(s0):3) {
-      for(dd in c(-1,0,1)) {
-        if(((df + dd) > 0) & ((df + dd) < n)) {
-          end.inds = c(end.inds, toInd(x = df + dd, y = df, z = s, 
-                                       x.max = n, y.max = n))
-        }
-      }
-    }
     
     if(verbose) {
       message('Pre-computing bridging weights')
     }
     
-    pBridge.pre = vector('list', N.max)
+    pBridge.pre = vector('list', N[i])
     
-    for(i in 1:N.max){
-      if(i==1) {
+    for(j in 1:N[i]){
+      if(j==1) {
         # construct degenerate prob. of ending at a target node in 0 transitions
         pBridge.pre[[1]] = sparseMatrix(i = end.inds, j = end.inds, 
                                         x = rep(1, length(end.inds)), 
                                         dims = rep(n^2 * 3, 2))
       } else {
-        pBridge.pre[[i]] = tx.mat %*% pBridge.pre[[i-1]]
+        pBridge.pre[[j]] = tx.mat %*% pBridge.pre[[j-1]]
       }
     }
     
-    # initialize bridged path output
-    paths.out = vector('list', M)
+    #
+    # sample path
+    #
     
-    # sample paths
-    for(i in 1:M) {
+    # set starting index for trajectory
+    init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), 
+                     y = d0, z = s0[i], x.max = n, y.max = n)
       
-      # set starting index for trajectory
-      init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), 
-                       y = d0, z = s0[i], x.max = n, y.max = n)
+    # extract path length
+    N.i = N[i]
       
-      # extract path length
-      N.i = N[i]
+    if(verbose) {
+      message(paste('Sampling', N.i, 'potential transitions for trajectory', 
+                    i, sep = ' '))
+    }
       
-      if(verbose) {
-        message(paste('Sampling', N.i, 'potential transitions for trajectory', 
-                      i, sep = ' '))
-      }
+    # initialize trajectory and sample path
+    current.ind = init.ind
+    path.inds = numeric(N.i)
       
-      # initialize trajectory and sample path
-      current.ind = init.ind
-      path.inds = numeric(N.i)
+    # sample path transitions
+    if(N.i == 0) {
       
-      # sample path transitions
-      if(N.i == 0) {
+      # extract raw path, including initial state
+      path.inds = init.ind
+      
+      t.thick = c(t0, tf)
+      
+    } else {
+      for(k in 1:N.i) {
         
-        # extract raw path, including initial state
-        path.inds = init.ind
+        # define transition support
+        out.inds = out.inds.lookup[[current.ind]]
         
-        t.thick = c(t0, tf)
-        
-      } else {
-        for(k in 1:N.i) {
-          
-          # define transition support
-          out.inds = out.inds.lookup[[current.ind]]
-          
-          # extract bridging weights
-          pBr = pBridge.pre[[N.i - k + 1]]
-          if(length(out.inds) > 1) {
-            wts = rowSums(pBr[out.inds,end.inds])
-          } else {
-            wts = sum(pBr[out.inds,end.inds])
-          }
-          
-          # compute transition probability
-          tx.dens = tx.mat[current.ind, out.inds] * wts
-          tx.dens = tx.dens / sum(tx.dens)
-          
-          #
-          # sample and update path
-          #
-          
-          if(cond.sim & i==1) {
-            current.ind = toInd(x = trajectory.conditional$depths[k],  
-                                y = trajectory.conditional$depths[k+1], 
-                                z = trajectory.conditional$stages[k+1], 
-                                x.max = n, y.max = n)
-          } else {
-            if(length(out.inds) > 1) {
-              current.ind = sample(x = out.inds, size = 1, prob = tx.dens)
-            } else {
-              current.ind = out.inds
-            }
-          }
-          
-          # update log-density
-          ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
-          
-          path.inds[k] = current.ind
-          
+        # extract bridging weights
+        pBr = pBridge.pre[[N.i - k + 1]]
+        if(length(out.inds) > 1) {
+          wts = rowSums(pBr[out.inds,end.inds])
+        } else {
+          wts = sum(pBr[out.inds,end.inds])
         }
+        
+        # compute transition probability
+        tx.dens = tx.mat[current.ind, out.inds] * wts
+        tx.dens = tx.dens / sum(tx.dens)
+        
+        #
+        # sample and update path
+        #
         
         if(cond.sim & i==1) {
-          t.thick = trajectory.conditional$times
+          current.ind = toInd(x = trajectory.conditional$depths[k],  
+                              y = trajectory.conditional$depths[k+1], 
+                              z = trajectory.conditional$stages[k+1], 
+                              x.max = n, y.max = n)
         } else {
-          # sample arrival times, including initial time
-          t.thick = c(t0, t0 + T.win * sort(runif(n = N[i])))
+          if(length(out.inds) > 1) {
+            current.ind = sample(x = out.inds, size = 1, prob = tx.dens)
+          } else {
+            current.ind = out.inds
+          }
         }
+        
+        # update log-density
+        ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
+        
+        path.inds[k] = current.ind
+        
       }
       
+      if(cond.sim & i==1) {
+        t.thick = trajectory.conditional$times
+      } else {
+        # sample arrival times, including initial time
+        t.thick = c(t0, t0 + T.win * sort(runif(n = N[i])))
+      }
+    }
+    
       #
       # package path
       #
-
+      
       # extract raw path, including initial state
       path.full = cbind( 
         c(ifelse(is.null(d0.last[i]), n, d0.last[i]), d0, s0[i]), 
@@ -319,13 +330,27 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
         p$durations = tf - t0
       }
       
+      # extract time at which stage 2 was entered, if any
+      if(is.na(t.stage2[i])) {
+        # check currently imputed trajectory for stage 2 transition time
+        stage2.inds = which(p$stages==2)
+        if(length(stage2.inds) > 0) {
+          t.stage2tmp = p$times[min(stage2.inds)]
+        } else {
+          t.stage2tmp = NA
+        }
+      } else {
+        # copy stage 2 transition time from input
+        t.stage2tmp = t.stage2[i]
+      }
+      
       # compute density under true model 
       durations.tmp = c(p$durations, tf - p$times[length(p$times)])
       p$ld.true = dsdive.ld(depths = p$depths, durations = durations.tmp, 
                             times = p$times, stages = p$stages, beta = beta, 
                             lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                             depth.bins = depth.bins, t0.dive = t0.dive, 
-                            d0.last = d0.last[i])
+                            d0.last = d0.last[i], t.stage2 = t.stage2tmp)
       
       # save trajectory
       paths.out[i] = list(p)

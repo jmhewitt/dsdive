@@ -6,7 +6,7 @@ attach(dive.sim$params)
 x = dsdive.fwdsample(depth.bins = depth.bins, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1, t0.dive = 0)
+                     nsteps = NULL, s0 = 1, t0.dive = 0, t.stage2 = NA)
 
 detach(dive.sim$params)
 detach(dive.sim)

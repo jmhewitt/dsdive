@@ -67,7 +67,8 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     stages = stage.init,
     durations = NULL,
     times = t[1],
-    logW = 0
+    logW = 0,
+    t.stage2 = NA
   )
   class(particle) = 'dsdive'
   
@@ -116,7 +117,8 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
                              tf = t[j], steps.max = steps.max, 
                              dur0 = particle$durations[len], 
                              s0 = particle$stages[len], t0.dive = t0.dive, 
-                             shift.params = shift.params)
+                             shift.params = shift.params, 
+                             t.stage2 = particle$t.stage2)
         
         # continue resampling if particle is not observable at required time
         if(length(p$times) > 0) {
@@ -152,6 +154,14 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
             particle$depths = p$depths[length(p$depths)]
             particle$times = p$times[length(p$times)]
             particle$stages = p$stages[length(p$stages)]
+          }
+          
+          # update stage 2 entry time, as necessary
+          if(is.na(particle$t.stage2)) {
+            stage2.inds = which(particles$stages==2)
+            if(length(stage2.inds)>0) {
+              particle$t.stage2 = particle$times[min(stage2.inds)]
+            }
           }
           
           # save particle

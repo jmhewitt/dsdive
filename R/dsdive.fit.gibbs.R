@@ -119,12 +119,21 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       durations = durations
     )
     
+    # extract time at which stage 2 was entered, if any
+    stage2.inds = which(trajectory$stages==2)
+    if(length(stage2.inds)==0) {
+      t.stage2tmp = NA
+    } else {
+      t.stage2tmp = trajectory$times[min(stage2.inds)]
+    }
+    
     ld[1] = dsdive.ld(depths = trajectory$depths, 
                       durations = trajectory$durations, 
                       times = trajectory$times, stages = trajectory$stages, 
                       beta = init$beta, lambda = init$lambda, 
                       sub.tx = init$sub.tx, surf.tx = init$surf.tx, 
-                      depth.bins = depth.bins, t0.dive = t0.dive) + 
+                      depth.bins = depth.bins, t0.dive = t0.dive, 
+                      t.stage2 = t.stage2tmp) + 
       logJ
   }
   
@@ -147,6 +156,14 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       message('Optimizing initial proposal covariance')
     }
     
+    # extract time at which stage 2 was entered, if any
+    stage2.inds = which(trajectory$stages==2)
+    if(length(stage2.inds)==0) {
+      t.stage2tmp = NA
+    } else {
+      t.stage2tmp = trajectory$times[min(stage2.inds)]
+    }
+    
     o = optim(par = trace[1,], fn = function(params) {
       # munge parameters
       params.prop.list = params.toList(par = params, sub.tx1 = sub.tx1)
@@ -158,7 +175,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                           lambda = params.prop.list$lambda,
                           sub.tx = params.prop.list$sub.tx,
                           surf.tx = params.prop.list$surf.tx,
-                          depth.bins = depth.bins, t0.dive = t0.dive) +
+                          depth.bins = depth.bins, t0.dive = t0.dive, 
+                          t.stage2 = t.stage2tmp) +
         params.prop.list$logJ
       # return log posterior
       prop.ld + sum(dnorm(x = params, sd = priors.sd, log = TRUE))
@@ -199,6 +217,14 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     # propose new model parameters
     params.prop = trace[i-1,] + sigma.chol %*% rnorm(n = n.par)
     params.prop.list = params.toList(par = params.prop, sub.tx1 = sub.tx1)
+    
+    # extract time at which stage 2 was entered, if any
+    stage2.inds = which(trajectory$stages==2)
+    if(length(stage2.inds)==0) {
+      t.stage2tmp = NA
+    } else {
+      t.stage2tmp = trajectory$times[min(stage2.inds)]
+    }
 
     # compute proposed likelihood
     prop.ld = dsdive.ld(depths = trajectory$depths,
@@ -208,7 +234,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                         lambda = params.prop.list$lambda,
                         sub.tx = params.prop.list$sub.tx,
                         surf.tx = params.prop.list$surf.tx,
-                        depth.bins = depth.bins, t0.dive = t0.dive) +
+                        depth.bins = depth.bins, t0.dive = t0.dive, 
+                        t.stage2 = t.stage2tmp) +
       params.prop.list$logJ
     
     # accept/reject, and save parameters

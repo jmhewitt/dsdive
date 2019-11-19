@@ -35,6 +35,7 @@
 #' @param t0.dive Time at which dive started
 #' @param lambda.max Arrival rate for the parent Poisson process that will
 #'   be thinned.  \code{lambda.max} will be scaled by 
+#' @param t.stage2 time at which second stage was entered
 #' 
 #' @example examples/txmatrix.R
 #' 
@@ -45,7 +46,7 @@
 dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
                             inflation.factor.lambda = 1, min.depth = 1, 
                             max.depth = nrow(depth.bins), t0.dive, 
-                            lambda.max = NULL) {
+                            lambda.max = NULL, t.stage2) {
   
   # get rate for thick poisson process
   if(is.null(lambda.max)) {
@@ -91,7 +92,7 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
       p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = 1, 
                            d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
                            sub.tx = sub.tx, surf.tx = surf.tx, 
-                           t0.dive = t0.dive)
+                           t0.dive = t0.dive, t.stage2 = t.stage2)
       
       # compute and save probability of null-transition
       self.tx = 1 - p$rate/lambda.max
@@ -139,7 +140,8 @@ dsdive.tx.matrix = function(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
           p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = i, 
                                d0.last = i+dd, s0 = s, beta = beta, 
                                lambda = lambda, sub.tx = sub.tx, 
-                               surf.tx = surf.tx, t0.dive = t0.dive)
+                               surf.tx = surf.tx, t0.dive = t0.dive, 
+                               t.stage2 = t.stage2)
           
           # compute starting index
           from.ind = toInd(x = i+dd, y = i, z = s, x.max = n, y.max = n)

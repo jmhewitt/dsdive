@@ -73,7 +73,8 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
     durations = c(),
     ld = 0,
     ld.true = 0,
-    w = 0
+    w = 0,
+    t.stage2 = NA
   )
   
   class(res.single) = 'dsdive'
@@ -94,8 +95,9 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
       d0.last = sapply(res, function(r) r$depths[length(r$depths) - 1])
     } 
     
-    # extract current state indices
+    # extract current state indices and stage 2 transition times
     s0.current = sapply(res, function(r) r$stages[length(r$stages)])
+    t.stage2 = sapply(res, function(r) r$t.stage2)
     
     # set conditional simulation parameters
     if(cond.sim) {
@@ -119,7 +121,8 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                            verbose = verbose, 
                            precompute.bridges = precompute.bridges,
                            lambda.max = lambda.max, t0.dive = t0.dive, 
-                           trajectory.conditional = segment.conditional)
+                           trajectory.conditional = segment.conditional, 
+                           t.stage2 = t.stage2)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {
@@ -146,6 +149,21 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
       
       # compute sampling log-weight
       res[[j]]$w = br[[j]]$ld.true - br[[j]]$ld
+      
+      # update time at which stage 2 was entered, if any
+      if(is.na(t.stage2[j])) {
+        # check currently imputed trajectory for stage 2 transition time
+        stage2.inds = which(br[[j]]$stages==2)
+        if(length(stage2.inds) > 0) {
+          t.stage2tmp = br[[j]]$times[min(stage2.inds)]
+        } else {
+          t.stage2tmp = NA
+        }
+      } else {
+        # copy stage 2 transition time from input
+        t.stage2tmp = t.stage2[j]
+      }
+      res[[j]]$t.stage2 = t.stage2tmp
     }
     
     # resample particles
@@ -174,7 +192,8 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                                  times = rj$times, stages = rj$stages,
                                  beta = beta, lambda = lambda, sub.tx = sub.tx, 
                                  surf.tx = surf.tx, depth.bins = depth.bins, 
-                                 t0.dive = t0.dive)
+                                 t0.dive = t0.dive, 
+                                 t.stage2 = res[[j]]$t.stage2)
   }
   
   res

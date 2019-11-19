@@ -51,7 +51,7 @@
 #'
 dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0,
-                            t0.dive, shift.params = NULL) {
+                            t0.dive, shift.params = NULL, t.stage2) {
   
   # initialize output components
   depths = d0
@@ -77,7 +77,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       duration = dur0,
       t = t0,
       depth.last = NULL,
-      stage = stages
+      stage = stages,
+      t.stage2 = t.stage2
     )
     
     # configure so that we sample an exact number of transitions
@@ -95,7 +96,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
                                    d0.last = current$depth.last,  beta = beta, 
                                    lambda = lambda, sub.tx = sub.tx, 
                                    surf.tx = surf.tx, t0.dive = t0.dive, 
-                                   shift.params = shift.params)
+                                   shift.params = shift.params, 
+                                   t.stage2 = current$t.stage2)
       
       # if necessary, sample and save duration for current state
       if(is.null(current$duration)) {
@@ -109,6 +111,7 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
       
       # sample stage
       stage = current$stage + rbinom(1, 1, params.tx$prob.stage)
+
       # sample new depth
       if(length(params.tx$labels)==1) {
         d = params.tx$labels
@@ -129,7 +132,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
                                               sub.tx = sub.tx, 
                                               surf.tx = surf.tx, 
                                               t0.dive = t0.dive, 
-                                              shift.params = NULL)
+                                              shift.params = NULL, 
+                                              t.stage2 = current$t.stage2)
         # determine which transition was taken
         ind = which(d == params.tx$labels)
         # update log of importance sampling weight
@@ -145,13 +149,21 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
         }
       }
       
+      # update stage 2 entry time, as necessary
+      if(is.na(current$t.stage2)) {
+        t.stage2 = ifelse(stage==2, current$t + dur, NA)
+      } else {
+        t.stage2 = current$t.stage2
+      }
+      
       # update state to prep for next transition
       current = list(
         depth = d,
         duration = NULL, # duration in new state is not yet known
         t = current$t + dur,
         depth.last = current$depth,
-        stage = stage
+        stage = stage,
+        t.stage2 = t.stage2
       )
       
       # append new state and its transition time to output

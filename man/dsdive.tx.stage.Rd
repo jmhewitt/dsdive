@@ -4,7 +4,8 @@
 \alias{dsdive.tx.stage}
 \title{Compute stage transition parameters for dive trajectories across discrete depths}
 \usage{
-dsdive.tx.stage(t0, d0, sub.tx, surf.tx, t0.dive)
+dsdive.tx.stage(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2, t.scale = 5 *
+  60)
 }
 \arguments{
 \item{t0}{vector of times at which transition probs. should be computed}
@@ -19,6 +20,17 @@ a transition occurs at the next depth transition}
 transition to the PA stage at the next depth transition}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{t.stage2}{time at which second stage was entered.  If stage 2 has not 
+yet been entered, then set \code{t.stage2 = NA}, and 
+\code{dsdive.tx.stage} will implicitly set \code{t.stage2 = t0}.}
+
+\item{t.scale}{Nominally, \code{t0} and \code{t0.dive} should represent times 
+in seconds relative to a starting epoch (e.g., 0 for simulations, or 
+1/1/1970 for UTC date), however it may make sense to define the stage 
+transition model parameters with respect to a different time scale 
+(e.g., minutes, hours).  The argument \code{t.scale} will rescale \code{t0}
+and \code{t0.dive} to accomplish this.}
 }
 \description{
 Computes the probability that a dive will transition between any of the 3 

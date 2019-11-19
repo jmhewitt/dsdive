@@ -15,9 +15,9 @@ depths = cbind(center = bin.centers, halfwidth = bin.width/2)
 beta = matrix(c(2.5,   0, -1.5, 
                 -.5, -.5, -.75), 
               nrow = 2, byrow = TRUE)
-lambda = 1/c(3, 3, 3)
-sub.tx = c(50, .02)
-surf.tx = c(-10, 5e-3)
+lambda = c(.5,1,.5)
+sub.tx = c(50, .2)
+surf.tx = c(-5, .125)
 
 
 #
@@ -28,16 +28,22 @@ surf.tx = c(-10, 5e-3)
 x = dsdive.fwdsample(depth.bins = depths, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1, t0.dive = 0)
+                     nsteps = NULL, s0 = 1, t0.dive = 0, t.stage2 = NA)
 
 # observe dive at regular time intervals
 obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages,
                      t.obs = seq(from = 0, to = max(x$times)+60, by = 1*60))
 
+plot(x = x, depth.bins = depths, dsobs = obs)
+
 # impute trajectory
-imputed = dsdive.impute(depth.bins = depths, depths = obs$depths, 
-                        times = obs$times, s0 = 1, beta = beta, lambda = lambda, 
-                        sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
+imputed = dsdive.fastimpute(M = 1, depth.bins = depths, depths = obs$depths, 
+                            times = obs$times, s0 = 1, beta = beta, 
+                            lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
+                            t0.dive = 0)
+
+plot(x = x, depth.bins = depths, dsobs = obs, imputed.list = imputed, 
+     imputed.alpha = .3)
 
 
 #

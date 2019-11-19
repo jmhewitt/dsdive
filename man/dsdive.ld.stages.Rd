@@ -5,7 +5,7 @@
 \title{Full conditional distribution for dive stages given data and parameters}
 \usage{
 dsdive.ld.stages(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx, depths,
-  durations, times, depth.bins, t0.dive)
+  durations, times, depth.bins, t0.dive, t.stage2)
 }
 \arguments{
 \item{breaks}{the two indices where a new dive stage is entered}
@@ -38,6 +38,8 @@ column defines the depth at the center of each depth bin, and the second
 column defines the half-width of each bin.}
 
 \item{t0.dive}{Time at which dive started}
+
+\item{t.stage2}{time at which second stage was entered}
 }
 \description{
 The 3 stage dive model has two breakpoints where the dive stage changes.  

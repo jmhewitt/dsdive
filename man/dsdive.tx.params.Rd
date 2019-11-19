@@ -5,7 +5,7 @@
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
 dsdive.tx.params(t0, depth.bins, d0, d0.last = NULL, s0, beta, lambda,
-  sub.tx, surf.tx, t0.dive, shift.params = NULL)
+  sub.tx, surf.tx, t0.dive, shift.params = NULL, t.stage2)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
@@ -50,6 +50,8 @@ directions of travel, and replace "poor" directions of travel with bias in
 replace "poor" directions of travel with random walk proposals.  Values 
 less than 1 will push poor directions of travel closer toward random walks
 from their natural tendencies.}
+
+\item{t.stage2}{time at which second stage was entered.}
 }
 \description{
 Computes elements of a transition matrix when given model parameters and 

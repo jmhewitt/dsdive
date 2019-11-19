@@ -33,13 +33,15 @@
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
 #' @param t0.dive Time at which dive started
+#' @param t.stage2 time at which second stage was entered
 #'   
 #' @example examples/dsdive.ld.stages.R
 #' 
 #' @export
 #'
 dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
-                            depths, durations, times, depth.bins, t0.dive) {
+                            depths, durations, times, depth.bins, t0.dive, 
+                            t.stage2) {
   
   # extract dimensions
   nt = length(times)
@@ -56,22 +58,31 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
   }
   
   # compute log-mass across support
+  # log.wts = numeric(length(support))
+  # for(i in 1:length(support)) {
+  #   # define stage vector
+  #   if(fixed.ind == 1) {
+  #     b = c(breaks[1], support[i])
+  #   } else {
+  #     b = c(support[i], breaks[2])
+  #   }
+  #   stage.vec = stagevec(length.out = nt, breaks = b)
+  #   
+  #   # compute log-weights
+  #   log.wts[i] = dsdive.ld(depths = depths, durations = durations, 
+  #                          times = times, stages = stage.vec, beta = beta, 
+  #                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
+  #                          depth.bins = depth.bins, t0.dive = t0.dive)
+  # }
+  
+  # compute log-transition probabilities across entire observation space
+  probs.raw = dsdive.tx.stage(t0 = times, d0 = depths, sub.tx = sub.tx, 
+                              surf.tx = surf.tx, t0.dive = t0.dive, 
+                              t.stage2 = t.stage2)
+  
+  # extract log-mass across support
   log.wts = numeric(length(support))
-  for(i in 1:length(support)) {
-    # define stage vector
-    if(fixed.ind == 1) {
-      b = c(breaks[1], support[i])
-    } else {
-      b = c(support[i], breaks[2])
-    }
-    stage.vec = stagevec(length.out = nt, breaks = b)
-    
-    # compute log-weights
-    log.wts[i] = dsdive.ld(depths = depths, durations = durations, 
-                           times = times, stages = stage.vec, beta = beta, 
-                           lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                           depth.bins = depth.bins, t0.dive = t0.dive)
-  }
+  
   
   # center weights and transform to probability scale
   wts.finite = exp(scale(log.wts[is.finite(log.wts)], 

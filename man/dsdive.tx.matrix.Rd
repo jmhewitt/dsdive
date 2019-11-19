@@ -6,7 +6,7 @@
 \usage{
 dsdive.tx.matrix(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
   inflation.factor.lambda = 1, min.depth = 1,
-  max.depth = nrow(depth.bins), t0.dive, lambda.max = NULL)
+  max.depth = nrow(depth.bins), t0.dive, lambda.max = NULL, t.stage2)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}
@@ -48,6 +48,8 @@ transition parameters for depth bins at and below \code{max.depth}.}
 
 \item{lambda.max}{Arrival rate for the parent Poisson process that will
 be thinned.  \code{lambda.max} will be scaled by}
+
+\item{t.stage2}{time at which second stage was entered}
 }
 \description{
 Given model parameters and transition times, the 3 stage dive model can be 
@@ -63,7 +65,7 @@ attach(dive.sim$params)
 
 m = dsdive.tx.matrix(t0 = 60, depth.bins = depth.bins, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                     t0.dive = 0)
+                     t0.dive = 0, t.stage2 = NA)
 
 detach(dive.sim$params)
 detach(dive.sim)
