@@ -42,6 +42,8 @@
 #'   respective transformed scales
 #' @param state.backup If not \code{NULL}, then a list that specifies a file 
 #'   to which the sampler state will be dumped every \code{t} seconds.
+#' @param scale.sigma.init Amount by which to scale the initial proposal 
+#'   covariance matrix
 #' 
 #' @importFrom MHadaptive makePositiveDefinite
 #' 
@@ -54,7 +56,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
                             priors.sd, sub.tx1,  
                             adapt = c(100, 20, 0.5, 0.75),
-                            state.backup = list(t=Inf, file='state.RData')) {
+                            state.backup = list(t=Inf, file='state.RData'),
+                            scale.sigma.init = 1) {
   
   # update number of iterations it to allow for initial parameters
   it = it + 1
@@ -183,7 +186,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
-    sigma = -solve(o$hessian)
+    sigma = -solve(o$hessian) * scale.sigma.init
     sigma.chol = t(chol(sigma))
     
   }

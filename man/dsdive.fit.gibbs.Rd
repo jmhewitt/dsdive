@@ -8,7 +8,7 @@ dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
   inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
   sub.tx1, adapt = c(100, 20, 0.5, 0.75), state.backup = list(t = Inf,
-  file = "state.RData"))
+  file = "state.RData"), scale.sigma.init = 1)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -42,6 +42,9 @@ respective transformed scales}
 
 \item{state.backup}{If not \code{NULL}, then a list that specifies a file 
 to which the sampler state will be dumped every \code{t} seconds.}
+
+\item{scale.sigma.init}{Amount by which to scale the initial proposal 
+covariance matrix}
 
 \item{s0}{dive stage at which the trajectory should be started from}
 
