@@ -13,17 +13,19 @@
 #'   in at each observation
 #' @param durations Vector specifying the amount of time spent in each depth bin
 #' @param time.as.POSIXct if \code{TRUE}, will convert plotting times to POSIXct
-#' 
+#' @param t0.dive Initial time for dive, so that times from beginning of dive 
+#'   can be computed as well
 #' 
 #' @example examples/ds.df.R
 #' 
 #' @export
 #' 
 ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL,
-                 time.as.POSIXct = FALSE) {
+                 time.as.POSIXct = FALSE, t0.dive = times[1]) {
   
   # initialize output
-  df = data.frame(depths = depths, times = times)
+  df = data.frame(depths = depths, times = times, 
+                  times.zeroed = times - t0.dive)
   
   # add dive stage information
   if(!is.null(stages)) {
@@ -47,6 +49,7 @@ ds.df = function(depths, times, depth.bins, stages = NULL, durations = NULL,
   
   # convert seconds to minutes
   df$min = df$times/60
+  df$min.zeroed = df$times.zeroed/60
   
   # extract plottable times
   if(time.as.POSIXct) {

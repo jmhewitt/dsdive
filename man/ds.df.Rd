@@ -5,7 +5,7 @@
 \title{Builds a tidy data frame for dive objects}
 \usage{
 ds.df(depths, times, depth.bins, stages = NULL, durations = NULL,
-  time.as.POSIXct = FALSE)
+  time.as.POSIXct = FALSE, t0.dive = times[1])
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -22,6 +22,9 @@ in at each observation}
 \item{durations}{Vector specifying the amount of time spent in each depth bin}
 
 \item{time.as.POSIXct}{if \code{TRUE}, will convert plotting times to POSIXct}
+
+\item{t0.dive}{Initial time for dive, so that times from beginning of dive 
+can be computed as well}
 }
 \description{
 Converts raw dive information to a tidy dataframe that
