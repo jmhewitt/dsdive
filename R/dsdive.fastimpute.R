@@ -46,7 +46,7 @@
 #'   importance of this function argument is that \code{dsdive.fastbridge}
 #'   will evaluate the proposal density for \code{trajectory.conditional}.
 #' 
-#' @example examples/dsdive.impute.R
+#' @example examples/dsdive.fastimpute.R
 #' 
 #' @export
 #'
