@@ -3,8 +3,6 @@
 #' The output also includes the log-Jacobian for the transformation
 #' 
 #' @param par the vector of parameters to convert to a list of model parameters
-#' @param sub.tx1 the fixed value of sub.tx1 to incorporate into the parameter 
-#'   list
 #'   
 #' @importFrom bisque jac.logit jac.log
 #' 
@@ -19,16 +17,24 @@
 #' detach(params)
 #' detach(dive.sim)
 #' 
-params.toList = function(par, sub.tx1) {
+params.toList = function(par) {
   
   # extract model parameters, and add jacobian for transformations
   res = list(
-    beta = matrix(par[1:6], nrow = 2),
-    lambda = exp(par[7:9]),
-    sub.tx = c(sub.tx1, plogis(par[10])),
-    surf.tx = par[11:12],
-    logJ = jac.logit(x = par[10], log = TRUE) + 
-      sum(jac.log(x = par[7:9], log = TRUE))
+    # stage 1 downward trend, st. 2 directional persistence, st. 3 upward trend;
+    # full matrix is used for backward-compatibility with an unconstrained, 
+    # full-parameter model
+    beta = matrix(c(exp(par[1]), 0,
+                    0, par[2], 
+                    -exp(par[3]), 0), nrow = 2),
+    # transition rates, all stages
+    lambda = exp(par[4:6]),
+    # stage 1->2 transition parameters
+    sub.tx = par[7:8],
+    # stage 2->3 transition parameters
+    surf.tx = par[9:10],
+    # log-jacobian for transformations
+    logJ = sum(jac.log(x = par[c(1,3,4:6)], log = TRUE))
   )
   
   res 
@@ -51,6 +57,6 @@ params.toList = function(par, sub.tx1) {
 #' detach(dive.sim)
 #'
 params.toVec = function(par) {
-  c(par$beta, log(par$lambda), qlogis(par$sub.tx[2]), par$surf.tx)
+  c(log(par$beta[1,1]), par$beta[2,2], log(-par$beta[1,3]), log(par$lambda),
+    par$sub.tx, par$surf.tx)
 }
-

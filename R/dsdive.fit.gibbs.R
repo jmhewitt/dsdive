@@ -37,13 +37,16 @@
 #'   memory overhead of the method, but will reduce its runtime.
 #' @param t0.dive Time at which dive started
 #' @param init List of parameter values at which to initialize the MCMC chain
-#' @param sigma Covariance matrix for Random walk proposals
+#' @param sigma List of covariance matrices for block-Random walk proposals.
+#'   First entry in list should be covariance matrix for depth transition 
+#'   parameters, and second entry in list should be covariance matrix for 
+#'   rate and stage transition parameters.
 #' @param priors.sd vector of standard deviations for model parameters on their 
 #'   respective transformed scales
 #' @param state.backup If not \code{NULL}, then a list that specifies a file 
 #'   to which the sampler state will be dumped every \code{t} seconds.
 #' @param scale.sigma.init Amount by which to scale the initial proposal 
-#'   covariance matrix
+#'   covariance matrices
 #' 
 #' @importFrom MHadaptive makePositiveDefinite
 #' 
@@ -54,7 +57,7 @@
 dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL, 
                             depth.bins, t0.dive, it, verbose = FALSE, 
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
-                            priors.sd, sub.tx1,  
+                            priors.sd, 
                             adapt = c(100, 20, 0.5, 0.75),
                             state.backup = list(t=Inf, file='state.RData'),
                             scale.sigma.init = 1) {
@@ -67,16 +70,15 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   
   # build raw storage for posterior samples of model parameters
   par.init = params.toVec(init)
-  n.par = length(par.init)
-  trace = matrix(nrow = it, ncol = n.par)
+  n.par = c(3, 7)
+  trace = matrix(nrow = it, ncol = sum(n.par))
   trace[1,] = par.init
   
   # store log-densities for data at each iteration
   ld = numeric(length = it)
   
   # compute initial jacobian
-  logJ = params.toList(par = params.toVec(par = init), 
-                       sub.tx1 = sub.tx1)$logJ
+  logJ = params.toList(par = params.toVec(par = init))$logJ
   
   # if necessary, build storage for imputed trajectories, and initialize 
   #   latent trajectory
@@ -145,10 +147,14 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   if(!is.null(sigma)) { 
     # user-provided proposal covariance
     
-    sigma.chol = t(chol(sigma))
-    if(ncol(sigma.chol) != n.par) {
-      stop(paste('The parameter dimension', n.par, 
-                 'differs from the proposal dimension', ncol(sigma.chol), 
+    sigma.chol = list(
+      t(chol(sigma[[1]])),
+      t(chol(sigma[[2]]))
+    )
+    if(ncol(sigma.chol[[1]]) + ncol(sigma.chol[[2]]) != sum(n.par)) {
+      stop(paste('The total parameter dimension', sum(n.par), 
+                 'differs from the proposal dimensions', 
+                 ncol(sigma.chol[[1]]) + ncol(sigma.chol[[2]]), 
                  sep = ' '))
     }
     
@@ -169,7 +175,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     
     o = optim(par = trace[1,], fn = function(params) {
       # munge parameters
-      params.prop.list = params.toList(par = params, sub.tx1 = sub.tx1)
+      params.prop.list = params.toList(par = params)
       # compute log-density
       prop.ld = dsdive.ld(depths = trajectory$depths,
                           durations = trajectory$durations,
@@ -186,8 +192,9 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
-    sigma = -solve(o$hessian) * scale.sigma.init
-    sigma.chol = t(chol(sigma))
+    sigma.tmp = -solve(o$hessian) * scale.sigma.init
+    sigma = list(sigma.tmp[1:3,1:3], sigma.tmp[-(1:3),-(1:3)])
+    sigma.chol = list(t(chol(sigma[[1]])), t(chol(sigma[[2]])))
     
   }
   
@@ -214,13 +221,6 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       tick = tock
     }
     
-    # extract current model parameters
-    params = params.toList(par = trace[i-1,], sub.tx1 = sub.tx1)
-    
-    # propose new model parameters
-    params.prop = trace[i-1,] + sigma.chol %*% rnorm(n = n.par)
-    params.prop.list = params.toList(par = params.prop, sub.tx1 = sub.tx1)
-    
     # extract time at which stage 2 was entered, if any
     stage2.inds = which(trajectory$stages==2)
     if(length(stage2.inds)==0) {
@@ -228,7 +228,19 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     } else {
       t.stage2tmp = trajectory$times[min(stage2.inds)]
     }
-
+    
+    # extract current model parameters
+    params = params.toList(par = trace[i-1,])
+    
+    #
+    # sample depth bin transition parameters
+    #
+    
+    # propose new depth bin transition parameters
+    params.prop = c(trace[i-1,1:3] + sigma.chol[[1]] %*% rnorm(n = 3),
+                    trace[i-1,-(1:3)])
+    params.prop.list = params.toList(par = params.prop)
+    
     # compute proposed likelihood
     prop.ld = dsdive.ld(depths = trajectory$depths,
                         durations = trajectory$durations,
@@ -260,7 +272,48 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       ld[i] = ld[i-1]
     }
     
-    # adapt RW proposal distribution
+    
+    #
+    # sample transition rate and stage probability parameters
+    #
+    
+    # propose new depth bin transition parameters
+    params.prop = c(trace[i,1:3],
+                    trace[i,-(1:3)] + sigma.chol[[2]] %*% rnorm(n = 7))
+    params.prop.list = params.toList(par = params.prop)
+    
+    # compute proposed likelihood
+    prop.ld = dsdive.ld(depths = trajectory$depths,
+                        durations = trajectory$durations,
+                        times = trajectory$times, stages = trajectory$stages,
+                        beta = params.prop.list$beta,
+                        lambda = params.prop.list$lambda,
+                        sub.tx = params.prop.list$sub.tx,
+                        surf.tx = params.prop.list$surf.tx,
+                        depth.bins = depth.bins, t0.dive = t0.dive, 
+                        t.stage2 = t.stage2tmp) +
+      params.prop.list$logJ
+    
+    # accept/reject, and save parameters
+    lR = prop.ld + sum(dnorm(x = params.prop, sd = priors.sd, log = TRUE)) - 
+      (ld[i] + sum(dnorm(x = trace[i,], sd = priors.sd, log = TRUE)))
+    
+    if(log(runif(1)) <= lR) {
+      if(verbose) {
+        message(paste('   lR:', round(lR, 2), 'ACCEPTED', sep = ' '))
+      }
+      trace[i,] = params.prop
+      ld[i] = prop.ld
+      params = params.prop.list
+    } else {
+      if(verbose) {
+        message(paste('   lR:', round(lR, 2), sep = ' '))
+      }
+      # no action, since leaving parameters untouched
+    }
+    
+    
+    # adapt RW proposal distributions
     if(i > adapt[1] && i %% adapt[2] == 0 && i < (adapt[4]*it) ) {   
       if(verbose) {
         message('   ADAPTING')
@@ -269,12 +322,14 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       inds = floor(i*adapt[3]):i
       inds.len = length(inds)
       # get new proposal covariance
-      p.sigma = makePositiveDefinite((inds.len - 1) / inds.len * 
-                                       var(trace[inds,]))
+      p.sigma1 = makePositiveDefinite((inds.len - 1) / inds.len * 
+                                       var(trace[inds,1:3]))
+      p.sigma2 = makePositiveDefinite((inds.len - 1) / inds.len * 
+                                       var(trace[inds,-(1:3)]))
       # update proposal cholesky
-      if(!(0 %in% p.sigma)) {
-        sigma = p.sigma
-        sigma.chol = t(chol(sigma))
+      if(!(0 %in% p.sigma1) & !(0 %in% p.sigma2)) {
+        sigma = list(p.sigma1, p.sigma2)
+        sigma.chol = list(t(chol(p.sigma1)), t(chol(p.sigma2)))
       } 
     }
     
