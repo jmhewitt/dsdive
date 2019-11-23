@@ -12,12 +12,13 @@ bin.centers = seq(from = bin.width/2, to = 1e3, by = bin.width)
 depths = cbind(center = bin.centers, halfwidth = bin.width/2)
 
 # define transition parameters
-beta = matrix(c(2.5,   0, -1.5, 
-                -.5, -.5, -.75), 
+beta = matrix(c(2.5,   0, -2.5, 
+                0, -.5, 0), 
               nrow = 2, byrow = TRUE)
 lambda = c(.5,1,.5)
-sub.tx = c(50, .2)
-surf.tx = c(-5, .125)
+sub.tx = c(10, 15)
+surf.tx = sub.tx
+
 
 
 #
