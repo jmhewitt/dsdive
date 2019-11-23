@@ -18,8 +18,6 @@
 #'   column defines the half-width of each bin.
 #' @param priors Standard deviations for mean-0 normal priors on model 
 #'   parameters, after transformation to real line
-#' @param sub.tx1 Index of minimum depth bin at which transition to intermediate 
-#'   behaviors stage can occur.
 #' @param t0.dive Time at which dive started
 #' @param method Method to use in \code{optim} search for initial parameters
 #' 
@@ -29,7 +27,7 @@
 #' 
 #'
 dsdive.heurest = function(depths, times, stages.est, depth.bins, 
-                          priors = rep(5, 12), sub.tx1, t0.dive, 
+                          priors = rep(5, 10), t0.dive, 
                           method = 'Nelder-Mead') {
   
   #
@@ -82,19 +80,14 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                  mean(dy[(stages.tx[1]+1):stages.tx[2]]),
                  mean(dy[-(1:stages.tx[2])]))
   
-  # "moment" estimate for the probability of transitioning from primary dive
-  sub.tx2 = 1/(
-    min(which(stages.complete == 2)) - min(which(depths.complete >= sub.tx1))
-  )
-  
   
   #
   # optimize initial parameter estimates
   #
   
-  o = optim(par = c(rep(0,6), log(lambda.est), qlogis(sub.tx2), rep(0,2)), 
+  o = optim(par = c(rep(0,3), log(lambda.est), rep(0,4)), 
             fn = function(theta) {
-              theta.list = params.toList(par = theta, sub.tx1 = sub.tx1)
+              theta.list = params.toList(par = theta)
               dsdive.ld(depths = depths.complete, stages = stages.complete, 
                         durations = durations.complete, times = times.complete,
                         beta = theta.list$beta, 
@@ -106,5 +99,5 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
             }, method = method, control = list(fnscale = -1))
   
   # package results
-  params.toList(par = o$par, sub.tx1 = sub.tx1)
+  params.toList(par = o$par)
 }

@@ -48,10 +48,13 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   
   num.depths = nrow(depth.bins)
   
+  # extract transition rate
+  rates = lambda[s0] / (2 * depth.bins[d0, 2])
+  
   # extract probability of transitioning to next dive stage
   prob.stage = dsdive.tx.stage(t0 = t0, d0 = d0, sub.tx = sub.tx, 
                                surf.tx = surf.tx, t0.dive = t0.dive, 
-                               t.stage2 = t.stage2)[s0,]
+                               t.stage2 = t.stage2, rates = rates)[s0,]
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward
@@ -113,9 +116,6 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
     # convert probabilities
     probs = plogis(logit.probs)
   }
-  
-  # extract transition rate
-  rates = lambda[s0] / (2 * depth.bins[d0, 2])
   
   # bias transition rate for computational efficiency
   if(!is.null(shift.params)) {

@@ -27,7 +27,7 @@
 #' @export
 #' 
 dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
-                           t.scale = 5*60) {
+                           t.scale = 60, rates) {
   
   if(is.na(t.stage2)) {
     t.stage2 = t0
@@ -36,13 +36,39 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
   # initialize results
   res = matrix(data = 0, nrow = 3, ncol = length(t0))
   
+  #
   # compute probabilities
+  #
   
   # probability of transition to stage 2
-  res[1, d0 >= sub.tx[1]] = sub.tx[2]
+  tgt.time = sub.tx * t.scale + t0.dive
+  
+  interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+  if(interval.start < tgt.time[2]) {
+    prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                             rate = rates))
+    interval = max(tgt.time[2] - interval.start, 0)
+    scale.prob = 1 / (rates * interval)
+    res[1,] = min(prob.inrange * scale.prob, 1)
+  } else {
+    res[1,] = 1
+  }
+  
   
   # probability of transition to stage 3
-  res[2,] = plogis(surf.tx[1] + surf.tx[2] * (t0 - t.stage2)/t.scale)
+  tgt.time = surf.tx * t.scale + t.stage2
+
+  interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+  if(interval.start < tgt.time[2]) {
+    prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                             rate = rates))
+    interval = max(tgt.time[2] - interval.start, 0)
+    scale.prob = 1 / (rates * interval)
+    res[2,] = min(prob.inrange * scale.prob, 1)
+  } else {
+    res[2,] = 1
+  }
+  
   
   # probability of transition out of stage 3 remains 0
    
