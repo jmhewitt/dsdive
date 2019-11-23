@@ -95,7 +95,7 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
     }
     
     # compute sampling weights
-    W = exp(scale(x = sapply(particles$resampling, function(p) p$logW ), 
+    W = exp(scale(x = sapply(particles$resampling, function(p) p$logW), 
                   center = TRUE, scale = FALSE))
     
     # sample each particle
