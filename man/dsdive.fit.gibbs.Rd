@@ -7,8 +7,8 @@
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
   inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
-  sub.tx1, adapt = c(100, 20, 0.5, 0.75), state.backup = list(t = Inf,
-  file = "state.RData"), scale.sigma.init = 1)
+  adapt = c(100, 20, 0.5, 0.75), state.backup = list(t = Inf, file =
+  "state.RData"), scale.sigma.init = 1)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -35,7 +35,10 @@ self-transitions.}
 
 \item{init}{List of parameter values at which to initialize the MCMC chain}
 
-\item{sigma}{Covariance matrix for Random walk proposals}
+\item{sigma}{List of covariance matrices for block-Random walk proposals.
+First entry in list should be covariance matrix for depth transition 
+parameters, and second entry in list should be covariance matrix for 
+rate and stage transition parameters.}
 
 \item{priors.sd}{vector of standard deviations for model parameters on their 
 respective transformed scales}
@@ -44,7 +47,7 @@ respective transformed scales}
 to which the sampler state will be dumped every \code{t} seconds.}
 
 \item{scale.sigma.init}{Amount by which to scale the initial proposal 
-covariance matrix}
+covariance matrices}
 
 \item{s0}{dive stage at which the trajectory should be started from}
 
@@ -80,8 +83,7 @@ attach(dive.sim$params)
 x = dsdive.fit.gibbs(depths = sim.obs$depths, times = sim.obs$times, 
                      durations = NULL, stages = NULL, depth.bins = depth.bins, 
                      t0.dive = sim.obs$times[1], it = 50, verbose = TRUE, 
-                     init = params, priors.sd = rep(1,12), 
-                     sub.tx1 = params$sub.tx[1])
+                     init = params, priors.sd = rep(1,10))
 
 detach(dive.sim$params)
 detach(dive.sim)

@@ -4,13 +4,10 @@
 \alias{params.toList}
 \title{Convert vector of parameters on transformed scale to a list of parameters on model scale}
 \usage{
-params.toList(par, sub.tx1)
+params.toList(par)
 }
 \arguments{
 \item{par}{the vector of parameters to convert to a list of model parameters}
-
-\item{sub.tx1}{the fixed value of sub.tx1 to incorporate into the parameter 
-list}
 }
 \description{
 The output also includes the log-Jacobian for the transformation

@@ -5,7 +5,7 @@
 \title{Heuristic estimate of model parameters given observations}
 \usage{
 dsdive.heurest(depths, times, stages.est, depth.bins, priors = rep(5,
-  12), sub.tx1, t0.dive, method = "Nelder-Mead")
+  10), t0.dive, method = "Nelder-Mead")
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -21,9 +21,6 @@ column defines the half-width of each bin.}
 
 \item{priors}{Standard deviations for mean-0 normal priors on model 
 parameters, after transformation to real line}
-
-\item{sub.tx1}{Index of minimum depth bin at which transition to intermediate 
-behaviors stage can occur.}
 
 \item{t0.dive}{Time at which dive started}
 
