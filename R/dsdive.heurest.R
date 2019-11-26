@@ -27,8 +27,8 @@
 #' 
 #'
 dsdive.heurest = function(depths, times, stages.est, depth.bins, 
-                          priors = rep(5, 10), t0.dive, 
-                          method = 'Nelder-Mead') {
+                          priors.sd = rep(5, 12), priors.mean = rep(0, 12), 
+                          t0.dive, method = 'Nelder-Mead') {
   
   #
   # linearly impute a complete trajectory
@@ -80,12 +80,17 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                  mean(dy[(stages.tx[1]+1):stages.tx[2]]),
                  mean(dy[-(1:stages.tx[2])]))
   
+  # ad-hoc estimates for stage transition parameters
+  t0.dive = times[1]
+  tx.mu = log(c(times[stages.tx[1]], diff(times[stages.tx]))/60)
+  tx.win = log((rep(mean(diff(times)) , 2))/60)
   
   #
   # optimize initial parameter estimates
   #
   
-  o = optim(par = c(rep(0,3), log(lambda.est), rep(0,4)), 
+  o = optim(par = c(rep(0,3), log(lambda.est), c(tx.mu[1], tx.win[1], 
+                                                 tx.mu[2], tx.win[2])), 
             fn = function(theta) {
               theta.list = params.toList(par = theta)
               dsdive.ld(depths = depths.complete, stages = stages.complete, 
@@ -95,7 +100,8 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         sub.tx = theta.list$sub.tx,
                         surf.tx = theta.list$surf.tx, depth.bins = depth.bins, 
                         t0.dive = t0.dive, t.stage2 = t.stage2tmp) + 
-              sum(dnorm(theta, sd = priors, log = TRUE)) + theta.list$logJ
+              sum(dnorm(theta, mean = priors.mean, sd = priors.sd, 
+                        log = TRUE)) + theta.list$logJ
             }, method = method, control = list(fnscale = -1))
   
   # package results

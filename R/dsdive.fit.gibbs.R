@@ -57,7 +57,7 @@
 dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL, 
                             depth.bins, t0.dive, it, verbose = FALSE, 
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
-                            priors.sd, 
+                            priors.sd, priors.mean,
                             adapt = c(100, 20, 0.5, 0.75),
                             state.backup = list(t=Inf, file='state.RData'),
                             scale.sigma.init = 1) {
@@ -191,7 +191,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                           t.stage2 = t.stage2tmp) +
         params.prop.list$logJ
       # return log posterior
-      prop.ld + sum(dnorm(x = params, sd = priors.sd, log = TRUE))
+      prop.ld + sum(dnorm(x = params, mean = priors.mean, sd = priors.sd, 
+                          log = TRUE))
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
     sigma.tmp = -solve(o$hessian) * scale.sigma.init
@@ -258,8 +259,10 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       params.prop.list$logJ
     
     # accept/reject, and save parameters
-    lR = prop.ld + sum(dnorm(x = params.prop, sd = priors.sd, log = TRUE)) - 
-      (ld[i-1] + sum(dnorm(x = trace[i-1,], sd = priors.sd, log = TRUE)))
+    lR = prop.ld + sum(dnorm(x = params.prop, mean = priors.mean, 
+                             sd = priors.sd, log = TRUE)) - 
+      (ld[i-1] + sum(dnorm(x = trace[i-1,], mean = priors.mean, sd = priors.sd, 
+                           log = TRUE)))
     
     if(log(runif(1)) <= lR) {
       if(verbose) {
@@ -299,8 +302,10 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       params.prop.list$logJ
     
     # accept/reject, and save parameters
-    lR = prop.ld + sum(dnorm(x = params.prop, sd = priors.sd, log = TRUE)) - 
-      (ld[i] + sum(dnorm(x = trace[i,], sd = priors.sd, log = TRUE)))
+    lR = prop.ld + sum(dnorm(x = params.prop, mean = priors.mean, 
+                             sd = priors.sd, log = TRUE)) - 
+      (ld[i] + sum(dnorm(x = trace[i,], mean = priors.mean, sd = priors.sd, 
+                         log = TRUE)))
     
     if(log(runif(1)) <= lR) {
       if(verbose) {

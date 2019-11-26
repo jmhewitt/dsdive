@@ -4,8 +4,8 @@
 \alias{dsdive.heurest}
 \title{Heuristic estimate of model parameters given observations}
 \usage{
-dsdive.heurest(depths, times, stages.est, depth.bins, priors = rep(5,
-  10), t0.dive, method = "Nelder-Mead")
+dsdive.heurest(depths, times, stages.est, depth.bins, priors.sd = rep(5,
+  12), priors.mean = rep(0, 12), t0.dive, method = "Nelder-Mead")
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -19,14 +19,14 @@ in at each observation}
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
-\item{priors}{Standard deviations for mean-0 normal priors on model 
-parameters, after transformation to real line}
-
 \item{t0.dive}{Time at which dive started}
 
 \item{method}{Method to use in \code{optim} search for initial parameters
 
 # @example examples/heurest.R}
+
+\item{priors}{Standard deviations for mean-0 normal priors on model 
+parameters, after transformation to real line}
 }
 \description{
 Builds heuristic estimates of dive model parameters, which is useful for 

@@ -7,8 +7,8 @@
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
   inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
-  adapt = c(100, 20, 0.5, 0.75), state.backup = list(t = Inf, file =
-  "state.RData"), scale.sigma.init = 1)
+  priors.mean, adapt = c(100, 20, 0.5, 0.75), state.backup = list(t =
+  Inf, file = "state.RData"), scale.sigma.init = 1)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -83,7 +83,8 @@ attach(dive.sim$params)
 x = dsdive.fit.gibbs(depths = sim.obs$depths, times = sim.obs$times, 
                      durations = NULL, stages = NULL, depth.bins = depth.bins, 
                      t0.dive = sim.obs$times[1], it = 50, verbose = TRUE, 
-                     init = params, priors.sd = rep(1,10))
+                     init = params, priors.sd = rep(1,12), 
+                     priors.mean = rep(0, 12))
 
 detach(dive.sim$params)
 detach(dive.sim)
