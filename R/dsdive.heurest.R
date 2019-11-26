@@ -55,7 +55,7 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   }
   
   # finish assembling complete trajectory
-  times.complete = c(0, cumsum(durations.complete))
+  times.complete = c(0, cumsum(durations.complete)) + t0.dive
   durations.complete = c(durations.complete, NA)
   stages.complete = c(stages.complete, 3)
   
@@ -81,8 +81,10 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                  mean(dy[-(1:stages.tx[2])]))
   
   # ad-hoc estimates for stage transition parameters
+  stages.tx.complete = which(diff(stages.complete) == 1)
   t0.dive = times[1]
-  tx.mu = log(c(times[stages.tx[1]], diff(times[stages.tx]))/60)
+  tx.mu = log(c(times.complete[stages.tx.complete[1]] - t0.dive, 
+                diff(times.complete[stages.tx.complete]))/60)
   tx.win = log((rep(mean(diff(times)) , 2))/60)
   
   #
