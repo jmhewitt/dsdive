@@ -62,6 +62,9 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                             state.backup = list(t=Inf, file='state.RData'),
                             scale.sigma.init = 1) {
   
+  # ensure depth bin input is in good format
+  depth.bins = as.matrix(depth.bins)
+  
   # update number of iterations it to allow for initial parameters
   it = it + 1
   
@@ -189,11 +192,12 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
         params.prop.list$logJ
       # return log posterior
       prop.ld + sum(dnorm(x = params, sd = priors.sd, log = TRUE))
-      
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
     sigma.tmp = -solve(o$hessian) * scale.sigma.init
-    sigma = list(sigma.tmp[1:3,1:3], sigma.tmp[-(1:3),-(1:3)])
+    sigma = list(makePositiveDefinite(sigma.tmp[1:3,1:3]), 
+                 makePositiveDefinite(sigma.tmp[-(1:3),-(1:3)]))
+    
     sigma.chol = list(t(chol(sigma[[1]])), t(chol(sigma[[2]])))
     
   }
