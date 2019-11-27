@@ -290,7 +290,17 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
         }
         
         # update log-density
-        ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
+        ind.selected = which(current.ind == out.inds)
+        if(length(ind.selected) > 0) {
+          # add log-density of transition
+          ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
+        } else if(cond.sim & i==1) {
+          # conditional trajectory may have 0 mass under proposal distribution, 
+          #  so reflect this in output
+          ld[i] = ld[i] - Inf
+        } else {
+          stop('Invalid state reached via sampling.')
+        }
         
         path.inds[k] = current.ind
         
