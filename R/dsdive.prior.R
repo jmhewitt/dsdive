@@ -27,6 +27,8 @@
 #' 
 #' @importFrom extraDistr dtnorm
 #' 
+#' @export
+#' 
 #' @example examples/dsdive.prior.R
 #'
 dsdive.prior = function(par, spec, log = TRUE) {
