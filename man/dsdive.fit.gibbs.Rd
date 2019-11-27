@@ -6,9 +6,9 @@
 \usage{
 dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
   depth.bins, t0.dive, it, verbose = FALSE,
-  inflation.factor.lambda = 1.1, init, sigma = NULL, priors.sd,
-  priors.mean, adapt = c(100, 20, 0.5, 0.75), state.backup = list(t =
-  Inf, file = "state.RData"), scale.sigma.init = 1)
+  inflation.factor.lambda = 1.1, init, sigma = NULL, priors,
+  adapt = c(99, 100, 0.5, 0.75), state.backup = list(t = Inf, file =
+  "state.RData"), scale.sigma.init = 1)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}
@@ -40,8 +40,8 @@ First entry in list should be covariance matrix for depth transition
 parameters, and second entry in list should be covariance matrix for 
 rate and stage transition parameters.}
 
-\item{priors.sd}{vector of standard deviations for model parameters on their 
-respective transformed scales}
+\item{priors}{List of parameters to specify prior distributions.  See 
+\code{dsdive.prior} for more details.}
 
 \item{state.backup}{If not \code{NULL}, then a list that specifies a file 
 to which the sampler state will be dumped every \code{t} seconds.}
@@ -80,11 +80,13 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
+spec = list(beta.sd = rep(1, 3), beta.absmax = 5, lambda.sd = 1, 
+            sub.tx.mean = 0, sub.tx.sd = 1, surf.tx.mean = 0, surf.tx.sd = 1)
+
 x = dsdive.fit.gibbs(depths = sim.obs$depths, times = sim.obs$times, 
                      durations = NULL, stages = NULL, depth.bins = depth.bins, 
                      t0.dive = sim.obs$times[1], it = 50, verbose = TRUE, 
-                     init = params, priors.sd = rep(1,12), 
-                     priors.mean = rep(0, 12))
+                     init = params, priors = spec)
 
 detach(dive.sim$params)
 detach(dive.sim)

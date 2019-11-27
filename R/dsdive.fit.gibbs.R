@@ -41,8 +41,8 @@
 #'   First entry in list should be covariance matrix for depth transition 
 #'   parameters, and second entry in list should be covariance matrix for 
 #'   rate and stage transition parameters.
-#' @param priors.sd vector of standard deviations for model parameters on their 
-#'   respective transformed scales
+#' @param priors List of parameters to specify prior distributions.  See 
+#'   \code{dsdive.prior} for more details.
 #' @param state.backup If not \code{NULL}, then a list that specifies a file 
 #'   to which the sampler state will be dumped every \code{t} seconds.
 #' @param scale.sigma.init Amount by which to scale the initial proposal 
@@ -57,8 +57,8 @@
 dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL, 
                             depth.bins, t0.dive, it, verbose = FALSE, 
                             inflation.factor.lambda = 1.1, init, sigma = NULL,
-                            priors.sd, priors.mean,
-                            adapt = c(100, 20, 0.5, 0.75),
+                            priors,
+                            adapt = c(99, 100, 0.5, 0.75),
                             state.backup = list(t=Inf, file='state.RData'),
                             scale.sigma.init = 1) {
   
@@ -72,7 +72,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   partially.observed = is.null(durations)
   
   # build raw storage for posterior samples of model parameters
-  par.init = params.toVec(init)
+  par.init = params.toVec(par = init, spec = priors)
   n.par = c(3, 7)
   trace = matrix(nrow = it, ncol = sum(n.par))
   trace[1,] = par.init
@@ -81,7 +81,8 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
   ld = numeric(length = it)
   
   # compute initial jacobian
-  logJ = params.toList(par = params.toVec(par = init))$logJ
+  logJ = params.toList(par = params.toVec(par = init, spec = priors), 
+                       spec = priors)$logJ
   
   # if necessary, build storage for imputed trajectories, and initialize 
   #   latent trajectory
@@ -178,7 +179,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     
     o = optim(par = trace[1,], fn = function(params) {
       # munge parameters
-      params.prop.list = params.toList(par = params)
+      params.prop.list = params.toList(par = params, spec = priors)
       # compute log-density
       prop.ld = dsdive.ld(depths = trajectory$depths,
                           durations = trajectory$durations,
@@ -191,8 +192,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
                           t.stage2 = t.stage2tmp) +
         params.prop.list$logJ
       # return log posterior
-      prop.ld + sum(dnorm(x = params, mean = priors.mean, sd = priors.sd, 
-                          log = TRUE))
+      prop.ld + dsdive.prior(par = params.prop.list, spec = priors, log = TRUE)
     }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
     
     sigma.tmp = -solve(o$hessian) * scale.sigma.init
@@ -235,7 +235,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     }
     
     # extract current model parameters
-    params = params.toList(par = trace[i-1,])
+    params = params.toList(par = trace[i-1,], spec = priors)
     
     #
     # sample depth bin transition parameters
@@ -244,7 +244,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     # propose new depth bin transition parameters
     params.prop = c(trace[i-1,1:3] + sigma.chol[[1]] %*% rnorm(n = 3),
                     trace[i-1,-(1:3)])
-    params.prop.list = params.toList(par = params.prop)
+    params.prop.list = params.toList(par = params.prop, spec = priors)
     
     # compute proposed likelihood
     prop.ld = dsdive.ld(depths = trajectory$depths,
@@ -259,10 +259,11 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       params.prop.list$logJ
     
     # accept/reject, and save parameters
-    lR = prop.ld + sum(dnorm(x = params.prop, mean = priors.mean, 
-                             sd = priors.sd, log = TRUE)) - 
-      (ld[i-1] + sum(dnorm(x = trace[i-1,], mean = priors.mean, sd = priors.sd, 
-                           log = TRUE)))
+    lR = prop.ld + dsdive.prior(par = params.prop.list, spec = priors, 
+                                log = TRUE) - 
+      (ld[i-1] + dsdive.prior(par = params.toList(par = trace[i-1,], 
+                                                  spec = priors), 
+                              spec = priors, log = TRUE))
     
     if(log(runif(1)) <= lR) {
       if(verbose) {
@@ -287,7 +288,7 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
     # propose new depth bin transition parameters
     params.prop = c(trace[i,1:3],
                     trace[i,-(1:3)] + sigma.chol[[2]] %*% rnorm(n = 7))
-    params.prop.list = params.toList(par = params.prop)
+    params.prop.list = params.toList(par = params.prop, spec = priors)
     
     # compute proposed likelihood
     prop.ld = dsdive.ld(depths = trajectory$depths,
@@ -302,10 +303,10 @@ dsdive.fit.gibbs = function(depths, times, durations = NULL, stages = NULL,
       params.prop.list$logJ
     
     # accept/reject, and save parameters
-    lR = prop.ld + sum(dnorm(x = params.prop, mean = priors.mean, 
-                             sd = priors.sd, log = TRUE)) - 
-      (ld[i] + sum(dnorm(x = trace[i,], mean = priors.mean, sd = priors.sd, 
-                         log = TRUE)))
+    lR = prop.ld + dsdive.prior(par = params.prop.list, spec = priors, 
+                                log = TRUE) - 
+      (ld[i] + dsdive.prior(par = params.toList(par = trace[i,], spec = priors), 
+                              spec = priors, log = TRUE))
     
     if(log(runif(1)) <= lR) {
       if(verbose) {

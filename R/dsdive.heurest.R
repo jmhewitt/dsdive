@@ -16,18 +16,17 @@
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param priors Standard deviations for mean-0 normal priors on model 
-#'   parameters, after transformation to real line
+#' @param priors List of parameters to specify prior distributions.  See 
+#'   \code{dsdive.prior} for more details.
 #' @param t0.dive Time at which dive started
 #' @param method Method to use in \code{optim} search for initial parameters
 #' 
-#' # @example examples/heurest.R
+#' @example examples/heurest.R
 #' 
 #' @export
 #' 
 #'
-dsdive.heurest = function(depths, times, stages.est, depth.bins, 
-                          priors.sd = rep(5, 12), priors.mean = rep(0, 12), 
+dsdive.heurest = function(depths, times, stages.est, depth.bins, priors,
                           t0.dive, method = 'Nelder-Mead') {
   
   #
@@ -83,18 +82,27 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
   # ad-hoc estimates for stage transition parameters
   stages.tx.complete = which(diff(stages.complete) == 1)
   t0.dive = times[1]
-  tx.mu = log(c(times.complete[stages.tx.complete[1]] - t0.dive, 
-                diff(times.complete[stages.tx.complete]))/60)
-  tx.win = log((rep(mean(diff(times)) , 2))/60)
+  tx.mu = c(times.complete[stages.tx.complete[1]] - t0.dive, 
+            diff(times.complete[stages.tx.complete]))/60
+  tx.win = (rep(mean(diff(times)) , 2))/60
   
   #
   # optimize initial parameter estimates
   #
   
-  o = optim(par = c(rep(0,3), log(lambda.est), c(tx.mu[1], tx.win[1], 
-                                                 tx.mu[2], tx.win[2])), 
+  # compute initial vector for optimization
+  binit = mean(c(0, priors$beta.absmax))
+  init.param = list(beta = matrix(c(binit, 0, 0, 0, -binit, 0),
+                                  ncol = 3),
+                    lambda = lambda.est,
+                    sub.tx = c(tx.mu[1], tx.win[1]),
+                    surf.tx = c(tx.mu[2], tx.win[2]))
+  init.vec = params.toVec(par = init.param, spec = priors)
+  
+  # find posterior mode
+  o = optim(par = init.vec, 
             fn = function(theta) {
-              theta.list = params.toList(par = theta)
+              theta.list = params.toList(par = theta, spec = priors)
               dsdive.ld(depths = depths.complete, stages = stages.complete, 
                         durations = durations.complete, times = times.complete,
                         beta = theta.list$beta, 
@@ -102,10 +110,10 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins,
                         sub.tx = theta.list$sub.tx,
                         surf.tx = theta.list$surf.tx, depth.bins = depth.bins, 
                         t0.dive = t0.dive, t.stage2 = t.stage2tmp) + 
-              sum(dnorm(theta, mean = priors.mean, sd = priors.sd, 
-                        log = TRUE)) + theta.list$logJ
+              dsdive.prior(par = theta.list, spec = priors, log = TRUE) + 
+              theta.list$logJ
             }, method = method, control = list(fnscale = -1))
   
   # package results
-  params.toList(par = o$par)
+  params.toList(par = o$par, spec = priors)
 }

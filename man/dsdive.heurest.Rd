@@ -4,8 +4,8 @@
 \alias{dsdive.heurest}
 \title{Heuristic estimate of model parameters given observations}
 \usage{
-dsdive.heurest(depths, times, stages.est, depth.bins, priors.sd = rep(5,
-  12), priors.mean = rep(0, 12), t0.dive, method = "Nelder-Mead")
+dsdive.heurest(depths, times, stages.est, depth.bins, priors, t0.dive,
+  method = "Nelder-Mead")
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}
@@ -19,14 +19,12 @@ in at each observation}
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
+\item{priors}{List of parameters to specify prior distributions.  See 
+\code{dsdive.prior} for more details.}
+
 \item{t0.dive}{Time at which dive started}
 
-\item{method}{Method to use in \code{optim} search for initial parameters
-
-# @example examples/heurest.R}
-
-\item{priors}{Standard deviations for mean-0 normal priors on model 
-parameters, after transformation to real line}
+\item{method}{Method to use in \code{optim} search for initial parameters}
 }
 \description{
 Builds heuristic estimates of dive model parameters, which is useful for 
@@ -38,4 +36,17 @@ The heuristic estimate begins by linearly imputing a dive trajectory that
 is consistent with observations, then optimizes model parameters from the 
 basic imputed trajectory.  Note that the imputed trajectory is likely to be 
 very unrealistic, especially for datasets with sparse temporal observations.
+}
+\examples{
+data('dive.sim')
+attach(dive.sim)
+
+spec = list(beta.sd = rep(1, 3), beta.absmax = 5, lambda.sd = 1, 
+            sub.tx.mean = 0, sub.tx.sd = 1, surf.tx.mean = 0, surf.tx.sd = 1)
+
+est = dsdive.heurest(depths = sim.obs$depths, times = sim.obs$times, 
+                     stages.est = sim.obs$stages, depth.bins = depth.bins,
+                     t0.dive = 0, priors = spec)
+
+detach(dive.sim)
 }
