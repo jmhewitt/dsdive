@@ -4,23 +4,34 @@
 \alias{params.toList}
 \title{Convert vector of parameters on transformed scale to a list of parameters on model scale}
 \usage{
-params.toList(par)
+params.toList(par, spec)
 }
 \arguments{
 \item{par}{the vector of parameters to convert to a list of model parameters}
+
+\item{spec}{List of parameters to specify prior distributions.  See 
+\code{dsdive.prior} for more details.}
 }
 \description{
-The output also includes the log-Jacobian for the transformation
+The output also includes the log-Jacobian for the transformation.  Note that 
+the transformation (and associated Jacobian) only links the unrestricted 
+parameter space over which the Gibbs sampler is defined to the parameter 
+space used by the model.  If prior distributions are defined for additional 
+transformations of the model parameters, than the additional Jacobians must 
+be accounted for within the \code{dsdive.prior} function.
 }
 \examples{
-
 data('dive.sim')
 attach(dive.sim)
 attach(params)
 
-params.toList(par = runif(12), sub.tx1 = 1)
+spec = list(beta.sd = 1, beta.absmax = 10, lambda.sd = 1, sub.tx.mean = 0, 
+            sub.tx.sd = 1, surf.tx.mean = 0, surf.tx.sd = 1)
+
+v = params.toVec(par = params, spec = spec)
+
+L = params.toList(par = v)
 
 detach(params)
 detach(dive.sim)
-
 }

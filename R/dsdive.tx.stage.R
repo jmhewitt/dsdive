@@ -41,7 +41,8 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
   #
   
   # probability of transition to stage 2
-  tgt.time = sub.tx * t.scale + t0.dive
+  sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
+  tgt.time = sub.lu * t.scale + t0.dive
   
   interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
   if(interval.start < tgt.time[2]) {
@@ -56,7 +57,8 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
   
   
   # probability of transition to stage 3
-  tgt.time = surf.tx * t.scale + t.stage2
+  surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
+  tgt.time = surf.lu * t.scale + t.stage2
 
   interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
   if(interval.start < tgt.time[2]) {
