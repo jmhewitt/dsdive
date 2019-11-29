@@ -13,6 +13,8 @@
 #'   
 #' @import bisque
 #' 
+#' @export
+#' 
 #' @example examples/params.convert.R
 #' 
 params.toList = function(par, spec) {
@@ -53,6 +55,8 @@ params.toList = function(par, spec) {
 #'   \code{dsdive.prior} for more details.
 #'   
 #' @import bisque
+#' 
+#' @export
 #' 
 #' @example examples/params.convert.R
 #'
