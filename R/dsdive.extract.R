@@ -7,17 +7,7 @@
 #' @param t0 the time to mark the beginning of the segment to extract
 #' @param tf the time to mark the end of the segment to extract
 #' 
-#' @examples 
-#' 
-#' data('dive.sim')
-#' attach(dive.sim)
-#' attach(params)
-#' 
-#' dsdive.extract(depths = sim$depths, times = sim$times, stages = sim$stages, 
-#'                durations = sim$durations, t0 = 0, tf = 60)
-#'                
-#' detach(params)
-#' detach(dive.sim)
+#' #@example examples/dsdive.extract.R
 #' 
 dsdive.extract = function(depths, times, stages, durations, t0, tf) {
   

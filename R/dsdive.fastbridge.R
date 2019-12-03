@@ -59,6 +59,7 @@
 #' 
 #' @example examples/dsdive.fastbridge.R
 #' 
+#' @importFrom stats runif
 #' @importFrom extraDistr rtpois dtpois
 #' @import Matrix
 #' 

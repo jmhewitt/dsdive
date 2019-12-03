@@ -40,6 +40,8 @@
 #' 
 #' @example examples/txparams.R
 #' 
+#' @importFrom stats plogis
+#' 
 #' @export
 #' 
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 

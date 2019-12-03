@@ -17,21 +17,10 @@ dsdive.extract(depths, times, stages, durations, t0, tf)
 
 \item{t0}{the time to mark the beginning of the segment to extract}
 
-\item{tf}{the time to mark the end of the segment to extract}
+\item{tf}{the time to mark the end of the segment to extract
+
+#@example examples/dsdive.extract.R}
 }
 \description{
 Extract a segment of a fully observed dive trajectory between timepoints
-}
-\examples{
-
-data('dive.sim')
-attach(dive.sim)
-attach(params)
-
-dsdive.extract(depths = sim$depths, times = sim$times, stages = sim$stages, 
-               durations = sim$durations, t0 = 0, tf = 60)
-               
-detach(params)
-detach(dive.sim)
-
 }

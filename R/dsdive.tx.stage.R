@@ -24,6 +24,8 @@
 #' 
 #' @example examples/dsdive.tx.stage.R
 #' 
+#' @importFrom stats pexp
+#' 
 #' @export
 #' 
 dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,

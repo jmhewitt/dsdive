@@ -49,6 +49,7 @@
 #'   covariance matrices
 #' 
 #' @importFrom MHadaptive makePositiveDefinite
+#' @importFrom stats optim rnorm runif var
 #' 
 #' @example examples/dsdive.fit.gibbs.R
 #' 

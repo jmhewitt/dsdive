@@ -50,6 +50,7 @@
 #' 
 #' @example examples/crawl.impute.R
 #' 
+#' @importFrom stats runif
 #' @importFrom crawl crwMLE crwSimulator crwPostIS
 #' @import dplyr
 #' 

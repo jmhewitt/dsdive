@@ -43,8 +43,11 @@
 #'     \item{times}{The time at which each depth bin was entered}
 #'     \item{stages}{The stage at which each depth bin was entered}
 #'   }
+#'   
+#' @importFrom stats rexp rbinom dexp
 #' 
 #' @example examples/dsdive.fwdsample.R
+#' 
 #' 
 #' @export
 #' 

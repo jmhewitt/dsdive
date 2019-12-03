@@ -1,11 +1,11 @@
 Package: dsdive
 Type: Package
-Title: Approximate Bayesian Computation for Animal movement models
+Title: Discrete Space Models for Dive Trajectories of Animals
 Version: 1.0.0
-Date: 2019-05-28
+Date: 2019-12-03
 Author: Joshua Hewitt
 Maintainer: Joshua Hewitt <joshua.hewitt@duke.edu>
-Description: Implementation of Approximate Bayesian Computing (ABC) Methods for Fitting Animal Movement Models.
+Description: Animal movement modelin.
 License: GPL-3
 RoxygenNote: 6.1.1
 Suggests: testthat

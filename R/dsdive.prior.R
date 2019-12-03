@@ -26,10 +26,12 @@
 #' @param log \code{TRUE} to return prior on log scale
 #' 
 #' @importFrom extraDistr dtnorm
+#' @importFrom stats dnorm dlnorm
 #' 
 #' @export
 #' 
 #' @example examples/dsdive.prior.R
+#' 
 #'
 dsdive.prior = function(par, spec, log = TRUE) {
   
@@ -43,9 +45,9 @@ dsdive.prior = function(par, spec, log = TRUE) {
     dtnorm(x = par$beta[1,3], sd = spec$beta.sd[3], log = TRUE, 
            a = -spec$beta.absmax, b = 0) + 
     sum(dlnorm(x = par$lambda, sdlog = spec$lambda.sd, log = TRUE)) +
-    sum(dlnorm(x = par$sub.tx, mean = spec$sub.tx.mean, 
+    sum(dlnorm(x = par$sub.tx, meanlog = spec$sub.tx.mean, 
                sdlog = spec$sub.tx.sd, log = TRUE)) +
-    sum(dlnorm(x = par$surf.tx, mean = spec$surf.tx.mean, 
+    sum(dlnorm(x = par$surf.tx, meanlog = spec$surf.tx.mean, 
                sdlog = spec$surf.tx.sd, log = TRUE))
   
   if(log) { r } else { exp(log) }

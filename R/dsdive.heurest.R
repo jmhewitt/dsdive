@@ -23,6 +23,8 @@
 #' 
 #' @example examples/heurest.R
 #' 
+#' @importFrom stats optim
+#' 
 #' @export
 #' 
 #'

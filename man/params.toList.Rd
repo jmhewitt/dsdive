@@ -30,7 +30,7 @@ spec = list(beta.sd = 1, beta.absmax = 10, lambda.sd = 1, sub.tx.mean = 0,
 
 v = params.toVec(par = params, spec = spec)
 
-L = params.toList(par = v)
+L = params.toList(par = v, spec = spec)
 
 detach(params)
 detach(dive.sim)

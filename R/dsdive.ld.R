@@ -24,6 +24,8 @@
 #' 
 #' @example examples/ld.R
 #' 
+#' @importFrom stats dexp dbinom
+#' 
 #' @export
 #' 
 dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
