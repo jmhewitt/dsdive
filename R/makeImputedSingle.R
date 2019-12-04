@@ -1,0 +1,81 @@
+#' Initialize a computing environment for use with gibbs sampling
+#' 
+#'
+#' @export
+#' 
+#' @example examples/makeImputedSingle.R
+#' 
+makeImputedSingle = function(depth.bins, it, depths, times, init, 
+                             priors, inflation.factor.lambda, t0.dive, 
+                             verbose = FALSE) {
+  
+  # ensure depth.bins is in a good format
+  depth.bins = as.matrix(depth.bins)
+  
+  # set partial observation
+  partially.observed = TRUE
+  
+  # compute initial jacobian
+  logJ = params.toList(par = params.toVec(par = init, spec = priors), 
+                       spec = priors)$logJ
+  
+  if(verbose) {
+    message('Imputing initial trajectory')
+  }
+  
+  # initialize record of latent trajectories
+  trace.imputed = vector('list', it)
+  
+  # sample first latent trajectory
+  trajectory = dsdive.fastimpute(M = 1, depth.bins = depth.bins, 
+                                 depths = depths, times = times, 
+                                 s0 = 1, beta = init$beta, 
+                                 lambda = init$lambda, 
+                                 sub.tx = init$sub.tx, 
+                                 surf.tx = init$surf.tx, 
+                                 inflation.factor.lambda = 
+                                   inflation.factor.lambda, 
+                                 verbose = FALSE, 
+                                 precompute.bridges = TRUE, 
+                                 t0.dive = t0.dive, 
+                                 resample = FALSE)[[1]]
+  
+  # add log jacobians to sample
+  trajectory$ld.true = trajectory$ld.true + logJ
+  trajectory$ld = trajectory$ld + logJ
+  
+  # extract log-density
+  ld = trajectory$ld.true
+  
+  # save sample
+  trace.imputed[[1]] = trajectory
+  
+  # extract time at which stage 2 was entered, if any
+  stage2.inds = which(trajectory$stages==2)
+  if(length(stage2.inds)==0) {
+    t.stage2 = NA
+  } else {
+    t.stage2 = trajectory$times[min(stage2.inds)]
+  }
+  
+  #
+  # package configuration
+  #
+  
+  res = list(
+    trajectory = trajectory,
+    depth.bins = depth.bins, 
+    partially.observed = partially.observed,
+    ld = ld,
+    t.stage2 = t.stage2,
+    t0.dive = t0.dive,
+    depths = depths,
+    times = times,
+    trace.imputed = trace.imputed,
+    inflation.factor.lambda = inflation.factor.lambda
+  )
+  
+  class(res) = 'dsImputedSingle'
+  
+  res
+}
