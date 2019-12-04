@@ -35,10 +35,6 @@
 #'
 dsdive.prior = function(par, spec, log = TRUE) {
   
-  # soooo then, this step is not necessarily what we need since we *may* define 
-  # prior distributions on a different support than the unrestricted space we 
-  # use to move in the gibbs sampler.
-  
   r = dtnorm(x = par$beta[1,1], sd = spec$beta.sd[1], log = TRUE, 
              a = 0, b = spec$beta.absmax) + 
     dnorm(x = par$beta[2,2], sd = spec$beta.sd[2], log = TRUE) +
