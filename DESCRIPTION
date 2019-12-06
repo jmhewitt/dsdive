@@ -10,6 +10,6 @@ License: GPL-3
 RoxygenNote: 6.1.1
 Suggests: testthat
 Depends: R (>= 3.5.0)
-Imports: Matrix, bisque, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr
+Imports: Matrix, bisque, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr, snow
 Encoding: UTF-8
 LazyData: true
