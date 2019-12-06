@@ -4,6 +4,10 @@
 gibbs.mhrw.dsdive = function(x0, ld0, lp0, sigma.chol, cfg, priors, 
                              ind = 1:length(x0), verbose = FALSE) {
   
+  if(is.infinite(ld0 + lp0)) {
+    stop('Attempting to take MH-RW step from a location with 0 mass.')
+  }
+  
   # initialize proposal
   x = x0
   
