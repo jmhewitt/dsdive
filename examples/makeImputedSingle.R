@@ -11,5 +11,8 @@ cfg = makeImputedSingle(depth.bins = depth.bins, it = 5,
                         inflation.factor.lambda = 1.1, t0.dive = 0, 
                         verbose = TRUE)
 
+x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
+                         priors = spec, sigma = list(diag(3), diag(7)))
+
 detach(dive.sim$params)
 detach(dive.sim)
