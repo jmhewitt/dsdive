@@ -17,7 +17,7 @@ dsdive_ld.dsCompleteDistributed = function(cfg, params) {
     cfg.local = get(x = id, envir = globalenv())
     
     # compute and return log-density
-    dsdive_ld(cfg.local)
+    dsdive_ld(cfg = cfg.local, params = params)
   })
   
   # return total log-density
