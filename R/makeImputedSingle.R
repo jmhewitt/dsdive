@@ -24,7 +24,7 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
   }
   
   # initialize record of latent trajectories
-  trace.imputed = vector('list', it)
+  trace.imputed = vector('list', it + 1)
   
   # sample first latent trajectory
   trajectory = dsdive.fastimpute(M = 1, depth.bins = depth.bins, 
