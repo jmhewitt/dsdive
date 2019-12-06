@@ -3,8 +3,8 @@
 #' 
 dsdive_cdtlimpute.dsImputedDistributed = function(cfg, params, i) {
   
-  # distribute likelihood computation
-  lds = clusterApply(cl = cfg$cl, x = cfg$ids, fun = function(id) {
+  # distribute update
+  clusterApply(cl = cfg$cl, x = cfg$ids, fun = function(id) {
     
     # extract local config
     cfg.local = get(x = id, envir = globalenv())
@@ -14,13 +14,10 @@ dsdive_cdtlimpute.dsImputedDistributed = function(cfg, params, i) {
       
     # save changes locally
     assign(x = id, value = cfg.local, envir = globalenv())
-    
-    # return log-density
-    cfg.local$ld
   })
   
   # update current log-density
-  cfg$ld = sum(unlist(lds))
+  cfg$ld = dsdive_ld(cfg = cfg, params = params) + params$logJ
   
   # return (updated) cfg
   cfg

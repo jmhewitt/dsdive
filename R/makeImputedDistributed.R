@@ -42,8 +42,8 @@ makeImputedDistributed = function(dives, depth.bins, cl, init, priors, it,
                     inflation.factor.lambda = inflation.factor.lambda)
   }
   
-  # send data to nodes; set up local computing environments; return initial ld
-  lds = clusterApply(cl = cl, x = pkg, fun = function(p) {
+  # send data to nodes; set up local computing environments
+  clusterApply(cl = cl, x = pkg, fun = function(p) {
     
     # ensure dsdive package is loaded
     require(dsdive)
@@ -58,7 +58,7 @@ makeImputedDistributed = function(dives, depth.bins, cl, init, priors, it,
       colnames(db) = tolower(colnames(db))
       # convert data to list format
       p$dive = as.list(d)
-      p$depth.bins = as.list(db)
+      p$depth.bins = db
     }
     
     # initialize local computing environment for this dive
@@ -71,15 +71,17 @@ makeImputedDistributed = function(dives, depth.bins, cl, init, priors, it,
     
     # save to worker's global environment
     assign(x = p$id, value = cfg.local, envir = globalenv())
-    
-    # return initial log-density
-    cfg.local$ld
   })
   
   # package configuration
-  res = list(cl = cl, ids = ids, ld = sum(unlist(lds)))
+  res = list(cl = cl, ids = ids)
   
   class(res) = 'dsImputedDistributed'
+  
+  # compute initial ld
+  params = params.toList(par = params.toVec(par = init, spec = priors), 
+                         spec = priors)
+  res$ld = dsdive_ld(cfg = res, params = params) + params$logJ
   
   res
 }
