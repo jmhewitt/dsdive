@@ -23,6 +23,9 @@ cfg = makeCompleteSingle(depth.bins = depth.bins, durations = sim$durations,
                          stages = sim$stages, init = params, priors = spec, 
                          t0.dive = 0)
 
+x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
+                         priors = spec, sigma = list(diag(3), diag(7)))
+
 detach(dive.sim$params)
 detach(dive.sim)
 }
