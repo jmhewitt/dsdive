@@ -55,7 +55,7 @@
 #' 
 #' @export
 #'
-dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma = NULL,
+dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
                                 priors, adapt = c(99, 100, 0.5, 0.75),
                                 state.backup = list(t=Inf, file='state.RData'),
                                 scale.sigma.init = 1) {
@@ -74,44 +74,16 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma = NULL,
   ld[1] = cfg$ld
   
   # compute cholesky decomposition for proposal covariance
-  if(!is.null(sigma)) { 
-    # user-provided proposal covariance
-    
+  if(ncol(sigma[[1]]) + ncol(sigma[[2]]) != sum(n.par)) {
+    stop(paste('The total parameter dimension', sum(n.par), 
+               'differs from the proposal dimensions', 
+               ncol(sigma[[1]]) + ncol(sigma[[2]]), 
+               sep = ' '))
+  } else {
     sigma.chol = list(
-      t(chol(sigma[[1]])),
-      t(chol(sigma[[2]]))
+      t(chol(scale.sigma.init * sigma[[1]])),
+      t(chol(scale.sigma.init * sigma[[2]]))
     )
-    
-    if(ncol(sigma.chol[[1]]) + ncol(sigma.chol[[2]]) != sum(n.par)) {
-      stop(paste('The total parameter dimension', sum(n.par), 
-                 'differs from the proposal dimensions', 
-                 ncol(sigma.chol[[1]]) + ncol(sigma.chol[[2]]), 
-                 sep = ' '))
-    }
-    
-  } else { 
-    # auto-tune proposal covariance based on trajectory if none given
-    
-    if(verbose) {
-      message('Optimizing initial proposal covariance')
-    }
-    
-    o = optim(par = trace[1,], fn = function(params) {
-      # munge parameters
-      params.prop.list = params.toList(par = params, spec = priors)
-      # compute log-density
-      prop.ld = dsdive_ld(cfg = cfg, params = params.prop.list) +
-        params.prop.list$logJ
-      # return log posterior
-      prop.ld + dsdive.prior(par = params.prop.list, spec = priors, log = TRUE)
-    }, method = 'BFGS', control = list(fnscale = -1), hessian = TRUE)
-    
-    sigma.tmp = -solve(o$hessian) * scale.sigma.init
-    sigma = list(makePositiveDefinite(sigma.tmp[1:3,1:3]), 
-                 makePositiveDefinite(sigma.tmp[-(1:3),-(1:3)]))
-    
-    sigma.chol = list(t(chol(sigma[[1]])), t(chol(sigma[[2]])))
-    
   }
   
   if(verbose) {
