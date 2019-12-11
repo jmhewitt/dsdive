@@ -14,7 +14,7 @@ dsdive_outputImputed.dsImputedDistributed = function(cfg, output, save.time,
     
     # build and save to local file
     file.local = paste(gsub(pattern = '\\.RData', replacement = '', x = file),
-                       '_imputed_trace.RData', sep = '')
+                       '_imputed_trace_', id, '.RData', sep = '')
     save(cfg.local, file = file.local)
     
   }, file = file)
