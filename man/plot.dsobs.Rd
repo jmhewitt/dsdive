@@ -4,9 +4,17 @@
 \alias{plot.dsobs}
 \title{Plotting functions for observations of dive trajectories}
 \usage{
-\method{plot}{dsobs}(x, depth.bins, stages = NULL, errorbars = FALSE,
-  underlay = NULL, imputed.alpha = 0.3, imputed.list = NULL,
-  time.as.POSIXct = FALSE, ...)
+\method{plot}{dsobs}(
+  x,
+  depth.bins,
+  stages = NULL,
+  errorbars = FALSE,
+  underlay = NULL,
+  imputed.alpha = 0.3,
+  imputed.list = NULL,
+  time.as.POSIXct = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{dsobs} object with record of observed depth bins}

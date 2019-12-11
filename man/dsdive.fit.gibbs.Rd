@@ -4,11 +4,23 @@
 \alias{dsdive.fit.gibbs}
 \title{Gibbs sampler to approximate posterior for model parameters}
 \usage{
-dsdive.fit.gibbs(depths, times, durations = NULL, stages = NULL,
-  depth.bins, t0.dive, it, verbose = FALSE,
-  inflation.factor.lambda = 1.1, init, sigma = NULL, priors,
-  adapt = c(99, 100, 0.5, 0.75), state.backup = list(t = Inf, file =
-  "state.RData"), scale.sigma.init = 1)
+dsdive.fit.gibbs(
+  depths,
+  times,
+  durations = NULL,
+  stages = NULL,
+  depth.bins,
+  t0.dive,
+  it,
+  verbose = FALSE,
+  inflation.factor.lambda = 1.1,
+  init,
+  sigma = NULL,
+  priors,
+  adapt = c(99, 100, 0.5, 0.75),
+  state.backup = list(t = Inf, file = "state.RData"),
+  scale.sigma.init = 1
+)
 }
 \arguments{
 \item{depths}{record of depth bins the trajectory should visit}

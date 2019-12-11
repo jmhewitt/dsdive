@@ -4,10 +4,27 @@
 \alias{dsdive.fastbridge}
 \title{Impute a family of dive trajectories that meet start and end times}
 \usage{
-dsdive.fastbridge(M, depth.bins, d0, d0.last, df, beta, lambda, sub.tx,
-  surf.tx, t0, tf, s0, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE, lambda.max = NULL, t0.dive,
-  trajectory.conditional = NULL, t.stage2)
+dsdive.fastbridge(
+  M,
+  depth.bins,
+  d0,
+  d0.last,
+  df,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  t0,
+  tf,
+  s0,
+  inflation.factor.lambda = 1.1,
+  verbose = FALSE,
+  precompute.bridges = TRUE,
+  lambda.max = NULL,
+  t0.dive,
+  trajectory.conditional = NULL,
+  t.stage2
+)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}

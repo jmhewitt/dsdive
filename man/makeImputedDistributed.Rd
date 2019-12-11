@@ -4,8 +4,15 @@
 \alias{makeImputedDistributed}
 \title{Initialize a computing environment for use with gibbs sampling}
 \usage{
-makeImputedDistributed(dives, depth.bins, cl, init, priors, it,
-  inflation.factor.lambda)
+makeImputedDistributed(
+  dives,
+  depth.bins,
+  cl,
+  init,
+  priors,
+  it,
+  inflation.factor.lambda
+)
 }
 \arguments{
 \item{dives}{Vector of file paths OR a list of dive data.

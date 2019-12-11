@@ -4,8 +4,20 @@
 \alias{dsdive.ld.stages}
 \title{Full conditional distribution for dive stages given data and parameters}
 \usage{
-dsdive.ld.stages(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx, depths,
-  durations, times, depth.bins, t0.dive, t.stage2)
+dsdive.ld.stages(
+  breaks,
+  fixed.ind,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  depths,
+  durations,
+  times,
+  depth.bins,
+  t0.dive,
+  t.stage2
+)
 }
 \arguments{
 \item{breaks}{the two indices where a new dive stage is entered}

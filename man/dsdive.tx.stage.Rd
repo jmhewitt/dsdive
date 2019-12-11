@@ -4,8 +4,16 @@
 \alias{dsdive.tx.stage}
 \title{Compute stage transition parameters for dive trajectories across discrete depths}
 \usage{
-dsdive.tx.stage(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2, t.scale = 60,
-  rates)
+dsdive.tx.stage(
+  t0,
+  d0,
+  sub.tx,
+  surf.tx,
+  t0.dive,
+  t.stage2,
+  t.scale = 60,
+  rates
+)
 }
 \arguments{
 \item{t0}{vector of times at which transition probs. should be computed}

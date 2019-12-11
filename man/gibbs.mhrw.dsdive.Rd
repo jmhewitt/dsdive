@@ -4,8 +4,16 @@
 \alias{gibbs.mhrw.dsdive}
 \title{Random walk Metropolis-Hastings update for subsets of dive model parameters}
 \usage{
-gibbs.mhrw.dsdive(x0, ld0, lp0, sigma.chol, cfg, priors,
-  ind = 1:length(x0), verbose = FALSE)
+gibbs.mhrw.dsdive(
+  x0,
+  ld0,
+  lp0,
+  sigma.chol,
+  cfg,
+  priors,
+  ind = 1:length(x0),
+  verbose = FALSE
+)
 }
 \description{
 Random walk Metropolis-Hastings update for subsets of dive model parameters

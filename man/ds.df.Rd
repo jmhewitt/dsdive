@@ -4,8 +4,15 @@
 \alias{ds.df}
 \title{Builds a tidy data frame for dive objects}
 \usage{
-ds.df(depths, times, depth.bins, stages = NULL, durations = NULL,
-  time.as.POSIXct = FALSE, t0.dive = times[1])
+ds.df(
+  depths,
+  times,
+  depth.bins,
+  stages = NULL,
+  durations = NULL,
+  time.as.POSIXct = FALSE,
+  t0.dive = times[1]
+)
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}

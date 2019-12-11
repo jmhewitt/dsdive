@@ -4,9 +4,17 @@
 \alias{dsdive.fit.gibbs.cfg}
 \title{Gibbs sampler to approximate posterior for model parameters}
 \usage{
-dsdive.fit.gibbs.cfg(cfg, it, verbose = FALSE, init, sigma = NULL,
-  priors, adapt = c(99, 100, 0.5, 0.75), state.backup = list(t = Inf,
-  file = "state.RData"), scale.sigma.init = 1)
+dsdive.fit.gibbs.cfg(
+  cfg,
+  it,
+  verbose = FALSE,
+  init,
+  sigma = NULL,
+  priors,
+  adapt = c(99, 100, 0.5, 0.75),
+  state.backup = list(t = Inf, file = "state.RData"),
+  scale.sigma.init = 1
+)
 }
 \arguments{
 \item{verbose}{If \code{TRUE}, then the sampler's progress will be printed 

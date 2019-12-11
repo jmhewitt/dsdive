@@ -4,8 +4,17 @@
 \alias{makeImputedSingle}
 \title{Initialize a computing environment for use with gibbs sampling}
 \usage{
-makeImputedSingle(depth.bins, it, depths, times, init, priors,
-  inflation.factor.lambda, t0.dive, verbose = FALSE)
+makeImputedSingle(
+  depth.bins,
+  it,
+  depths,
+  times,
+  init,
+  priors,
+  inflation.factor.lambda,
+  t0.dive,
+  verbose = FALSE
+)
 }
 \description{
 Initialize a computing environment for use with gibbs sampling

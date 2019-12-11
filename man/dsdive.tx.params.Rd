@@ -4,8 +4,20 @@
 \alias{dsdive.tx.params}
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
-dsdive.tx.params(t0, depth.bins, d0, d0.last = NULL, s0, beta, lambda,
-  sub.tx, surf.tx, t0.dive, shift.params = NULL, t.stage2)
+dsdive.tx.params(
+  t0,
+  depth.bins,
+  d0,
+  d0.last = NULL,
+  s0,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  t0.dive,
+  shift.params = NULL,
+  t.stage2
+)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}

@@ -4,8 +4,7 @@
 \alias{crawl.impute}
 \title{Use bridged sampling to impute a dive trajectory consistent with observations}
 \usage{
-crawl.impute(depth.bins, depths, times, N, depths.impute = "uniform",
-  tstep)
+crawl.impute(depth.bins, depths, times, N, depths.impute = "uniform", tstep)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 

@@ -4,8 +4,16 @@
 \alias{makeCompleteSingle}
 \title{Initialize a computing environment for use with gibbs sampling}
 \usage{
-makeCompleteSingle(depth.bins, durations, depths, times, stages, init,
-  priors, t0.dive)
+makeCompleteSingle(
+  depth.bins,
+  durations,
+  depths,
+  times,
+  stages,
+  init,
+  priors,
+  t0.dive
+)
 }
 \description{
 Initialize a computing environment for use with gibbs sampling

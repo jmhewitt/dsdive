@@ -5,8 +5,7 @@
 \title{Define generic method for backing up gibbs sampler state under different
 computing environments}
 \usage{
-\method{dsdive_outputImputed}{dsCompleteSingle}(cfg, output, save.time,
-  file)
+\method{dsdive_outputImputed}{dsCompleteSingle}(cfg, output, save.time, file)
 }
 \description{
 Define generic method for backing up gibbs sampler state under different

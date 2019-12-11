@@ -4,9 +4,23 @@
 \alias{dsdive.fwdsample}
 \title{Simulate dive trajectories across discrete depth bins}
 \usage{
-dsdive.fwdsample(depth.bins, d0, beta, lambda, sub.tx, surf.tx, t0, tf,
-  steps.max, dur0 = NULL, nsteps = NULL, s0, t0.dive,
-  shift.params = NULL, t.stage2)
+dsdive.fwdsample(
+  depth.bins,
+  d0,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  t0,
+  tf,
+  steps.max,
+  dur0 = NULL,
+  nsteps = NULL,
+  s0,
+  t0.dive,
+  shift.params = NULL,
+  t.stage2
+)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 

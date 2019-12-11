@@ -4,9 +4,25 @@
 \alias{dsdive.ldabc}
 \title{SMC estimation of likelihood for imputed dive trajectories}
 \usage{
-dsdive.ldabc(beta, lambda, sub.tx, surf.tx, depth.bins, steps.max = 1000,
-  N, depths, t, tries.max, eps, dump.state = FALSE, verbose = FALSE,
-  n.samples = 0, stage.init = 1, t0.dive, shift.cfg = NULL)
+dsdive.ldabc(
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  depth.bins,
+  steps.max = 1000,
+  N,
+  depths,
+  t,
+  tries.max,
+  eps,
+  dump.state = FALSE,
+  verbose = FALSE,
+  n.samples = 0,
+  stage.init = 1,
+  t0.dive,
+  shift.cfg = NULL
+)
 }
 \arguments{
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 

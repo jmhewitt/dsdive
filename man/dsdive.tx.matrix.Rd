@@ -4,9 +4,20 @@
 \alias{dsdive.tx.matrix}
 \title{Compute transition matrix for Markov chain representation of dive model}
 \usage{
-dsdive.tx.matrix(t0, depth.bins, beta, lambda, sub.tx, surf.tx,
-  inflation.factor.lambda = 1, min.depth = 1,
-  max.depth = nrow(depth.bins), t0.dive, lambda.max = NULL, t.stage2)
+dsdive.tx.matrix(
+  t0,
+  depth.bins,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  inflation.factor.lambda = 1,
+  min.depth = 1,
+  max.depth = nrow(depth.bins),
+  t0.dive,
+  lambda.max = NULL,
+  t.stage2
+)
 }
 \arguments{
 \item{t0}{time at which transition parameters should be computed}

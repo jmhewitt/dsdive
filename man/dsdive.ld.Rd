@@ -4,8 +4,20 @@
 \alias{dsdive.ld}
 \title{Likelihood for completely observed dive trajectories}
 \usage{
-dsdive.ld(depths, durations, times, stages, beta, lambda, sub.tx, surf.tx,
-  depth.bins, t0.dive, d0.last = NULL, t.stage2)
+dsdive.ld(
+  depths,
+  durations,
+  times,
+  stages,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  depth.bins,
+  t0.dive,
+  d0.last = NULL,
+  t.stage2
+)
 }
 \arguments{
 \item{depths}{Depth bin indices in which the trajectory was observed}

@@ -4,8 +4,15 @@
 \alias{dsdive.heurest}
 \title{Heuristic estimate of model parameters given observations}
 \usage{
-dsdive.heurest(depths, times, stages.est, depth.bins, priors, t0.dive,
-  method = "Nelder-Mead")
+dsdive.heurest(
+  depths,
+  times,
+  stages.est,
+  depth.bins,
+  priors,
+  t0.dive,
+  method = "Nelder-Mead"
+)
 }
 \arguments{
 \item{depths}{Record of observed depth bin indices}

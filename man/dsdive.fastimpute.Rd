@@ -4,10 +4,23 @@
 \alias{dsdive.fastimpute}
 \title{Use bridged sampling to impute a complete dive trajectory consistent with observations}
 \usage{
-dsdive.fastimpute(M, depth.bins, depths, times, s0, beta, lambda, sub.tx,
-  surf.tx, inflation.factor.lambda = 1.1, verbose = FALSE,
-  precompute.bridges = TRUE, t0.dive, resample = TRUE,
-  trajectory.conditional = NULL)
+dsdive.fastimpute(
+  M,
+  depth.bins,
+  depths,
+  times,
+  s0,
+  beta,
+  lambda,
+  sub.tx,
+  surf.tx,
+  inflation.factor.lambda = 1.1,
+  verbose = FALSE,
+  precompute.bridges = TRUE,
+  t0.dive,
+  resample = TRUE,
+  trajectory.conditional = NULL
+)
 }
 \arguments{
 \item{M}{the number of trajectories to sample}
