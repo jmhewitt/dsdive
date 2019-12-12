@@ -51,7 +51,7 @@
 #' @importFrom MHadaptive makePositiveDefinite
 #' @importFrom stats optim rnorm runif var
 #' 
-#' @example examples/dsdive.fit.gibbs.cfg.R
+#' @example examples/makeCompleteSingle.R
 #' 
 #' @export
 #'
@@ -65,7 +65,7 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
   
   # build raw storage for posterior samples of model parameters
   par.init = params.toVec(par = init, spec = priors)
-  n.par = c(3, 7)
+  n.par = c(2, 3) # 2 betas and three lambdas
   trace = matrix(nrow = it, ncol = sum(n.par))
   trace[1,] = par.init
   
@@ -115,15 +115,15 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
     # MH-RW sample depth bin transition parameters
     p = gibbs.mhrw.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp, 
                           sigma.chol = sigma.chol[[1]], priors = priors, 
-                          ind = 1:3, verbose = verbose, cfg = cfg)
+                          ind = 1:2, verbose = verbose, cfg = cfg)
     trace[i,] = p$x
     ld[i] = p$ld
     lp = p$lp
     
-    # MH-RW sample transition rate and stage probability parameters
+    # MH-RW sample transition rates
     p = gibbs.mhrw.dsdive(x0 = trace[i,], ld0 = ld[i], lp0 = lp, 
                           sigma.chol = sigma.chol[[2]], priors = priors, 
-                          ind = -(1:3), verbose = verbose, cfg = cfg)
+                          ind = -(1:2), verbose = verbose, cfg = cfg)
     trace[i,] = p$x
     ld[i] = p$ld
     lp = p$lp
@@ -138,9 +138,9 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
       inds.len = length(inds)
       # get new proposal covariance
       p.sigma1 = makePositiveDefinite((inds.len - 1) / inds.len * 
-                                       var(trace[inds,1:3]))
+                                       var(trace[inds,1:2]))
       p.sigma2 = makePositiveDefinite((inds.len - 1) / inds.len * 
-                                       var(trace[inds,-(1:3)]))
+                                       var(trace[inds,-(1:2)]))
       # update proposal cholesky
       if(!(0 %in% p.sigma1) & !(0 %in% p.sigma2)) {
         sigma = list(p.sigma1, p.sigma2)

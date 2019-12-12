@@ -26,22 +26,22 @@ params.toList = function(par, spec) {
     # full-parameter model
     beta = matrix(c(bisque:::itx(x = par[1], link = 'logit', 
                         linkparams = list(range = c(0, spec$beta.absmax))), 
-                    0, 0, par[2], 
-                    bisque:::itx(x = par[3], link = 'logit', 
+                    0, 0, 0, 
+                    bisque:::itx(x = par[2], link = 'logit', 
                         linkparams = list(range = c(-spec$beta.absmax, 0))),
                     0), nrow = 2),
     # transition rates, all stages
-    lambda = exp(par[4:6]),
+    lambda = exp(par[3:5]),
     # stage 1->2 transition parameters
-    sub.tx = exp(par[7:8]),
+    sub.tx = spec$sub.tx, #exp(par[7:8]),
     # stage 2->3 transition parameters
-    surf.tx = exp(par[9:10]),
+    surf.tx = spec$surf.tx, #exp(par[9:10]),
     # log-jacobian for transformations
     logJ = bisque:::jac.logit(x = par[1], log = TRUE, 
                               range = c(0, spec$beta.absmax)) + 
-      bisque:::jac.logit(x = par[3], log = TRUE, 
+      bisque:::jac.logit(x = par[2], log = TRUE, 
                          range = c(-spec$beta.absmax, 0)) +
-      sum(bisque:::jac.log(x = par[4:10], log = TRUE))
+      sum(bisque:::jac.log(x = par[3:5], log = TRUE))
   )
   
   res 
@@ -63,11 +63,11 @@ params.toList = function(par, spec) {
 params.toVec = function(par, spec) {
   c(bisque:::tx(x = par$beta[1,1], link = 'logit', 
                 linkparams = list(range = c(0, spec$beta.absmax))),
-    par$beta[2,2],
+    # par$beta[2,2],
     bisque:::tx(x = par$beta[1,3], link = 'logit', 
                 linkparams = list(range = c(-spec$beta.absmax, 0))),
-    log(par$lambda), 
-    log(par$sub.tx), 
-    log(par$surf.tx)
+    log(par$lambda)#, 
+    # log(par$sub.tx), 
+    # log(par$surf.tx)
   )
 }
