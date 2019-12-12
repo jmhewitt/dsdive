@@ -19,7 +19,8 @@ dsdive.fwdsample(
   s0,
   t0.dive,
   shift.params = NULL,
-  t.stage2
+  t.stage2,
+  model
 )
 }
 \arguments{
@@ -65,6 +66,9 @@ attempting to sample until the trajectory is observable at time \code{tf}.}
 
 \item{shift.params}{Optional arguments to bias sampling toward a specific 
 node.  See documentation for \code{dsdive.tx.params} for more detail.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \value{
 A \code{dsdive} object, which is a \code{list} with the following 
@@ -91,7 +95,8 @@ attach(dive.sim$params)
 x = dsdive.fwdsample(depth.bins = depth.bins, d0 = 1, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                      t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1, t0.dive = 0, t.stage2 = NA)
+                     nsteps = NULL, s0 = 1, t0.dive = 0, t.stage2 = NA,
+                     model = 'conditional')
 
 detach(dive.sim$params)
 detach(dive.sim)

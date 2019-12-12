@@ -23,7 +23,8 @@ dsdive.fastbridge(
   lambda.max = NULL,
   t0.dive,
   trajectory.conditional = NULL,
-  t.stage2
+  t.stage2,
+  model
 )
 }
 \arguments{
@@ -91,6 +92,9 @@ importance of this function argument is that \code{dsdive.fastbridge}
 will evaluate the proposal density for \code{trajectory.conditional}.}
 
 \item{t.stage2}{vector of times at which stage 2 was entered.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Sample a dive trajectory such that its start and end locations and times are 
@@ -112,7 +116,8 @@ br = dsdive.fastbridge(M = 1e2, depth.bins = depth.bins, d0 = sim.obs$depths[1],
                        d0.last = NULL, df = sim.obs$depths[2], beta = beta, 
                        lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                        t0 = sim.obs$times[1], tf = sim.obs$times[2], s0 = 1,
-                       verbose = FALSE, t0.dive = 0, t.stage2 = NA)
+                       verbose = FALSE, t0.dive = 0, t.stage2 = NA, 
+                       model = 'conditional')
 
 detach(params)
 detach(dive.sim)

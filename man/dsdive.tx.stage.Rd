@@ -12,7 +12,8 @@ dsdive.tx.stage(
   t0.dive,
   t.stage2,
   t.scale = 60,
-  rates
+  rates,
+  model
 )
 }
 \arguments{
@@ -39,6 +40,9 @@ in seconds relative to a starting epoch (e.g., 0 for simulations, or
 transition model parameters with respect to a different time scale 
 (e.g., minutes, hours).  The argument \code{t.scale} will rescale \code{t0}
 and \code{t0.dive} to accomplish this.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Computes the probability that a dive will transition between any of the 3 
@@ -52,7 +56,8 @@ attach(params)
 
 p = dsdive.tx.stage(t0 = sim$times, d0 = sim$depths, sub.tx = sub.tx, 
                     surf.tx = surf.tx, t0.dive = 0, t.stage2 = NA, 
-                    rates = params$lambda[1], t.scale = 60)
+                    rates = params$lambda[1], t.scale = 60, 
+                    model = 'conditional')
 
 detach(params)
 detach(dive.sim)

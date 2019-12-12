@@ -20,7 +20,9 @@
 #'   \code{dsdive.prior} for more details.
 #' @param t0.dive Time at which dive started
 #' @param method Method to use in \code{optim} search for initial parameters
-#' 
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
+#'   
 #' @example examples/heurest.R
 #' 
 #' @importFrom stats optim
@@ -29,7 +31,7 @@
 #' 
 #'
 dsdive.heurest = function(depths, times, stages.est, depth.bins, priors,
-                          t0.dive, method = 'Nelder-Mead') {
+                          t0.dive, method = 'Nelder-Mead', model) {
   
   #
   # linearly impute a complete trajectory
@@ -111,7 +113,8 @@ dsdive.heurest = function(depths, times, stages.est, depth.bins, priors,
                         lambda = theta.list$lambda, 
                         sub.tx = theta.list$sub.tx,
                         surf.tx = theta.list$surf.tx, depth.bins = depth.bins, 
-                        t0.dive = t0.dive, t.stage2 = t.stage2tmp) + 
+                        t0.dive = t0.dive, t.stage2 = t.stage2tmp, 
+                        model = model) + 
               dsdive.prior(par = theta.list, spec = priors, log = TRUE) + 
               theta.list$logJ
             }, method = method, control = list(fnscale = -1))

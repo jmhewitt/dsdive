@@ -11,7 +11,8 @@ makeImputedDistributed(
   init,
   priors,
   it,
-  inflation.factor.lambda
+  inflation.factor.lambda,
+  model
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ bin file paths or objects should be duplicated.}
 
 \item{cl}{A SNOW cluster object specifying nodes where computations will take
 place, and to which dive and depth bin information should be distributed.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Initialize a computing environment for use with gibbs sampling
@@ -54,7 +58,8 @@ cl = snow::makeCluster(spec = 1, type = 'SOCK')
 cfg = makeImputedDistributed(dives = list(sim.obs, sim.obs), 
                              depth.bins = list(depth.bins, depth.bins), 
                              cl = cl, init = params, priors = spec, it = 5, 
-                             inflation.factor.lambda = 1.1)
+                             inflation.factor.lambda = 1.1, 
+                             model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

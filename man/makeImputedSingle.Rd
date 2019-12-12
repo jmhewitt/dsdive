@@ -13,7 +13,8 @@ makeImputedSingle(
   priors,
   inflation.factor.lambda,
   t0.dive,
-  verbose = FALSE
+  verbose = FALSE,
+  model
 )
 }
 \description{
@@ -31,7 +32,7 @@ cfg = makeImputedSingle(depth.bins = depth.bins, it = 5,
                         depths = sim.obs$depths, times = sim.obs$times, 
                         init = params, priors = spec, 
                         inflation.factor.lambda = 1.1, t0.dive = 0, 
-                        verbose = TRUE)
+                        verbose = TRUE, model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

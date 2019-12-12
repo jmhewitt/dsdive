@@ -16,7 +16,8 @@ dsdive.tx.matrix(
   max.depth = nrow(depth.bins),
   t0.dive,
   lambda.max = NULL,
-  t.stage2
+  t.stage2,
+  model
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ transition parameters for depth bins at and below \code{max.depth}.}
 be thinned.  \code{lambda.max} will be scaled by}
 
 \item{t.stage2}{time at which second stage was entered}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Given model parameters and transition times, the 3 stage dive model can be 
@@ -76,7 +80,7 @@ attach(dive.sim$params)
 
 m = dsdive.tx.matrix(t0 = 60, depth.bins = depth.bins, beta = beta, 
                      lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                     t0.dive = 0, t.stage2 = NA)
+                     t0.dive = 0, t.stage2 = NA, model = 'conditional')
 
 detach(dive.sim$params)
 detach(dive.sim)

@@ -7,7 +7,7 @@
 #' 
 makeImputedSingle = function(depth.bins, it, depths, times, init, 
                              priors, inflation.factor.lambda, t0.dive, 
-                             verbose = FALSE) {
+                             verbose = FALSE, model) {
   
   # ensure depth.bins is in a good format
   depth.bins = as.matrix(depth.bins)
@@ -38,7 +38,7 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
                                  verbose = FALSE, 
                                  precompute.bridges = TRUE, 
                                  t0.dive = t0.dive, 
-                                 resample = FALSE)[[1]]
+                                 resample = FALSE, model = model)[[1]]
   
   # add log jacobians to sample
   trajectory$ld.true = trajectory$ld.true + logJ
@@ -72,7 +72,8 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
     depths = depths,
     times = times,
     trace.imputed = trace.imputed,
-    inflation.factor.lambda = inflation.factor.lambda
+    inflation.factor.lambda = inflation.factor.lambda,
+    model = model
   )
   
   class(res) = 'dsImputedSingle'

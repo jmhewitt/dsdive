@@ -4,7 +4,7 @@
 \alias{makeCompleteDistributed}
 \title{Initialize a computing environment for use with gibbs sampling}
 \usage{
-makeCompleteDistributed(dives, depth.bins, cl, init, priors)
+makeCompleteDistributed(dives, depth.bins, cl, init, priors, model)
 }
 \arguments{
 \item{dives}{Vector of file paths OR a list of dive data.
@@ -30,6 +30,9 @@ bin file paths or objects should be duplicated.}
 
 \item{cl}{A SNOW cluster object specifying nodes where computations will take
 place, and to which dive and depth bin information should be distributed.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Initialize a computing environment for use with gibbs sampling
@@ -47,7 +50,7 @@ cl = snow::makeCluster(spec = 1, type = 'SOCK')
 cfg = makeCompleteDistributed(dives = list(sim, sim), 
                               depth.bins = list(depth.bins, depth.bins), 
                               cl = cl, init = params, priors = spec, 
-                              inflation.factor.lambda = 1)
+                              model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

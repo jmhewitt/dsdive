@@ -11,7 +11,8 @@ dsdive_cdtlimpute.dsImputedSingle = function(cfg, params, i) {
                            inflation.factor.lambda = 
                              cfg$inflation.factor.lambda, verbose = FALSE, 
                            precompute.bridges = TRUE, t0.dive = cfg$t0.dive, 
-                           trajectory.conditional = cfg$trajectory)
+                           trajectory.conditional = cfg$trajectory,
+                           model = cfg$model)
   
   # get raw sampling weights
   W = exp(sapply(prop, function(p) p$w))

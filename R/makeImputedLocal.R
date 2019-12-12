@@ -21,13 +21,15 @@
 #'   bin file paths or objects should be duplicated.
 #' @param cl A SNOW cluster object specifying nodes where computations will take
 #'   place, and to which dive and depth bin information should be distributed.
-#' 
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
+#'   
 #' @export
 #' 
 #' @example examples/makeImputedLocal.R
 #' 
 makeImputedLocal = function(dives, depth.bins, init, priors, it,
-                            inflation.factor.lambda) {
+                            inflation.factor.lambda, model) {
   
   # generate local storage ids for dives
   ids = paste('dive', 1:length(dives), sep='')
@@ -37,7 +39,8 @@ makeImputedLocal = function(dives, depth.bins, init, priors, it,
   for(i in 1:length(dives)) {
     pkg[[i]] = list(dive = dives[[i]], depth.bins = depth.bins[[i]], 
                     id = ids[i], init = init, priors = priors, it = it, 
-                    inflation.factor.lambda = inflation.factor.lambda)
+                    inflation.factor.lambda = inflation.factor.lambda, 
+                    model = model)
   }
   
   # send data to nodes; set up local computing environments
@@ -65,7 +68,8 @@ makeImputedLocal = function(dives, depth.bins, init, priors, it,
                                   init = p$init, priors = p$priors, 
                                   inflation.factor.lambda = 
                                     p$inflation.factor.lambda, 
-                                  t0.dive = p$dive$times[1], verbose = FALSE)
+                                  t0.dive = p$dive$times[1], verbose = FALSE,
+                                  model = p$model)
     
     # save to worker's global environment
     assign(x = p$id, value = cfg.local, envir = globalenv())

@@ -17,5 +17,5 @@ dsdive_ld.dsImputedSingle = function(cfg, params) {
             times = trajectory$times, stages = trajectory$stages,
             beta = params$beta, lambda = params$lambda, sub.tx = params$sub.tx,
             surf.tx = params$surf.tx, depth.bins = cfg$depth.bins, 
-            t0.dive = cfg$t0.dive, t.stage2 = cfg$t.stage2)
+            t0.dive = cfg$t0.dive, t.stage2 = cfg$t.stage2, model = cfg$model)
 }

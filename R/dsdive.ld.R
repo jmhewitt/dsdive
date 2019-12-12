@@ -21,6 +21,8 @@
 #' @param d0.last If the depth bin that proceeded the first depth bin in 
 #'   \code{depths}.  If the trajectory to be analyzed was started at the 
 #'   surface, then set \code{c0.last=NULL}.
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
 #' 
 #' @example examples/ld.R
 #' 
@@ -29,7 +31,8 @@
 #' @export
 #' 
 dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
-                     surf.tx, depth.bins, t0.dive, d0.last = NULL, t.stage2) {
+                     surf.tx, depth.bins, t0.dive, d0.last = NULL, t.stage2,
+                     model) {
   
   # extract dimensional information
   nt = length(times)
@@ -50,7 +53,7 @@ dsdive.ld = function(depths, durations, times, stages, beta, lambda, sub.tx,
                          d0 = depths[j], s0 = stages[j], beta = beta, 
                          d0.last = d0.last, 
                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                         t0.dive = t0.dive, t.stage2 = t.stage2)
+                         t0.dive = t0.dive, t.stage2 = t.stage2, model = model)
     #
     # build likelihood
     #

@@ -21,7 +21,8 @@ dsdive.ldabc(
   n.samples = 0,
   stage.init = 1,
   t0.dive,
-  shift.cfg = NULL
+  shift.cfg = NULL,
+  model
 )
 }
 \arguments{
@@ -79,6 +80,9 @@ ABC-SMC sampler requires fewer memory operations.}
 \item{shift.cfg}{vector: Optional arguments to bias sampling toward a 
 specific node.  See documentation for \code{dsdive.tx.params} for more 
 detail. c(depth.bias, rate.p).}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 SMC estimation of likelihood for imputed dive trajectories
@@ -92,7 +96,8 @@ ld = dsdive.ldabc(beta = beta, lambda = lambda, sub.tx = sub.tx,
                   surf.tx = surf.tx, depth.bins = depth.bins, 
                   steps.max = 1e3, N = 1e1, depths = sim.obs$depths, 
                   t = sim.obs$times, tries.max = 1e2, dump.state = TRUE, 
-                  verbose = TRUE, n.samples = 5, eps = 1, t0.dive = 0)
+                  verbose = TRUE, n.samples = 5, eps = 1, t0.dive = 0,
+                  model = 'conditional')
 
 detach(dive.sim$params)
 detach(dive.sim)

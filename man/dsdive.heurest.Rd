@@ -11,7 +11,8 @@ dsdive.heurest(
   depth.bins,
   priors,
   t0.dive,
-  method = "Nelder-Mead"
+  method = "Nelder-Mead",
+  model
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ column defines the half-width of each bin.}
 \item{t0.dive}{Time at which dive started}
 
 \item{method}{Method to use in \code{optim} search for initial parameters}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Builds heuristic estimates of dive model parameters, which is useful for 
@@ -53,7 +57,7 @@ spec = list(beta.sd = rep(1, 3), beta.absmax = 5, lambda.sd = 1,
 
 est = dsdive.heurest(depths = sim.obs$depths, times = sim.obs$times, 
                      stages.est = sim.obs$stages, depth.bins = depth.bins,
-                     t0.dive = 0, priors = spec)
+                     t0.dive = 0, priors = spec, model = 'conditional')
 
 detach(dive.sim)
 }

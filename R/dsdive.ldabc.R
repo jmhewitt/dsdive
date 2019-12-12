@@ -39,6 +39,8 @@
 #' @param shift.cfg vector: Optional arguments to bias sampling toward a 
 #'   specific node.  See documentation for \code{dsdive.tx.params} for more 
 #'   detail. c(depth.bias, rate.p).
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
 #'   
 #' @example examples/ldabc.R
 #' 
@@ -48,7 +50,7 @@
 dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins, 
                         steps.max = 1e3, N, depths, t, tries.max, eps,
                         dump.state = FALSE, verbose = FALSE, n.samples = 0,
-                        stage.init = 1, t0.dive, shift.cfg = NULL) {
+                        stage.init = 1, t0.dive, shift.cfg = NULL, model) {
   
   # extract dimensional information
   nt = length(t)
@@ -118,7 +120,7 @@ dsdive.ldabc = function(beta, lambda, sub.tx, surf.tx, depth.bins,
                              dur0 = particle$durations[len], 
                              s0 = particle$stages[len], t0.dive = t0.dive, 
                              shift.params = shift.params, 
-                             t.stage2 = particle$t.stage2)
+                             t.stage2 = particle$t.stage2, model = model)
         
         # continue resampling if particle is not observable at required time
         if(length(p$times) > 0) {

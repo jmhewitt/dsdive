@@ -4,7 +4,15 @@
 \alias{makeImputedLocal}
 \title{Initialize a computing environment for use with gibbs sampling}
 \usage{
-makeImputedLocal(dives, depth.bins, init, priors, it, inflation.factor.lambda)
+makeImputedLocal(
+  dives,
+  depth.bins,
+  init,
+  priors,
+  it,
+  inflation.factor.lambda,
+  model
+)
 }
 \arguments{
 \item{dives}{Vector of file paths OR a list of dive data.
@@ -27,6 +35,9 @@ objects or files must include columns or objects for depth bin
 \code{dives} need to use the same depth bin information, then the depth 
 bin file paths or objects should be duplicated.}
 
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
+
 \item{cl}{A SNOW cluster object specifying nodes where computations will take
 place, and to which dive and depth bin information should be distributed.}
 }
@@ -44,7 +55,7 @@ spec = list(beta.sd = rep(1, 3), beta.absmax = 5, lambda.sd = 1,
 cfg = makeImputedLocal(dives = list(sim.obs, sim.obs), 
                        depth.bins = list(depth.bins, depth.bins), 
                        init = params, priors = spec, it = 5, 
-                       inflation.factor.lambda = 1.1)
+                       inflation.factor.lambda = 1.1, model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

@@ -6,7 +6,7 @@
 #' @example examples/makeCompleteSingle.R
 #' 
 makeCompleteSingle = function(depth.bins, durations, depths, times, stages, 
-                              init, priors, t0.dive) {
+                              init, priors, t0.dive, model) {
   
   # ensure depth.bins is in a good format
   depth.bins = as.matrix(depth.bins)
@@ -45,7 +45,7 @@ makeCompleteSingle = function(depth.bins, durations, depths, times, stages,
                  beta = init$beta, lambda = init$lambda, 
                  sub.tx = init$sub.tx, surf.tx = init$surf.tx, 
                  depth.bins = depth.bins, t0.dive = t0.dive, 
-                 t.stage2 = t.stage2) + 
+                 t.stage2 = t.stage2, model = model) + 
     logJ
 
   # package configuration
@@ -55,7 +55,8 @@ makeCompleteSingle = function(depth.bins, durations, depths, times, stages,
     partially.observed = partially.observed,
     ld = ld,
     t.stage2 = t.stage2,
-    t0.dive = t0.dive
+    t0.dive = t0.dive,
+    model = model
   )
   
   class(res) = 'dsCompleteSingle'

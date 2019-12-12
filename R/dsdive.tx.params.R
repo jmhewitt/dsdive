@@ -37,7 +37,9 @@
 #'   less than 1 will push poor directions of travel closer toward random walks
 #'   from their natural tendencies.
 #' @param t.stage2 time at which second stage was entered.
-#' 
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
+#'   
 #' @example examples/txparams.R
 #' 
 #' @importFrom stats plogis
@@ -46,7 +48,8 @@
 #' 
 dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
                             lambda, sub.tx, surf.tx, t0.dive, 
-                            shift.params = NULL, t.stage2) {
+                            shift.params = NULL, t.stage2, 
+                            model) {
   
   num.depths = nrow(depth.bins)
   
@@ -56,7 +59,8 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   # extract probability of transitioning to next dive stage
   prob.stage = dsdive.tx.stage(t0 = t0, d0 = d0, sub.tx = sub.tx, 
                                surf.tx = surf.tx, t0.dive = t0.dive, 
-                               t.stage2 = t.stage2, rates = rates)[s0,]
+                               t.stage2 = t.stage2, rates = rates,
+                               model = model)[s0,]
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward

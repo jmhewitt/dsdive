@@ -19,7 +19,8 @@ dsdive.fastimpute(
   precompute.bridges = TRUE,
   t0.dive,
   resample = TRUE,
-  trajectory.conditional = NULL
+  trajectory.conditional = NULL,
+  model
 )
 }
 \arguments{
@@ -79,6 +80,9 @@ cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as
 the value of \code{trajectory.conditional} will be returned.  The 
 importance of this function argument is that \code{dsdive.fastbridge}
 will evaluate the proposal density for \code{trajectory.conditional}.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 The sampling method is designed to sample many trajectories simultaneously, 
@@ -92,7 +96,8 @@ attach(params)
 imputed = dsdive.fastimpute(M = 5, depth.bins = depth.bins, 
                             depths = sim.obs$depths, times = sim.obs$times, 
                             s0 = 1, beta = beta, lambda = lambda, 
-                            sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0)
+                            sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0,
+                            model = 'conditional')
 
 detach(params)
 detach(dive.sim)

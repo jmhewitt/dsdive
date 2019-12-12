@@ -10,7 +10,7 @@ cl = snow::makeCluster(spec = 1, type = 'SOCK')
 cfg = makeCompleteDistributed(dives = list(sim, sim), 
                               depth.bins = list(depth.bins, depth.bins), 
                               cl = cl, init = params, priors = spec, 
-                              inflation.factor.lambda = 1)
+                              model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

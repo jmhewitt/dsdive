@@ -56,7 +56,9 @@
 #'   importance of this function argument is that \code{dsdive.fastbridge}
 #'   will evaluate the proposal density for \code{trajectory.conditional}.
 #' @param t.stage2 vector of times at which stage 2 was entered.
-#' 
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
+#'   
 #' @example examples/dsdive.fastbridge.R
 #' 
 #' @importFrom stats runif
@@ -70,7 +72,8 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                              sub.tx, surf.tx, t0, tf, s0, 
                              inflation.factor.lambda = 1.1, verbose = FALSE,
                              precompute.bridges = TRUE, lambda.max = NULL,
-                             t0.dive, trajectory.conditional = NULL, t.stage2) {
+                             t0.dive, trajectory.conditional = NULL, t.stage2,
+                             model) {
   
   #
   # build basic simulation parameters
@@ -203,7 +206,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                                   inflation.factor.lambda = 1,
                                   min.depth = min.depth, max.depth = max.depth,
                                   t0.dive = t0.dive, lambda.max = lambda.thick, 
-                                  t.stage2 = t.stage2[i])
+                                  t.stage2 = t.stage2[i], model = model)
     tx.mat = tx.mat.raw$m
     out.inds.lookup = tx.mat.raw$out.inds
     
@@ -364,7 +367,8 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                             times = p$times, stages = p$stages, beta = beta, 
                             lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
                             depth.bins = depth.bins, t0.dive = t0.dive, 
-                            d0.last = d0.last[i], t.stage2 = t.stage2tmp)
+                            d0.last = d0.last[i], t.stage2 = t.stage2tmp, 
+                            model =model)
       
       # save trajectory
       paths.out[i] = list(p)

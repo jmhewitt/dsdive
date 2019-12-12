@@ -16,7 +16,8 @@ dsdive.ld(
   depth.bins,
   t0.dive,
   d0.last = NULL,
-  t.stage2
+  t.stage2,
+  model
 )
 }
 \arguments{
@@ -51,6 +52,9 @@ column defines the half-width of each bin.}
 \item{d0.last}{If the depth bin that proceeded the first depth bin in 
 \code{depths}.  If the trajectory to be analyzed was started at the 
 surface, then set \code{c0.last=NULL}.}
+
+\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
+method used to determine stage transition probability curves}
 }
 \description{
 Likelihood for completely observed dive trajectories
@@ -63,7 +67,8 @@ attach(dive.sim$params)
 ld = dsdive.ld(depths = sim$depths, durations = sim$durations, 
                times = sim$times, stages = sim$stages, beta = beta, 
                lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-               depth.bins = depth.bins, t0.dive = 0, t.stage2 = NA)
+               depth.bins = depth.bins, t0.dive = 0, t.stage2 = NA, 
+               model = 'conditional')
 
 detach(dive.sim$params)
 detach(dive.sim)

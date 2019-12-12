@@ -21,6 +21,8 @@
 #' @param t.stage2 time at which second stage was entered.  If stage 2 has not 
 #'   yet been entered, then set \code{t.stage2 = NA}, and 
 #'   \code{dsdive.tx.stage} will implicitly set \code{t.stage2 = t0}.
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
 #' 
 #' @example examples/dsdive.tx.stage.R
 #' 
@@ -29,7 +31,7 @@
 #' @export
 #' 
 dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
-                           t.scale = 60, rates) {
+                           t.scale = 60, rates, model) {
   
   if(is.na(t.stage2)) {
     t.stage2 = t0
@@ -42,37 +44,54 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
   # compute probabilities
   #
   
-  # probability of transition to stage 2
-  sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
-  tgt.time = sub.lu * t.scale + t0.dive
-  
-  interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
-  if(interval.start < tgt.time[2]) {
-    prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
-                             rate = rates))
-    interval = max(tgt.time[2] - interval.start, 0)
-    scale.prob = 1 / (rates * interval)
-    res[1,] = min(prob.inrange * scale.prob, 1)
-  } else {
-    res[1,] = 1
+  if(model == 'conditional') {
+    # probability of transition to stage 2
+    sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
+    tgt.time = sub.lu * t.scale + t0.dive
+    
+    interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+    if(interval.start < tgt.time[2]) {
+      prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                               rate = rates))
+      interval = max(tgt.time[2] - interval.start, 0)
+      scale.prob = 1 / (rates * interval)
+      res[1,] = min(prob.inrange * scale.prob, 1)
+    } else {
+      res[1,] = 1
+    }
+    
+    
+    # probability of transition to stage 3
+    surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
+    tgt.time = surf.lu * t.scale + t.stage2
+    
+    interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+    if(interval.start < tgt.time[2]) {
+      prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                               rate = rates))
+      interval = max(tgt.time[2] - interval.start, 0)
+      scale.prob = 1 / (rates * interval)
+      res[2,] = min(prob.inrange * scale.prob, 1)
+    } else {
+      res[2,] = 1
+    }
+  } else if(model == 'logit') {
+    
+    y = qlogis(p = c(.01,.99))
+    
+    # probability of transition to stage 2
+    sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
+    tgt.time = sub.lu * t.scale + t0.dive
+    beta = solve(cbind(c(1,1), tgt.time), y)
+    res[1,] = plogis(beta[1] + beta[2] * t0)
+    
+    # probability of transition to stage 3
+    surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
+    tgt.time = surf.lu * t.scale + t.stage2
+    beta = solve(cbind(c(1,1), tgt.time), y)
+    res[2,] = plogis(beta[1] + beta[2] * t0)
+    
   }
-  
-  
-  # probability of transition to stage 3
-  surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
-  tgt.time = surf.lu * t.scale + t.stage2
-
-  interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
-  if(interval.start < tgt.time[2]) {
-    prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
-                             rate = rates))
-    interval = max(tgt.time[2] - interval.start, 0)
-    scale.prob = 1 / (rates * interval)
-    res[2,] = min(prob.inrange * scale.prob, 1)
-  } else {
-    res[2,] = 1
-  }
-  
   
   # probability of transition out of stage 3 remains 0
    

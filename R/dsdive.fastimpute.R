@@ -45,6 +45,8 @@
 #'   the value of \code{trajectory.conditional} will be returned.  The 
 #'   importance of this function argument is that \code{dsdive.fastbridge}
 #'   will evaluate the proposal density for \code{trajectory.conditional}.
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
 #' 
 #' @example examples/dsdive.fastimpute.R
 #' 
@@ -54,7 +56,7 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                              sub.tx, surf.tx, inflation.factor.lambda = 1.1, 
                              verbose = FALSE, precompute.bridges = TRUE, 
                              t0.dive, resample = TRUE, 
-                             trajectory.conditional = NULL) {
+                             trajectory.conditional = NULL, model) {
   
   # set flag for conditional simulation
   cond.sim = !is.null(trajectory.conditional)
@@ -122,7 +124,7 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                            precompute.bridges = precompute.bridges,
                            lambda.max = lambda.max, t0.dive = t0.dive, 
                            trajectory.conditional = segment.conditional, 
-                           t.stage2 = t.stage2)
+                           t.stage2 = t.stage2, model = model)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {
@@ -193,7 +195,7 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                                  beta = beta, lambda = lambda, sub.tx = sub.tx, 
                                  surf.tx = surf.tx, depth.bins = depth.bins, 
                                  t0.dive = t0.dive, 
-                                 t.stage2 = res[[j]]$t.stage2)
+                                 t.stage2 = res[[j]]$t.stage2, model = model)
   }
   
   res

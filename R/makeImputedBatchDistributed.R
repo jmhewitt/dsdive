@@ -21,7 +21,9 @@
 #'   bin file paths or objects should be duplicated.
 #' @param cl A SNOW cluster object specifying nodes where computations will take
 #'   place, and to which dive and depth bin information should be distributed.
-#' 
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
+#'   
 #' @importFrom snow clusterApply
 #' 
 #' @export
@@ -29,7 +31,7 @@
 #' @example examples/makeImputedLocal.R
 #' 
 makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
-                                       inflation.factor.lambda) {
+                                       inflation.factor.lambda, model) {
   
   # find the first dive id for each node's collection of dives
   batch.first = unique(ceiling(
@@ -43,7 +45,7 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
   # merge data to load in batches on each node
   pkg = vector('list', length(cl))
   for(i in 1:length(cl)) {
-    pkg[[i]] = list(cluster.id = cluster.ids[[i]])
+    pkg[[i]] = list(cluster.id = cluster.ids[[i]], model = model)
   }
   for(i in 1:(length(batch.first)-1)) {
     inds = batch.first[i]:(batch.first[i+1]-1)
@@ -65,7 +67,8 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
       cfg.local = makeImputedLocal(dives = p$dive, depth.bins = p$depth.bins, 
                                    init = p$init, priors = p$priors, it = p$it, 
                                    inflation.factor.lambda = 
-                                     p$inflation.factor.lambda)
+                                     p$inflation.factor.lambda, 
+                                   model = p$model)
     } else {
       cfg.local = NULL
     }

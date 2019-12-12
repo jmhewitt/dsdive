@@ -12,7 +12,8 @@ makeCompleteSingle(
   stages,
   init,
   priors,
-  t0.dive
+  t0.dive,
+  model
 )
 }
 \description{
@@ -29,7 +30,7 @@ spec = list(beta.sd = rep(1, 3), beta.absmax = 5, lambda.sd = 1,
 cfg = makeCompleteSingle(depth.bins = depth.bins, durations = sim$durations, 
                          depths = sim$depths, times = sim$times, 
                          stages = sim$stages, init = params, priors = spec, 
-                         t0.dive = 0)
+                         t0.dive = 0, model = 'conditional')
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(3), diag(7)))

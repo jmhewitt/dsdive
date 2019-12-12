@@ -34,6 +34,8 @@
 #' @param t0.dive Time at which dive started
 #' @param shift.params Optional arguments to bias sampling toward a specific 
 #'   node.  See documentation for \code{dsdive.tx.params} for more detail.
+#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
+#'   method used to determine stage transition probability curves
 #' 
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
 #'   vectors:
@@ -54,7 +56,8 @@
 #'
 dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
                             t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0,
-                            t0.dive, shift.params = NULL, t.stage2) {
+                            t0.dive, shift.params = NULL, t.stage2,
+                            model) {
   
   # initialize output components
   depths = d0
@@ -100,7 +103,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
                                    lambda = lambda, sub.tx = sub.tx, 
                                    surf.tx = surf.tx, t0.dive = t0.dive, 
                                    shift.params = shift.params, 
-                                   t.stage2 = current$t.stage2)
+                                   t.stage2 = current$t.stage2,
+                                   model = model)
       
       # if necessary, sample and save duration for current state
       if(is.null(current$duration)) {
@@ -136,7 +140,8 @@ dsdive.fwdsample = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx,
                                               surf.tx = surf.tx, 
                                               t0.dive = t0.dive, 
                                               shift.params = NULL, 
-                                              t.stage2 = current$t.stage2)
+                                              t.stage2 = current$t.stage2,
+                                              model = model)
         # determine which transition was taken
         ind = which(d == params.tx$labels)
         # update log of importance sampling weight
