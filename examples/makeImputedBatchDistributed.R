@@ -11,7 +11,8 @@ cfg = makeImputedBatchDistributed(dives = list(sim.obs, sim.obs),
                                   depth.bins = list(depth.bins, depth.bins), 
                                   cl = cl, init = params, priors = spec, it = 5, 
                                   inflation.factor.lambda = 1.1,
-                                  model = 'conditional')
+                                  model = 'conditional', 
+                                  stages.conditional = FALSE)
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(2), diag(3)))

@@ -29,7 +29,8 @@
 #' @example examples/makeImputedLocal.R
 #' 
 makeImputedLocal = function(dives, depth.bins, init, priors, it,
-                            inflation.factor.lambda, model) {
+                            inflation.factor.lambda, model,
+                            stages.conditional) {
   
   # generate local storage ids for dives
   ids = paste('dive', 1:length(dives), sep='')
@@ -40,7 +41,7 @@ makeImputedLocal = function(dives, depth.bins, init, priors, it,
     pkg[[i]] = list(dive = dives[[i]], depth.bins = depth.bins[[i]], 
                     id = ids[i], init = init, priors = priors, it = it, 
                     inflation.factor.lambda = inflation.factor.lambda, 
-                    model = model)
+                    model = model, stages.conditional = stages.conditional)
   }
   
   # send data to nodes; set up local computing environments
@@ -69,7 +70,8 @@ makeImputedLocal = function(dives, depth.bins, init, priors, it,
                                   inflation.factor.lambda = 
                                     p$inflation.factor.lambda, 
                                   t0.dive = p$dive$times[1], verbose = FALSE,
-                                  model = p$model)
+                                  model = p$model, 
+                                  stages.conditional = p$stages.conditional)
     
     # save to worker's global environment
     assign(x = p$id, value = cfg.local, envir = globalenv())

@@ -14,8 +14,15 @@ makeImputedSingle(
   inflation.factor.lambda,
   t0.dive,
   verbose = FALSE,
-  model
+  model,
+  stages.conditional
 )
+}
+\arguments{
+\item{stages.conditional}{If \code{FALSE}, then dive trajectories and stage
+transition times will be jointly sampled, otherwise the stage transition 
+times will be sampled conditionally given the complete sequence of depth 
+bins and durations.}
 }
 \description{
 Initialize a computing environment for use with gibbs sampling
@@ -33,7 +40,8 @@ cfg = makeImputedSingle(depth.bins = depth.bins, it = 5,
                         depths = sim.obs$depths, times = sim.obs$times, 
                         init = params, priors = spec, 
                         inflation.factor.lambda = 1.1, t0.dive = 0, 
-                        verbose = TRUE, model = 'conditional')
+                        verbose = TRUE, model = 'conditional', 
+                        stages.conditional = FALSE)
 
 x = dsdive.fit.gibbs.cfg(cfg = cfg, it = 2, verbose = TRUE, init = params, 
                          priors = spec, sigma = list(diag(2), diag(3)))

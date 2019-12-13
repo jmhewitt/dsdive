@@ -31,7 +31,8 @@
 #' @example examples/makeImputedLocal.R
 #' 
 makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
-                                       inflation.factor.lambda, model) {
+                                       inflation.factor.lambda, model,
+                                       stages.conditional) {
   
   # find the first dive id for each node's collection of dives
   batch.first = unique(ceiling(
@@ -52,7 +53,8 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
     pkg[[i]] = c(pkg[[i]], 
                  list(dive = dives[inds], depth.bins = depth.bins[inds], 
                     id = ids[inds], init = init, priors = priors, it = it, 
-                    inflation.factor.lambda = inflation.factor.lambda)
+                    inflation.factor.lambda = inflation.factor.lambda,
+                    stages.conditional = stages.conditional)
                  )
   }
   
@@ -68,7 +70,8 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
                                    init = p$init, priors = p$priors, it = p$it, 
                                    inflation.factor.lambda = 
                                      p$inflation.factor.lambda, 
-                                   model = p$model)
+                                   model = p$model,
+                                   stages.conditional = p$stages.conditional)
     } else {
       cfg.local = NULL
     }

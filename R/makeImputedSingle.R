@@ -1,13 +1,19 @@
 #' Initialize a computing environment for use with gibbs sampling
 #' 
 #'
+#' @param stages.conditional If \code{FALSE}, then dive trajectories and stage
+#'   transition times will be jointly sampled, otherwise the stage transition 
+#'   times will be sampled conditionally given the complete sequence of depth 
+#'   bins and durations.
+#' 
 #' @export
 #' 
 #' @example examples/makeImputedSingle.R
 #' 
 makeImputedSingle = function(depth.bins, it, depths, times, init, 
                              priors, inflation.factor.lambda, t0.dive, 
-                             verbose = FALSE, model) {
+                             verbose = FALSE, model, 
+                             stages.conditional) {
   
   # ensure depth.bins is in a good format
   depth.bins = as.matrix(depth.bins)
@@ -39,6 +45,37 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
                                  precompute.bridges = TRUE, 
                                  t0.dive = t0.dive, 
                                  resample = FALSE, model = model)[[1]]
+  
+  # sample stage transition times
+  if(cfg$stages.conditional) {
+    
+    stage.breaks =  c(1, round(length(cfg$trajectory$stages)/2))
+    
+    dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 2, 
+                            beta = params$beta, lambda = params$lambda, 
+                            sub.tx = params$sub.tx, surf.tx = params$surf.tx, 
+                            depths = cfg$trajectory$depths, 
+                            durations = cfg$trajectory$durations, 
+                            times = cfg$trajectory$times, 
+                            depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
+                            t.stage2 = cfg$t.stage2, model = cfg$model)
+    stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    
+    dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 1, 
+                            beta = params$beta, lambda = params$lambda, 
+                            sub.tx = params$sub.tx, surf.tx = params$surf.tx, 
+                            depths = cfg$trajectory$depths, 
+                            durations = cfg$trajectory$durations, 
+                            times = cfg$trajectory$times, 
+                            depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
+                            t.stage2 = cfg$t.stage2, model = cfg$model)
+    stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
+    
+    # update stage vector
+    cfg$trajectory$stages = stagevec(length.out = length(cfg$trajectory$stages), 
+                                     breaks = stage.breaks)
+  }
+  
   
   # add log jacobians to sample
   trajectory$ld.true = trajectory$ld.true + logJ
@@ -73,7 +110,8 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
     times = times,
     trace.imputed = trace.imputed,
     inflation.factor.lambda = inflation.factor.lambda,
-    model = model
+    model = model,
+    stages.conditional = stages.conditional
   )
   
   class(res) = 'dsImputedSingle'
