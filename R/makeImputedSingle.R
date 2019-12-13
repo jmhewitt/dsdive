@@ -47,7 +47,7 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
                                  resample = FALSE, model = model)[[1]]
   
   # sample stage transition times
-  if(cfg$stages.conditional) {
+  if(stages.conditional) {
     
     stage.breaks =  c(1, round(length(cfg$trajectory$stages)/2))
     
