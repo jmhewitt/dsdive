@@ -82,6 +82,7 @@ dsdive.fit.optim = function(cfg, method = 'BFGS', maxit = 1e3, verbose = FALSE,
   
   if(hessian) {
     sigma.tmp = -solve(o$hessian)
+    r$sigma.raw = sigma.tmp
     r$sigma =list(makePositiveDefinite(sigma.tmp[1:2,1:2]), 
                   makePositiveDefinite(sigma.tmp[-(1:2),-(1:2)]))
   }
