@@ -38,7 +38,7 @@ dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
   }
   
   # initialize results
-  res = matrix(data = 0, nrow = 3, ncol = length(t0))
+  res = matrix(data = 0, nrow = 3, ncol = 1)
   
   #
   # compute probabilities

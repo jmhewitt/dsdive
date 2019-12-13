@@ -45,58 +45,49 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
                             depths, durations, times, depth.bins, t0.dive, 
                             t.stage2, model) {
   
-  # # extract dimensions
-  # nt = length(times)
-  # 
-  # # determine support of conditional distribution for stage breaks
-  # if(fixed.ind == 1) {
-  #   if(breaks[1]+1 < nt) {
-  #     support = (breaks[1]+1):nt
-  #   } else {
-  #     support = nt
-  #   }
-  # } else {
-  #   support = 1:(breaks[2]-1)
-  # }
+  # extract dimensions
+  nt = length(times)
+
+  # determine support of conditional distribution for stage breaks
+  if(fixed.ind == 1) {
+    if(breaks[1]+1 < nt) {
+      support = (breaks[1]+1):nt
+    } else {
+      support = nt
+    }
+  } else {
+    support = 1:(breaks[2]-1)
+  }
   
   # compute log-mass across support
-  # log.wts = numeric(length(support))
-  # for(i in 1:length(support)) {
-  #   # define stage vector
-  #   if(fixed.ind == 1) {
-  #     b = c(breaks[1], support[i])
-  #   } else {
-  #     b = c(support[i], breaks[2])
-  #   }
-  #   stage.vec = stagevec(length.out = nt, breaks = b)
-  #   
-  #   # compute log-weights
-  #   log.wts[i] = dsdive.ld(depths = depths, durations = durations, 
-  #                          times = times, stages = stage.vec, beta = beta, 
-  #                          lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-  #                          depth.bins = depth.bins, t0.dive = t0.dive)
-  # }
-  # 
-  # # compute log-transition probabilities across entire observation space
-  # probs.raw = dsdive.tx.stage(t0 = times, d0 = depths, sub.tx = sub.tx, 
-  #                             surf.tx = surf.tx, t0.dive = t0.dive, 
-  #                             t.stage2 = t.stage2, model = model)
-  # 
-  # # extract log-mass across support
-  # log.wts = numeric(length(support))
-  # 
-  # 
-  # # center weights and transform to probability scale
-  # wts.finite = exp(scale(log.wts[is.finite(log.wts)], 
-  #                        center = TRUE, scale = FALSE))
-  # 
-  # # scale to unit mass
-  # wts = log.wts
-  # wts[is.finite(wts)] = wts.finite
-  # wts[is.infinite(wts)] = 0
-  # wts = wts / sum(wts)
-  # 
-  # # return full conditional density
-  # data.frame(x = support, prob = wts)
-  data.frame(x = 1, prob = 1)
+  log.wts = numeric(length(support))
+  for(i in 1:length(support)) {
+    # define stage vector
+    if(fixed.ind == 1) {
+      b = c(breaks[1], support[i])
+    } else {
+      b = c(support[i], breaks[2])
+    }
+    stage.vec = stagevec(length.out = nt, breaks = b)
+
+    # compute log-weights
+    log.wts[i] = dsdive.ld(depths = depths, durations = durations,
+                           times = times, stages = stage.vec, beta = beta,
+                           lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
+                           depth.bins = depth.bins, t0.dive = t0.dive, 
+                           t.stage2 = t.stage2, model = model)
+  }
+
+  # center weights and transform to probability scale
+  wts.finite = exp(scale(log.wts[is.finite(log.wts)],
+                         center = TRUE, scale = FALSE))
+
+  # scale to unit mass
+  wts = log.wts
+  wts[is.finite(wts)] = wts.finite
+  wts[is.infinite(wts)] = 0
+  wts = wts / sum(wts)
+
+  # return full conditional density
+  data.frame(x = support, prob = wts)
 }
