@@ -55,7 +55,7 @@
 #' 
 #' @export
 #'
-dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
+dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma, 
                                 priors, adapt = c(99, 100, 0.5, 0.75),
                                 state.backup = list(t=Inf, file='state.RData'),
                                 scale.sigma.init = 1) {
@@ -75,9 +75,9 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
   
   # compute cholesky decomposition for proposal covariance
   if(ncol(sigma[[1]]) + ncol(sigma[[2]]) != sum(n.par)) {
-    stop(paste('The total parameter dimension', sum(n.par), 
-               'differs from the proposal dimensions', 
-               ncol(sigma[[1]]) + ncol(sigma[[2]]), 
+    stop(paste('The total parameter dimension', sum(n.par),
+               'differs from the proposal dimensions',
+               ncol(sigma[[1]]) + ncol(sigma[[2]]),
                sep = ' '))
   } else {
     sigma.chol = list(
@@ -85,6 +85,10 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
       t(chol(scale.sigma.init * sigma[[2]]))
     )
   }
+  
+  # # prepare terms for gaussian proposals
+  # sigma.chol = t(chol(sigma * scale.sigma.init))
+  # mu.vec = params.toVec(par = mu, spec = priors)
   
   if(verbose) {
     message('Sampling')
@@ -112,24 +116,32 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
       tick = tock
     }
     
+    # # MH sample model parameters from Gaussian proposal density
+    # p = gibbs.mhga.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp, 
+    #                       cfg = cfg, priors = priors, mu.vec = mu.vec, 
+    #                       sigma.chol = sigma.chol, verbose = verbose)
+    # trace[i,] = p$x
+    # ld[i] = p$ld
+    # lp = p$lp
+    
     # MH-RW sample depth bin transition parameters
-    p = gibbs.mhrw.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp, 
-                          sigma.chol = sigma.chol[[1]], priors = priors, 
+    p = gibbs.mhrw.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp,
+                          sigma.chol = sigma.chol[[1]], priors = priors,
                           ind = 1:2, verbose = verbose, cfg = cfg)
     trace[i,] = p$x
     ld[i] = p$ld
     lp = p$lp
-    
+
     # MH-RW sample transition rates
-    p = gibbs.mhrw.dsdive(x0 = trace[i,], ld0 = ld[i], lp0 = lp, 
-                          sigma.chol = sigma.chol[[2]], priors = priors, 
+    p = gibbs.mhrw.dsdive(x0 = trace[i,], ld0 = ld[i], lp0 = lp,
+                          sigma.chol = sigma.chol[[2]], priors = priors,
                           ind = -(1:2), verbose = verbose, cfg = cfg)
     trace[i,] = p$x
     ld[i] = p$ld
     lp = p$lp
     
     # adapt RW proposal distributions
-    if(i > adapt[1] && i %% adapt[2] == 0 && i < (adapt[4]*it) ) {   
+    if(i > adapt[1] && i %% adapt[2] == 0 && i < (adapt[4]*it) ) {
       if(verbose) {
         message('   ADAPTING')
       }
@@ -137,15 +149,15 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
       inds = floor(i*adapt[3]):i
       inds.len = length(inds)
       # get new proposal covariance
-      p.sigma1 = makePositiveDefinite((inds.len - 1) / inds.len * 
+      p.sigma1 = makePositiveDefinite((inds.len - 1) / inds.len *
                                        var(trace[inds,1:2]))
-      p.sigma2 = makePositiveDefinite((inds.len - 1) / inds.len * 
+      p.sigma2 = makePositiveDefinite((inds.len - 1) / inds.len *
                                        var(trace[inds,-(1:2)]))
       # update proposal cholesky
       if(!(0 %in% p.sigma1) & !(0 %in% p.sigma2)) {
         sigma = list(p.sigma1, p.sigma2)
         sigma.chol = list(t(chol(p.sigma1)), t(chol(p.sigma2)))
-      } 
+      }
     }
     
     # update trajectories, as necessary
