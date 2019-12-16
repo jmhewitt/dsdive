@@ -49,33 +49,35 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
   # sample stage transition times
   if(stages.conditional) {
     
-    stage.breaks =  c(1, round(length(cfg$trajectory$stages)/2))
+    stage.breaks =  round(length(trajectory$stages)/3 * c(1,2))
+    t.stage2 = trajectory$times[stage.breaks[1]]
+    
     
     dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 2, 
-                            beta = params$beta, lambda = params$lambda, 
-                            sub.tx = params$sub.tx, surf.tx = params$surf.tx, 
-                            depths = cfg$trajectory$depths, 
-                            durations = cfg$trajectory$durations, 
-                            times = cfg$trajectory$times, 
-                            depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
-                            t.stage2 = cfg$t.stage2, model = cfg$model)
+                            beta = init$beta, lambda = init$lambda, 
+                            sub.tx = init$sub.tx, surf.tx = init$surf.tx, 
+                            depths = trajectory$depths, 
+                            durations = trajectory$durations, 
+                            times = trajectory$times, 
+                            depth.bins = depth.bins, t0.dive = t0.dive, 
+                            t.stage2 = t.stage2, model = model)
     stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    t.stage2 = trajectory$times[stage.breaks[1]]
     
     dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 1, 
-                            beta = params$beta, lambda = params$lambda, 
-                            sub.tx = params$sub.tx, surf.tx = params$surf.tx, 
-                            depths = cfg$trajectory$depths, 
-                            durations = cfg$trajectory$durations, 
-                            times = cfg$trajectory$times, 
-                            depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
-                            t.stage2 = cfg$t.stage2, model = cfg$model)
+                            beta = init$beta, lambda = init$lambda, 
+                            sub.tx = init$sub.tx, surf.tx = init$surf.tx, 
+                            depths = trajectory$depths, 
+                            durations = trajectory$durations, 
+                            times = trajectory$times, 
+                            depth.bins = depth.bins, t0.dive = t0.dive, 
+                            t.stage2 = t.stage2, model = model)
     stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
     
     # update stage vector
-    cfg$trajectory$stages = stagevec(length.out = length(cfg$trajectory$stages), 
-                                     breaks = stage.breaks)
+    trajectory$stages = stagevec(length.out = length(trajectory$stages), 
+                                 breaks = stage.breaks)
   }
-  
   
   # add log jacobians to sample
   trajectory$ld.true = trajectory$ld.true + logJ
