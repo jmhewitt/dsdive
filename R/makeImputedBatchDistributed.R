@@ -28,7 +28,7 @@
 #' 
 #' @export
 #' 
-#' @example examples/makeImputedLocal.R
+#' @example examples/makeImputedBatchDistributed.R
 #' 
 makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
                                        inflation.factor.lambda, model,
@@ -46,15 +46,15 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
   # merge data to load in batches on each node
   pkg = vector('list', length(cl))
   for(i in 1:length(cl)) {
-    pkg[[i]] = list(cluster.id = cluster.ids[[i]], model = model)
+    pkg[[i]] = list(cluster.id = cluster.ids[[i]], model = model, 
+                    stages.conditional = stages.conditional)
   }
   for(i in 1:(length(batch.first)-1)) {
     inds = batch.first[i]:(batch.first[i+1]-1)
     pkg[[i]] = c(pkg[[i]], 
                  list(dive = dives[inds], depth.bins = depth.bins[inds], 
                     id = ids[inds], init = init, priors = priors, it = it, 
-                    inflation.factor.lambda = inflation.factor.lambda,
-                    stages.conditional = stages.conditional)
+                    inflation.factor.lambda = inflation.factor.lambda)
                  )
   }
   
