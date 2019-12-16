@@ -56,7 +56,7 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
       support = nt
     }
   } else {
-    support = 1:(breaks[2]-1)
+    support = 2:(breaks[2]-1)
   }
   
   # compute log-mass across support
