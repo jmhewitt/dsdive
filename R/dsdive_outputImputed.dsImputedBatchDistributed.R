@@ -14,7 +14,8 @@ dsdive_outputImputed.dsImputedBatchDistributed = function(cfg, output,
     
     if(!is.null(cfg.local)) {
       dsdive_outputImputed(cfg = cfg.local, output = output, 
-                           save.time = save.time, file = file)
+                           save.time = save.time, 
+                           file = paste('batch', id, '_', file, sep = ''))
     }
     
   }, file = file)
