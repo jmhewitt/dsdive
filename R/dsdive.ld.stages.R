@@ -86,8 +86,11 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
   wts = log.wts
   wts[is.finite(wts)] = wts.finite
   wts[is.infinite(wts)] = 0
+  if(all(wts==0)) {
+    wts = rep(1, length(wts))
+  }
   wts = wts / sum(wts)
-
+  
   # return full conditional density
   data.frame(x = support, prob = wts)
 }
