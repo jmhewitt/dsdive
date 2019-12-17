@@ -42,7 +42,11 @@ dsdive_cdtlimpute.dsImputedSingle = function(cfg, params, i) {
                             times = cfg$trajectory$times, 
                             depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
                             t.stage2 = cfg$t.stage2, model = cfg$model)
-    stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    if(nrow(dens)>1) {
+      stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    } else {
+      stage.breaks[1] = dens$x
+    }
     
     dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 1, 
                             beta = params$beta, lambda = params$lambda, 
@@ -52,7 +56,11 @@ dsdive_cdtlimpute.dsImputedSingle = function(cfg, params, i) {
                             times = cfg$trajectory$times, 
                             depth.bins = cfg$depth.bins, t0.dive = cfg$t0.dive, 
                             t.stage2 = cfg$t.stage2, model = cfg$model)
-    stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
+    if(nrow(dens)>1) {
+      stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
+    } else {
+      stage.breaks[2] = dens$x
+    }
     
     # update stage vector
     cfg$trajectory$stages = stagevec(length.out = length(cfg$trajectory$stages), 

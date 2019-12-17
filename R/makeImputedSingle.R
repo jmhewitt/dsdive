@@ -61,7 +61,11 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
                             times = trajectory$times, 
                             depth.bins = depth.bins, t0.dive = t0.dive, 
                             t.stage2 = t.stage2, model = model)
-    stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    if(nrow(dens)>1) {
+      stage.breaks[1] = sample(x = dens$x, size = 1, prob = dens$prob)
+    } else {
+      stage.breaks[1] = dens$x
+    }
     t.stage2 = trajectory$times[stage.breaks[1]]
     
     dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 1, 
@@ -72,7 +76,11 @@ makeImputedSingle = function(depth.bins, it, depths, times, init,
                             times = trajectory$times, 
                             depth.bins = depth.bins, t0.dive = t0.dive, 
                             t.stage2 = t.stage2, model = model)
-    stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
+    if(nrow(dens)>1) {
+      stage.breaks[2] = sample(x = dens$x, size = 1, prob = dens$prob)
+    } else {
+      stage.breaks[2] = dens$x
+    }
     
     # update stage vector
     trajectory$stages = stagevec(length.out = length(trajectory$stages), 
