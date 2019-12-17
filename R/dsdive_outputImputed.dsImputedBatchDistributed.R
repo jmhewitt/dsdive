@@ -5,7 +5,7 @@
 #' 
 dsdive_outputImputed.dsImputedBatchDistributed = function(cfg, output, 
                                                           save.time, file) {
-  
+
   # save local copies of trajectories
   clusterApply(cl = cfg$cl, x = cfg$cluster.ids, function(id, file) {
     
@@ -13,9 +13,10 @@ dsdive_outputImputed.dsImputedBatchDistributed = function(cfg, output,
     cfg.local = get(x = id, envir = globalenv())
     
     if(!is.null(cfg.local)) {
+      file.batch = paste(gsub(pattern = '\\.RData', replacement = '', x = file),
+                         '_batch_', id, '.RData', sep = '')
       dsdive_outputImputed(cfg = cfg.local, output = output, 
-                           save.time = save.time, 
-                           file = paste('batch', id, '_', file, sep = ''))
+                           save.time = save.time, file = file.batch)
     }
     
   }, file = file)
