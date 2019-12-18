@@ -6,25 +6,25 @@ dsdive_cdtlimpute.dsImputedSingle = function(cfg, params, i) {
   # extract current times of stage break points
   stage.times = cfg$trajectory$times[which(diff(cfg$trajectory$stages)==1)]
   
-  # propose trajectory
-  prop = dsdive.fastimpute(M = 2, depth.bins = cfg$depth.bins, 
-                           depths = cfg$depths, times = cfg$times, s0 = 1, 
-                           beta = params$beta, lambda = params$lambda, 
-                           sub.tx = params$sub.tx, surf.tx = params$surf.tx, 
-                           inflation.factor.lambda = 
-                             cfg$inflation.factor.lambda, verbose = FALSE, 
-                           precompute.bridges = TRUE, t0.dive = cfg$t0.dive, 
-                           trajectory.conditional = cfg$trajectory,
-                           model = cfg$model)
-  
-  # get raw sampling weights
-  W = exp(sapply(prop, function(p) p$w))
-  # correct for edge cases in weights
-  W[is.infinite(W)] = sign(W[is.infinite(W)])
-  W[W==-1] = 0
-  
-  # sample dive 
-  cfg$trajectory = prop[[sample(x = 2, size = 1, prob = W)]]
+  # # propose trajectory
+  # prop = dsdive.fastimpute(M = 2, depth.bins = cfg$depth.bins,
+  #                          depths = cfg$depths, times = cfg$times, s0 = 1,
+  #                          beta = params$beta, lambda = params$lambda,
+  #                          sub.tx = params$sub.tx, surf.tx = params$surf.tx,
+  #                          inflation.factor.lambda =
+  #                            cfg$inflation.factor.lambda, verbose = FALSE,
+  #                          precompute.bridges = TRUE, t0.dive = cfg$t0.dive,
+  #                          trajectory.conditional = cfg$trajectory,
+  #                          model = cfg$model)
+  # 
+  # # get raw sampling weights
+  # W = exp(sapply(prop, function(p) p$w))
+  # # correct for edge cases in weights
+  # W[is.infinite(W)] = sign(W[is.infinite(W)])
+  # W[W==-1] = 0
+  # 
+  # # sample dive
+  # cfg$trajectory = prop[[sample(x = 2, size = 1, prob = W)]]
   
   # sample stage transition times
   if(cfg$stages.conditional) {
@@ -33,7 +33,7 @@ dsdive_cdtlimpute.dsImputedSingle = function(cfg, params, i) {
       max(which(cfg$trajectory$times <= stage.times[1])),
       max(which(cfg$trajectory$times <= stage.times[2]))
     )
-      
+
     dens = dsdive.ld.stages(breaks = stage.breaks, fixed.ind = 2, 
                             beta = params$beta, lambda = params$lambda, 
                             sub.tx = params$sub.tx, surf.tx = params$surf.tx, 

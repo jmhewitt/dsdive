@@ -117,9 +117,16 @@ dsdive.fit.gibbs.cfg = function(cfg, it, verbose = FALSE, init, sigma,
     }
     
     # # MH sample model parameters from Gaussian proposal density
-    # p = gibbs.mhga.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp, 
-    #                       cfg = cfg, priors = priors, mu.vec = mu.vec, 
+    # p = gibbs.mhga.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp,
+    #                       cfg = cfg, priors = priors, mu.vec = mu.vec,
     #                       sigma.chol = sigma.chol, verbose = verbose)
+    # trace[i,] = p$x
+    # ld[i] = p$ld
+    # lp = p$lp
+    
+    # # MH sample model parameters from Gaussian proposal density along slice
+    # p = gibbs.mhgdir.dsdive(x0 = trace[i-1,], ld0 = ld[i-1], lp0 = lp,
+    #                         cfg = cfg, priors = priors, verbose = verbose)
     # trace[i,] = p$x
     # ld[i] = p$ld
     # lp = p$lp
