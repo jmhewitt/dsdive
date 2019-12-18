@@ -6,7 +6,7 @@
 \usage{
 dsdive.tx.stage(
   t0,
-  d0,
+  s0,
   sub.tx,
   surf.tx,
   t0.dive,
@@ -18,8 +18,6 @@ dsdive.tx.stage(
 }
 \arguments{
 \item{t0}{vector of times at which transition probs. should be computed}
-
-\item{d0}{vector of depth bins at which transition probs. should be computed}
 
 \item{sub.tx}{length 2 vector that specifies the first depth bin at which 
 transitions to the IB stage can occur and the probability that such 
@@ -54,10 +52,10 @@ data('dive.sim')
 attach(dive.sim)
 attach(params)
 
-p = dsdive.tx.stage(t0 = sim$times, d0 = sim$depths, sub.tx = sub.tx, 
+p = dsdive.tx.stage(t0 = sim$times[1], sub.tx = sub.tx, 
                     surf.tx = surf.tx, t0.dive = 0, t.stage2 = NA, 
                     rates = params$lambda[1], t.scale = 60, 
-                    model = 'conditional')
+                    model = 'conditional', s0 = 1)
 
 detach(params)
 detach(dive.sim)

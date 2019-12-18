@@ -66,16 +66,16 @@ makeImputedBatchDistributed = function(dives, depth.bins, cl, init, priors, it,
     
     if(!is.null(p$dive)) {
       # initialize local computing environment for this dive
-      cfg.local = makeImputedLocal(dives = p$dive, depth.bins = p$depth.bins, 
-                                   init = p$init, priors = p$priors, it = p$it, 
-                                   inflation.factor.lambda = 
-                                     p$inflation.factor.lambda, 
+      cfg.local = makeImputedLocal(dives = p$dive, depth.bins = p$depth.bins,
+                                   init = p$init, priors = p$priors, it = p$it,
+                                   inflation.factor.lambda =
+                                     p$inflation.factor.lambda,
                                    model = p$model,
                                    stages.conditional = p$stages.conditional)
     } else {
       cfg.local = NULL
     }
-      
+
     # save to worker's global environment
     assign(x = p$cluster.id, value = cfg.local, envir = globalenv())
     
