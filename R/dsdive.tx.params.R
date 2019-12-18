@@ -57,10 +57,10 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   rates = lambda[s0] / (2 * depth.bins[d0, 2])
   
   # extract probability of transitioning to next dive stage
-  prob.stage = dsdive.tx.stage(t0 = t0, d0 = d0, sub.tx = sub.tx, 
+  prob.stage = dsdive.tx.stage(t0 = t0, s0 = s0, sub.tx = sub.tx, 
                                surf.tx = surf.tx, t0.dive = t0.dive, 
                                t.stage2 = t.stage2, rates = rates,
-                               model = model)[s0,]
+                               model = model)
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward
@@ -75,8 +75,8 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
   if(length(nbrs) == 1) {
     probs = rep(1,3)
   } else {
-    # diving preference component
-    logit.probs = matrix(c(-beta[1,], beta[1,]), nrow = 2, byrow = TRUE)
+    # downward diving preference component for all stages
+    logit.probs = beta[1,]
       
     # add autoregressive component
     if(any(beta[2,] != 0)) {
@@ -90,7 +90,9 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
         # add autoregressive component
         dirs.ar = dir.nbrs * dir.last
         for(i in 1:3) {
-          logit.probs[,i] = logit.probs[,i] + beta[2,i] * dirs.ar
+          if(beta[2,i] != 0) {
+            logit.probs[i] = logit.probs[i] + beta[2,i] * dirs.ar[2]
+          }
         }
       }
     }
@@ -109,18 +111,19 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
           # bias probabilities across stages
           for(i in 1:3) {
             # determine bias
-            nbr.preferred = which.max(logit.probs[,i])
+            nbr.preferred = (logit.probs[i] > 0) + 1
             clogit = ifelse(nbr.preferred == which.max(c(d0,df)),
                             1, -1) * shift.params[2]
             # apply bias
-            logit.probs[,i] = logit.probs[,i] * (1 + clogit)
+            logit.probs[i] = logit.probs[i] * (1 + clogit)
           }
         }
       }
     }
     
     # convert probabilities
-    probs = plogis(logit.probs)
+    probs.down = plogis(logit.probs)
+    probs = rbind(1-probs.down, probs.down)
   }
   
   # bias transition rate for computational efficiency

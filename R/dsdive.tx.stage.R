@@ -5,7 +5,6 @@
 #' PRIMARY ASCENT (PA).
 #'   
 #' @param t0 vector of times at which transition probs. should be computed
-#' @param d0 vector of depth bins at which transition probs. should be computed
 #' @param sub.tx length 2 vector that specifies the first depth bin at which 
 #'   transitions to the IB stage can occur and the probability that such 
 #'   a transition occurs at the next depth transition
@@ -30,70 +29,82 @@
 #' 
 #' @export
 #' 
-dsdive.tx.stage = function(t0, d0, sub.tx, surf.tx, t0.dive, t.stage2,
+dsdive.tx.stage = function(t0, s0, sub.tx, surf.tx, t0.dive, t.stage2,
                            t.scale = 60, rates, model) {
   
   if(is.na(t.stage2)) {
     t.stage2 = t0
   }
   
-  # initialize results
-  res = matrix(data = 0, nrow = 3, ncol = 1)
-  
   #
   # compute probabilities
   #
   
   if(model == 'conditional') {
+    
     # probability of transition to stage 2
-    sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
-    tgt.time = sub.lu * t.scale + t0.dive
-    
-    interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
-    if(interval.start < tgt.time[2]) {
-      prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
-                               rate = rates))
-      interval = max(tgt.time[2] - interval.start, 0)
-      scale.prob = 1 / (rates * interval)
-      res[1,] = min(prob.inrange * scale.prob, 1)
-    } else {
-      res[1,] = 1
-    }
-    
-    
+    if(s0 == 1) {
+      sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
+      tgt.time = sub.lu * t.scale + t0.dive
+      
+      interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+      if(interval.start < tgt.time[2]) {
+        prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                                 rate = rates))
+        interval = max(tgt.time[2] - interval.start, 0)
+        scale.prob = 1 / (rates * interval)
+        res = min(prob.inrange * scale.prob, 1)
+      } else {
+        res = 1
+      }
+    } 
     # probability of transition to stage 3
-    surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
-    tgt.time = surf.lu * t.scale + t.stage2
-    
-    interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
-    if(interval.start < tgt.time[2]) {
-      prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
-                               rate = rates))
-      interval = max(tgt.time[2] - interval.start, 0)
-      scale.prob = 1 / (rates * interval)
-      res[2,] = min(prob.inrange * scale.prob, 1)
-    } else {
-      res[2,] = 1
+    else if(s0 == 2) {
+      surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
+      tgt.time = surf.lu * t.scale + t.stage2
+      
+      interval.start = ifelse(t0 < tgt.time[1], tgt.time[1], t0)
+      if(interval.start < tgt.time[2]) {
+        prob.inrange = diff(pexp(q = c(interval.start, tgt.time[2]) - t0, 
+                                 rate = rates))
+        interval = max(tgt.time[2] - interval.start, 0)
+        scale.prob = 1 / (rates * interval)
+        res = min(prob.inrange * scale.prob, 1)
+      } else {
+        res = 1
+      }
     }
+    # probability of transition out of stage 3 is 0
+    else if(s0 == 3) {
+      res = 0
+    }
+    
   } else if(model == 'logit') {
     
-    y = qlogis(p = c(.01,.99))
+    # y = qlogis(p = c(.01,.99))
+    y = c(-4.59512,  4.59512)
     
-    # probability of transition to stage 2
-    sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
-    tgt.time = sub.lu * t.scale + t0.dive
-    beta = solve(cbind(c(1,1), tgt.time), y)
-    res[1,] = plogis(beta[1] + beta[2] * t0)
-    
-    # probability of transition to stage 3
-    surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
-    tgt.time = surf.lu * t.scale + t.stage2
-    beta = solve(cbind(c(1,1), tgt.time), y)
-    res[2,] = plogis(beta[1] + beta[2] * t0)
-    
-  }
+    if(s0 < 3) {
+      
+      if(s0 == 1) {
+        sub.lu = c(sub.tx[1] - sub.tx[2], sub.tx[1] + sub.tx[2])
+        tgt.time = sub.lu * t.scale + t0.dive
+      } else if(s0 == 2) {
+        surf.lu = c(surf.tx[1] - surf.tx[2], surf.tx[1] + surf.tx[2])
+        tgt.time = surf.lu * t.scale + t.stage2
+      }
+      
+      # beta = solve(cbind(c(1,1), tgt.time), y)
+      # res = plogis(beta[1] + beta[2] * t0)
+      beta2 = diff(y)/diff(tgt.time)
+      beta1 = y[1] - beta2 * tgt.time[1]
+      res = plogis(beta1 + beta2 * t0)
+      
+    } else if(s0 == 3) {
+      res = 0
+    }
   
-  # probability of transition out of stage 3 remains 0
+  }
    
   res
 }
