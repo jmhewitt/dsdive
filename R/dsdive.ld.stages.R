@@ -62,20 +62,23 @@ dsdive.ld.stages = function(breaks, fixed.ind, beta, lambda, sub.tx, surf.tx,
   # compute log-mass across support
   log.wts = numeric(length(support))
   for(i in 1:length(support)) {
-    # define stage vector
+    # define stage vector and relevant parts of observations
     if(fixed.ind == 1) {
       b = c(breaks[1], support[i])
+      inds = b[1]:nt
     } else {
       b = c(support[i], breaks[2])
+      inds = 1:b[2]
     }
     stage.vec = stagevec(length.out = nt, breaks = b)
 
     # compute log-weights
-    log.wts[i] = dsdive.ld(depths = depths, durations = durations,
-                           times = times, stages = stage.vec, beta = beta,
-                           lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx,
-                           depth.bins = depth.bins, t0.dive = t0.dive, 
-                           t.stage2 = t.stage2, model = model)
+    log.wts[i] = dsdive.ld(depths = depths[inds], durations = durations[inds],
+                           times = times[inds], stages = stage.vec[inds], 
+                           beta = beta, lambda = lambda, sub.tx = sub.tx, 
+                           surf.tx = surf.tx, depth.bins = depth.bins, 
+                           t0.dive = t0.dive, t.stage2 = t.stage2, 
+                           model = model)
   }
 
   # center weights and transform to probability scale
