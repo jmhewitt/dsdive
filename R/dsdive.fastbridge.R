@@ -58,6 +58,7 @@
 #' @param t.stage2 vector of times at which stage 2 was entered.
 #' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
 #'   method used to determine stage transition probability curves
+#' @param ld.compute \code{TRUE} to compute likelihood values as well.
 #'   
 #' @example examples/dsdive.fastbridge.R
 #' 
@@ -73,7 +74,7 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                              inflation.factor.lambda = 1.1, verbose = FALSE,
                              precompute.bridges = TRUE, lambda.max = NULL,
                              t0.dive, trajectory.conditional = NULL, t.stage2,
-                             model) {
+                             model, ld.compute = TRUE) {
   
   #
   # build basic simulation parameters
@@ -87,8 +88,10 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
     M.sim = M
   }
   
-  # initialize log-proposal density for samples
-  ld = numeric(M)
+  if(ld.compute) {
+    # initialize log-proposal density for samples
+    ld = numeric(M)
+  }
   
   # transition time window
   T.win = tf - t0
@@ -154,14 +157,15 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
                   sep =' '))
   }
   
-  # update log-proposal density for sample
-  ld = ld +
-    # log-density for number of arrivals
-    # note: a = min.tx - 1 accounts for bug in dtpois support
-    dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) +
-    # log-density for arrival times (as order statistics of uniform sample)
-    lfactorial(N) - N * log(T.win)
-    
+  if(ld.compute) {
+    # update log-proposal density for sample
+    ld = ld +
+      # log-density for number of arrivals
+      # note: a = min.tx - 1 accounts for bug in dtpois support
+      dtpois(x = N, lambda = lambda.tmp, a = min.tx-1, log = TRUE) +
+      # log-density for arrival times (as order statistics of uniform sample)
+      lfactorial(N) - N * log(T.win)
+  }
   
   #
   # bridge sample trajectories
@@ -293,19 +297,20 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
           }
         }
         
-        # update log-density
-        ind.selected = which(current.ind == out.inds)
-        if(length(ind.selected) > 0) {
-          # add log-density of transition
-          ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
-        } else if(cond.sim & i==1) {
-          # conditional trajectory may have 0 mass under proposal distribution, 
-          #  so reflect this in output
-          ld[i] = ld[i] - Inf
-        } else {
-          stop('Invalid state reached via sampling.')
+        if(ld.compute) {
+          # update log-density
+          ind.selected = which(current.ind == out.inds)
+          if(length(ind.selected) > 0) {
+            # add log-density of transition
+            ld[i] = ld[i] + log(tx.dens[which(current.ind == out.inds)])
+          } else if(cond.sim & i==1) {
+            # conditional trajectory may have 0 mass under proposal distribution, 
+            #  so reflect this in output
+            ld[i] = ld[i] - Inf
+          } else {
+            stop('Invalid state reached via sampling.')
+          }
         }
-        
         path.inds[k] = current.ind
         
       }
@@ -339,9 +344,12 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
         depths = path.full[2,],
         stages = path.full[3,],
         times = t.thick[true.tx.inds],
-        durations = diff(t.thick[true.tx.inds]),
-        ld = ld[i]
+        durations = diff(t.thick[true.tx.inds])
       )
+      
+      if(ld.compute) {
+        p$ld = ld[i]
+      }
       
       if(ncol(path.full)==1) {
         p$durations = tf - t0
@@ -361,14 +369,17 @@ dsdive.fastbridge = function(M, depth.bins, d0, d0.last, df, beta, lambda,
         t.stage2tmp = t.stage2[i]
       }
       
-      # compute density under true model 
-      durations.tmp = c(p$durations, tf - p$times[length(p$times)])
-      p$ld.true = dsdive.ld(depths = p$depths, durations = durations.tmp, 
-                            times = p$times, stages = p$stages, beta = beta, 
-                            lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-                            depth.bins = depth.bins, t0.dive = t0.dive, 
-                            d0.last = d0.last[i], t.stage2 = t.stage2tmp, 
-                            model =model)
+      if(ld.compute) {
+        # compute density under true model 
+        durations.tmp = c(p$durations, tf - p$times[length(p$times)])
+        p$ld.true = dsdive.ld(depths = p$depths, durations = durations.tmp, 
+                              times = p$times, stages = p$stages, beta = beta, 
+                              lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
+                              depth.bins = depth.bins, t0.dive = t0.dive, 
+                              d0.last = d0.last[i], t.stage2 = t.stage2tmp, 
+                              model =model)
+      }
+      
       
       # save trajectory
       paths.out[i] = list(p)

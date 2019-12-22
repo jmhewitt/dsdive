@@ -20,7 +20,8 @@ dsdive.fastimpute(
   t0.dive,
   resample = TRUE,
   trajectory.conditional = NULL,
-  model
+  model,
+  ld.compute = TRUE
 )
 }
 \arguments{
@@ -83,6 +84,9 @@ will evaluate the proposal density for \code{trajectory.conditional}.}
 
 \item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
 method used to determine stage transition probability curves}
+
+\item{ld.compute}{\code{TRUE} to compute likelihood values as well.  This 
+is required if resampling or conditional trajectory imputation is used.}
 }
 \description{
 The sampling method is designed to sample many trajectories simultaneously, 

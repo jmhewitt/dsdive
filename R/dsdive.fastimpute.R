@@ -47,6 +47,8 @@
 #'   will evaluate the proposal density for \code{trajectory.conditional}.
 #' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
 #'   method used to determine stage transition probability curves
+#' @param ld.compute \code{TRUE} to compute likelihood values as well.  This 
+#'   is required if resampling or conditional trajectory imputation is used.
 #' 
 #' @example examples/dsdive.fastimpute.R
 #' 
@@ -56,12 +58,18 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                              sub.tx, surf.tx, inflation.factor.lambda = 1.1, 
                              verbose = FALSE, precompute.bridges = TRUE, 
                              t0.dive, resample = TRUE, 
-                             trajectory.conditional = NULL, model) {
+                             trajectory.conditional = NULL, model,
+                             ld.compute = TRUE) {
   
   # set flag for conditional simulation
   cond.sim = !is.null(trajectory.conditional)
   if(cond.sim) {
     resample = TRUE
+  }
+  
+  # set flag for likelihood computations
+  if(resample) {
+    ld.compute = TRUE
   }
   
   # extract dimensions
@@ -124,7 +132,8 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
                            precompute.bridges = precompute.bridges,
                            lambda.max = lambda.max, t0.dive = t0.dive, 
                            trajectory.conditional = segment.conditional, 
-                           t.stage2 = t.stage2, model = model)
+                           t.stage2 = t.stage2, model = model, 
+                           ld.compute = ld.compute)
     
     # ensure initial imputed duration yields continuously observable trajectory
     if(i > 1) {
@@ -146,11 +155,13 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
         res[[j]]$durations = c(res[[j]]$durations, br[[j]]$durations)
       }
       
-      # update log-density for proposal
-      res[[j]]$ld = res[[j]]$ld + br[[j]]$ld
-      
-      # compute sampling log-weight
-      res[[j]]$w = br[[j]]$ld.true - br[[j]]$ld
+      if(ld.compute) {
+        # update log-density for proposal
+        res[[j]]$ld = res[[j]]$ld + br[[j]]$ld
+        
+        # compute sampling log-weight
+        res[[j]]$w = br[[j]]$ld.true - br[[j]]$ld
+      }
       
       # update time at which stage 2 was entered, if any
       if(is.na(t.stage2[j])) {
@@ -188,14 +199,16 @@ dsdive.fastimpute = function(M, depth.bins, depths, times, s0, beta, lambda,
   }
   
   # compute log-densities under true model
-  for(j in 1:M) {
-    rj = res[[j]]
-    res[[j]]$ld.true = dsdive.ld(depths = rj$depths, durations = rj$durations, 
-                                 times = rj$times, stages = rj$stages,
-                                 beta = beta, lambda = lambda, sub.tx = sub.tx, 
-                                 surf.tx = surf.tx, depth.bins = depth.bins, 
-                                 t0.dive = t0.dive, 
-                                 t.stage2 = res[[j]]$t.stage2, model = model)
+  if(ld.compute) {
+    for(j in 1:M) {
+      rj = res[[j]]
+      res[[j]]$ld.true = dsdive.ld(depths = rj$depths, durations = rj$durations, 
+                                   times = rj$times, stages = rj$stages,
+                                   beta = beta, lambda = lambda, sub.tx = sub.tx, 
+                                   surf.tx = surf.tx, depth.bins = depth.bins, 
+                                   t0.dive = t0.dive, 
+                                   t.stage2 = res[[j]]$t.stage2, model = model)
+    }
   }
   
   res

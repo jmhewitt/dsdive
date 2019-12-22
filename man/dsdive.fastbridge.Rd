@@ -24,7 +24,8 @@ dsdive.fastbridge(
   t0.dive,
   trajectory.conditional = NULL,
   t.stage2,
-  model
+  model,
+  ld.compute = TRUE
 )
 }
 \arguments{
@@ -95,6 +96,8 @@ will evaluate the proposal density for \code{trajectory.conditional}.}
 
 \item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
 method used to determine stage transition probability curves}
+
+\item{ld.compute}{\code{TRUE} to compute likelihood values as well.}
 }
 \description{
 Sample a dive trajectory such that its start and end locations and times are 
