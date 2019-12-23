@@ -94,8 +94,6 @@ dsdive.tx.stage = function(t0, s0, sub.tx, surf.tx, t0.dive, t.stage2,
         tgt.time = surf.lu * t.scale + t.stage2
       }
       
-      # beta = solve(cbind(c(1,1), tgt.time), y)
-      # res = plogis(beta[1] + beta[2] * t0)
       beta2 = diff(y)/diff(tgt.time)
       beta1 = y[1] - beta2 * tgt.time[1]
       res = plogis(beta1 + beta2 * t0)
