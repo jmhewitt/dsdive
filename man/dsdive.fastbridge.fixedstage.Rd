@@ -24,8 +24,8 @@ dsdive.fastbridge.fixedstage(
   lambda.max = NULL,
   t0.dive,
   trajectory.conditional = NULL,
-  model,
-  t.stages
+  t.stages,
+  model
 )
 }
 \arguments{

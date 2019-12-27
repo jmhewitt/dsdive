@@ -72,11 +72,20 @@
 dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta, 
                                         lambda, sub.tx, surf.tx, t0, tf, s0, sf,
                                         inflation.factor.lambda = 1.1, 
-                                        verbose = FALSE, 
+                                        verbose = FALSE,
                                         precompute.bridges = TRUE, 
-                                        lambda.max = NULL,
-                                        t0.dive, trajectory.conditional = NULL, 
-                                        model, t.stages) {
+                                        lambda.max = NULL, t0.dive, 
+                                        trajectory.conditional = NULL, t.stages,
+                                        model) {
+  
+  s.range = s0:sf
+  
+  # set stage 2 entry time if transition occured before t0
+  if(t0 >= t.stages[1]) {
+    t.stage2 = t.stages[1]
+  } else {
+    t.stage2 = NA
+  }
   
   #
   # build basic simulation parameters
@@ -144,69 +153,44 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
   
   # get ending indices for trajectory (any previous depth, any dive stage)
   end.inds = c()
-  for(s in s0:sf) {
+  for(s in s.range) {
     for(dd in c(-1,0,1)) {
       if(((df + dd) > 0) & ((df + dd) < n)) {
-        end.inds = c(end.inds, toInd(x = df + dd, y = df, z = s, 
+        end.inds = c(end.inds, toInd(x = df + dd, y = df, z = which(s==s.range), 
                                      x.max = n, y.max = n))
       }
     }
   }
-
-  
-  #
-  # precompute transition matrices
-  #
-  
-  # set stage 2 entry time if transition occured before t0
-  if(t0 >= t.stages[1]) {
-    t.stage2 = t.stages[1]
-  } else {
-    t.stage2 = NA
-  }
-  
-  if(verbose) {
-    message('Computing transition matrices at potential transition times')
-  }
-  
-  # build complete transition matrices for each arrival time
-  min.depth = max(1, d0 - N.max)
-  max.depth = min(nrow(depth.bins), d0 + N.max)
-  
-  # NOTE: dsdive.tx.matrix might be able to be sped up since we only need to 
-  #  consider transitions within specific stages.  this will require 
-  #  substantial refactoring and is a good idea to do because we'll get 
-  #  cleaner/more accurate conditional forward simulations.  this change,
-  #  however, will probably not give us substantial speed increases.
-  
-  # QUESTION: how do i reconcile the stage transition probability model with
-  #  the fact that i only have stage transition times, and might not be
-  #  considering the underlying model for stage transition times?  
-  #
-  # ANSWER?: maybe i rely on the fact that fastbridging is an approximation,
-  #  so we might be able to get away with setting parameters for the 
-  #  forward-simulation stage transition parameters rather callously.
-  
-  # compute the base transition matrix
-  #
-  # note: in ideal cases, the transition matrix only has a weak dependence on 
-  # t0, so we accelerate the sampling process by basing all proposals off of a
-  # single transition matrix
-  tx.mat.raw = dsdive.tx.matrix(t0 = t0, depth.bins = depth.bins, beta = beta, 
-                                lambda = lambda, sub.tx = sub.tx, 
-                                surf.tx = surf.tx,
-                                inflation.factor.lambda = 1,
-                                min.depth = min.depth, max.depth = max.depth,
-                                t0.dive = t0.dive, lambda.max = lambda.thick, 
-                                t.stage2 = t.stage2, model = model)
-  tx.mat = tx.mat.raw$m
-  out.inds.lookup = tx.mat.raw$out.inds
-  
-  
-  
-  # sample trajectories sequentially
+    
+  # due to different t.stage2 times, trajectories must be sampled sequentially
   for(i in 1:M) {
     
+    if(verbose) {
+      message('Computing transition matrices at potential transition times')
+    }
+    
+    # build complete transition matrices for each arrival time
+    min.depth = max(1, d0 - N.max)
+    max.depth = min(nrow(depth.bins), d0 + N.max)
+    
+    # compute the base transition matrix
+    #
+    # note: in ideal cases, the transition matrix only has a weak dependence on 
+    # t0, so we accelerate the sampling process by basing all proposals off of a
+    # single transition matrix
+    tx.mat.raw = dsdive.tx.matrix.fixedstage(t0 = t0, depth.bins = depth.bins, 
+                                             beta = beta, lambda = lambda, 
+                                             sub.tx = sub.tx, surf.tx = surf.tx, 
+                                             s0 = s0, sf = sf,
+                                             inflation.factor.lambda = 1,
+                                             min.depth = min.depth, 
+                                             max.depth = max.depth,
+                                             t0.dive = t0.dive, 
+                                             lambda.max = lambda.thick, 
+                                             t.stage2 = t.stage2, 
+                                             model = model)
+    tx.mat = tx.mat.raw$m
+    out.inds.lookup = tx.mat.raw$out.inds
     
     if(verbose) {
       message('Pre-computing bridging weights')
@@ -220,7 +204,7 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
           # construct degenerate prob. of ending at target node in 0 transitions
           pBridge.pre[[1]] = sparseMatrix(i = end.inds, j = end.inds, 
                                           x = rep(1, length(end.inds)), 
-                                          dims = rep(n^2 * 3, 2))
+                                          dims = rep(n^2 * length(s.range), 2))
         } else {
           pBridge.pre[[j]] = tx.mat %*% pBridge.pre[[j-1]]
         }
@@ -234,7 +218,7 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
     
     # set starting index for trajectory
     init.ind = toInd(x = ifelse(is.null(d0.last[i]), n, d0.last[i]), 
-                     y = d0, z = s0[i], x.max = n, y.max = n)
+                     y = d0, z = 1, x.max = n, y.max = n)
       
     # extract path length
     N.i = N[i]
@@ -283,7 +267,7 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
         } else {
           current.ind = out.inds
         }
-        
+      
         path.inds[k] = current.ind
         
       }
