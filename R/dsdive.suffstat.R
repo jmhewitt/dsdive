@@ -1,11 +1,14 @@
 #' Compute sufficient statistics for posterior distributions of complete dives
 #'
-#'  @export
+#' @export
 #'   
 dsdive.suffstat = function(depths, durations, stages, depth.bins) {
   
   # identify indices with valid durations
   finite.durations = is.finite(durations)
+  if(length(finite.durations)<length(stages)) {
+    finite.durations = c(finite.durations, FALSE)
+  }
   
   # stage filter for transitions
   s3.tx = stages==3
