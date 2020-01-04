@@ -182,7 +182,7 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
                                              beta = beta, lambda = lambda, 
                                              sub.tx = sub.tx, surf.tx = surf.tx, 
                                              s0 = s0, sf = sf,
-                                             inflation.factor.lambda = 1,
+                                             inflation.factor.lambda = 1.1,
                                              min.depth = min.depth, 
                                              max.depth = max.depth,
                                              t0.dive = t0.dive, 
@@ -282,11 +282,12 @@ dsdive.fastbridge.fixedstage = function(M, depth.bins, d0, d0.last, df, beta,
       
       # extract raw path, including initial state
       path.full = cbind( 
-        c(ifelse(is.null(d0.last[i]), n, d0.last[i]), d0, s0[i]), 
+        c(ifelse(is.null(d0.last[i]), n, d0.last[i]), d0, 1), 
         sapply(path.inds, function(ind){
           fromInd(ind = ind, x.max = n, y.max = n)
         })
       )
+      path.full[3,] = s.range[path.full[3,]]
       
       # remove self-transitions, and include initial state
       true.tx.inds = c(TRUE, diff(path.full[2,]) != 0)
