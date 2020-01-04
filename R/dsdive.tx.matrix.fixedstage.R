@@ -53,7 +53,6 @@ dsdive.tx.matrix.fixedstage = function(t0, depth.bins, beta, lambda, sub.tx,
   
   s.range = s0:sf
   
-  
   s1 = 1 %in% s.range
   s2 = 2 %in% s.range
   s3 = 3 %in% s.range
@@ -181,36 +180,17 @@ dsdive.tx.matrix.fixedstage = function(t0, depth.bins, beta, lambda, sub.tx,
             out.inds[[from.ind]] = c(out.inds[[from.ind]], from.ind)
           }
           
-          # potential transitions to new stage
-          if(s<3) {
-            # transitions to new depths
-            for(k in 1:length(p$labels)) {
-              ord = which(s+1 == s.range)
-              if(length(ord) > 0) {
-                to.ind = toInd(x = i, y = p$labels[k], z = ord, 
-                               x.max = n, y.max = n)
-                prob = (1-self.tx) * p$prob.stage * p$probs[k, s+1]
-                if(prob > 0) {
-                  x[next.entry] = prob
-                  im[next.entry] = from.ind
-                  jm[next.entry] = to.ind
-                  next.entry = next.entry + 1
-                  out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
-                }
-              }
-            }
-          } 
+          # mass transitioning to new stage
+          newstage.mass = ifelse((s+1) %in% s.range, p$prob.stage, 0)
           
-          # transitions to new depths within state
+          # transitions to new depths
           for(k in 1:length(p$labels)) {
-            if(s+1 %in% s.range) {
-              txprob = p$prob.stage
-            } else {
-              txprob = 0
-            }
-              to.ind = toInd(x = i, y = p$labels[k], z = which(s == s.range), 
+            
+            # transition to new stage
+            if(newstage.mass > 0) {
+              to.ind = toInd(x = i, y = p$labels[k], z = which(s+1 == s.range), 
                              x.max = n, y.max = n)
-              prob = (1-self.tx) * (1 - txprob) * p$probs[k, s]
+              prob = (1-self.tx) * newstage.mass * p$probs[k, s+1]
               if(prob > 0) {
                 x[next.entry] = prob
                 im[next.entry] = from.ind
@@ -218,6 +198,19 @@ dsdive.tx.matrix.fixedstage = function(t0, depth.bins, beta, lambda, sub.tx,
                 next.entry = next.entry + 1
                 out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
               }
+            }
+            
+            # transition within stage
+            to.ind = toInd(x = i, y = p$labels[k], z = which(s == s.range), 
+                           x.max = n, y.max = n)
+            prob = (1-self.tx) * (1 - newstage.mass) * p$probs[k, s]
+            if(prob > 0) {
+              x[next.entry] = prob
+              im[next.entry] = from.ind
+              jm[next.entry] = to.ind
+              next.entry = next.entry + 1
+              out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
+            }
           }
         }
       }
