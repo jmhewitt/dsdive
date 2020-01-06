@@ -1,6 +1,6 @@
 #' Sample a categorical variable when given log-probabilities
 #' 
-#' @param log.p - log of categorical probabilitites; the probabilities do not 
+#' @param log.p log of categorical probabilitites; the probabilities do not 
 #'   need to be normalized
 #' 
 #' @references https://timvieira.github.io/blog/post/2014/07/31/gumbel-max-trick/  
