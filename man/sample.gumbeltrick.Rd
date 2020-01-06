@@ -7,7 +7,7 @@
 sample.gumbeltrick(log.p)
 }
 \arguments{
-\item{log.p}{- log of categorical probabilitites; the probabilities do not 
+\item{log.p}{log of categorical probabilitites; the probabilities do not 
 need to be normalized}
 }
 \description{
