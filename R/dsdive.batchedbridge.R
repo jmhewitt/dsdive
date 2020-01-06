@@ -94,15 +94,14 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
   # note: in ideal cases, the transition matrix only has a weak dependence on
   # t0, so we accelerate the sampling process by basing all proposals off of a
   # single transition matrix
-  tx.mat.raw = dsdive.tx.matrix.fixedstage(t0 = t0, depth.bins = depth.bins,
-                                           beta = beta, lambda = lambda,
-                                           sub.tx = sub.tx, surf.tx = surf.tx,
-                                           s0 = s0, sf = sf,
-                                           inflation.factor.lambda = 1,
-                                           t0.dive = t0.dive,
-                                           lambda.max = lambda.thick,
-                                           t.stage2 = t.stage2,
-                                           model = model)
+  tx.mat.raw = dsdive.tx.matrix.simplified(t0 = t0, depth.bins = depth.bins, 
+                                           beta = beta, lambda = lambda, 
+                                           sub.tx = sub.tx, surf.tx = surf.tx, 
+                                           s0 = s0, sf = sf, 
+                                           inflation.factor.lambda = 1, 
+                                           t0.dive = t0.dive, 
+                                           lambda.max = lambda.thick, 
+                                           t.stage2 = t.stage2, model = model)
   tx.mat = tx.mat.raw$m
   out.inds.lookup = tx.mat.raw$out.inds
 
@@ -141,17 +140,17 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
     if(is.null(d0.last)) {
       d0.last = n
     }
+    
+    if(df == 1) {
+      df = n
+    }
 
-    # get ending indices for segment (any previous depth, any dive stage)
+    # get ending indices for segment (any dive stage)
     end.inds = c()
     for(s in s.range) {
-      for(dd in c(-1,0,1)) {
-        if(((df + dd) > 0) & ((df + dd) < n)) {
-          end.inds = c(end.inds, toInd(x = df + dd, y = df,
-                                       z = which(s==s.range),
-                                       x.max = n, y.max = n))
-        }
-      }
+      end.inds = c(end.inds, toInd(x = 1, y = df,
+                                   z = which(s==s.range),
+                                   x.max = 1, y.max = n))
     }
 
     # build matrix to assess 0-transition success
@@ -160,7 +159,7 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
                            dims = rep(n^2 * length(s.range), 2))
 
     # set starting index for trajectory
-    start.ind = toInd(x = d0.last, y = d0, z = 1, x.max = n, y.max = n)
+    start.ind = toInd(x = 1, y = d0, z = 1, x.max = 1, y.max = n)
 
     # un-normalized (partial) pmf for number of transitions
     mT = lambda.thick * dt
@@ -187,7 +186,7 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
   
         # extract bridging weights
         if(length(out.inds) > 1) {
-          wts = rowSums(Rn[[N-k+1]][out.inds, end.inds])
+          wts = rowSums(Rn[[N-k+1]][out.inds, end.inds, drop = FALSE])
         } else {
           wts = sum(Rn[[N-k+1]][out.inds, end.inds])
         }
@@ -222,7 +221,7 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
       path.full = cbind(
         c(d0.last, d0, 1),
         sapply(path.inds, function(ind){
-          fromInd(ind = ind, x.max = n, y.max = n)
+          fromInd(ind = ind, x.max = 1, y.max = n)
         })
       )
       path.full[3,] = s.range[path.full[3,]]

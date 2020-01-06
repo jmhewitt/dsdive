@@ -63,11 +63,11 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
   }
   lambda.max = inflation.factor.lambda * lambda.max
   
-  # add a "null" depth bin to allow trajectory initialization
+  # add a "null" depth bin to allow an absorbing return-to-surface state
   n = nrow(depth.bins) + 1
   
   # initialize storage for nonzero entries (overcommit space)
-  nd = n^2 * length(s.range)
+  nd = n * length(s.range)
   x = numeric(length = nd)
   im = numeric(length = nd)
   jm = numeric(length = nd)
@@ -85,7 +85,7 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
     
       # all returns to the surface are absorbing
       for(s in s.range) {
-        ind = toInd(x = 2, y = 1, z = which(s==s.range), x.max = n, y.max = n)
+        ind = toInd(x = 1, y = n, z = which(s==s.range), x.max = 1, y.max = n)
         x[next.entry] = 1
         im[next.entry] = ind
         jm[next.entry] = ind
@@ -109,7 +109,7 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
         
         # compute and save probability of null-transition
         self.tx = 1 - p$rate/lambda.max
-        from.ind = toInd(x = n, y = 1, z = 1, x.max = n, y.max = n)
+        from.ind = toInd(x = 1, y = 1, z = 1, x.max = 1, y.max = n)
         if(self.tx > 0) {
           x[next.entry] = self.tx
           im[next.entry] = from.ind
@@ -125,7 +125,7 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
         }
         
         # transition to depth 2, stage 1
-        to.ind = toInd(x = 1, y = 2, z = 1, x.max = n, y.max = n)
+        to.ind = toInd(x = 1, y = 2, z = 1, x.max = 1, y.max = n)
         prob = (1-self.tx) * (1-txprob)
         if(prob > 0) {
           x[next.entry] = prob
@@ -137,7 +137,7 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
         
         if(s2) {
           # transition to depth 2, stage 2
-          to.ind = toInd(x = 1, y = 2, z = 2, x.max = n, y.max = n)
+          to.ind = toInd(x = 1, y = 2, z = 2, x.max = 1, y.max = n)
           prob = (1-self.tx) * txprob
           if(prob > 0) {
             x[next.entry] = prob
@@ -156,18 +156,16 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
       
       # loop over states
       for(s in s.range) {
-        # loop over previous depths
-        for(dd in c(-1,1)) {
           
           # transition parameters
           p = dsdive.tx.params(t0 = t0, depth.bins = depth.bins, d0 = i, 
-                               d0.last = i+dd, s0 = s, beta = beta, 
+                               d0.last = NULL, s0 = s, beta = beta, 
                                lambda = lambda, sub.tx = sub.tx, 
                                surf.tx = surf.tx, t0.dive = t0.dive, 
                                t.stage2 = t.stage2, model = model)
           
           # compute starting index
-          from.ind = toInd(x = i+dd, y = i, z = which(s==s.range), x.max = n, 
+          from.ind = toInd(x = 1, y = i, z = which(s==s.range), x.max = 1, 
                            y.max = n)
           
           # compute and save probability of null-transition
@@ -186,10 +184,17 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
           # transitions to new depths
           for(k in 1:length(p$labels)) {
             
+            depth.next = p$labels[k]
+            
+            # we are encoding a transition to a return-to-surface state
+            if(depth.next==1) {
+              depth.next = n
+            }
+            
             # transition to new stage
             if(newstage.mass > 0) {
-              to.ind = toInd(x = i, y = p$labels[k], z = which(s+1 == s.range), 
-                             x.max = n, y.max = n)
+              to.ind = toInd(x = 1, y = depth.next, z = which(s+1 == s.range), 
+                             x.max = 1, y.max = n)
               prob = (1-self.tx) * newstage.mass * p$probs[k, s+1]
               if(prob > 0) {
                 x[next.entry] = prob
@@ -201,8 +206,8 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
             }
             
             # transition within stage
-            to.ind = toInd(x = i, y = p$labels[k], z = which(s == s.range), 
-                           x.max = n, y.max = n)
+            to.ind = toInd(x = 1, y = depth.next, z = which(s == s.range), 
+                           x.max = 1, y.max = n)
             prob = (1-self.tx) * (1 - newstage.mass) * p$probs[k, s]
             if(prob > 0) {
               x[next.entry] = prob
@@ -212,7 +217,7 @@ dsdive.tx.matrix.simplified = function(t0, depth.bins, beta, lambda, sub.tx,
               out.inds[[from.ind]] = c(out.inds[[from.ind]], to.ind)
             }
           }
-        }
+        
       }
     }
   }
