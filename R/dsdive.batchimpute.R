@@ -133,18 +133,26 @@ dsdive.batchimpute = function(depth.bins, depths, times, s0, beta,
                                     t.stages = t.stages, model = model)
   
   # impute stage 3 - stage 3 transitions
-  s3.imputed = dsdive.batchedbridge(depth.bins = depth.bins, 
-                                    depths = depths[s3.inds], 
-                                    d0.last = s23.imputed$depths[
-                                      length(s23.imputed$depths)-1], 
-                                    times = times[s3.inds], tx.max = tx.max, 
-                                    beta = beta, lambda = lambda, 
-                                    sub.tx = sub.tx, surf.tx = surf.tx, 
-                                    s0 = 3, sf = 3, 
-                                    inflation.factor.lambda = 
-                                      inflation.factor.lambda, verbose = FALSE, 
-                                    lambda.max = lambda.max, t0.dive = t0.dive, 
-                                    t.stages = t.stages, model = model)
+  if(length(s3.inds) > 1) {
+    s3.imputed = dsdive.batchedbridge(depth.bins = depth.bins, 
+                                      depths = depths[s3.inds], 
+                                      d0.last = s23.imputed$depths[
+                                        length(s23.imputed$depths)-1], 
+                                      times = times[s3.inds], tx.max = tx.max, 
+                                      beta = beta, lambda = lambda, 
+                                      sub.tx = sub.tx, surf.tx = surf.tx, 
+                                      s0 = 3, sf = 3, 
+                                      inflation.factor.lambda = 
+                                        inflation.factor.lambda, verbose = FALSE, 
+                                      lambda.max = lambda.max, t0.dive = t0.dive, 
+                                      t.stages = t.stages, model = model)
+  } else {
+    s3.imputed = list(
+      depths = depths[s3.inds],
+      times = times[s3.inds]
+    )
+  }
+  
   
   #
   # merge segments
@@ -167,6 +175,8 @@ dsdive.batchimpute = function(depth.bins, depths, times, s0, beta,
                s23.imputed$times[-1],
                s3.imputed$times[-1])
   )
+  
+  res$depths[res$depths == nrow(depth.bins) + 1] = 1
   
   res$durations = diff(res$times)
   
