@@ -134,12 +134,6 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
     tf = times[i+1]
     dt = tf - t0
     d0 = depths[i]
-    if(i!=1) {
-      d0.last = path.out$depths[length(path.out$depths)-1]
-    }
-    if(is.null(d0.last)) {
-      d0.last = n
-    }
     
     if(df == 1) {
       df = n
@@ -152,11 +146,6 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
                                    z = which(s==s.range),
                                    x.max = 1, y.max = n))
     }
-
-    # build matrix to assess 0-transition success
-    end.mat = sparseMatrix(i = end.inds, j = end.inds,
-                           x = rep(1, length(end.inds)),
-                           dims = rep(n^2 * length(s.range), 2))
 
     # set starting index for trajectory
     start.ind = toInd(x = 1, y = d0, z = 1, x.max = 1, y.max = n)
@@ -219,7 +208,7 @@ dsdive.batchedbridge = function(depth.bins, depths, d0.last, times, tx.max,
 
     # extract raw path, including initial state
       path.full = cbind(
-        c(d0.last, d0, 1),
+        c(1, d0, 1),
         sapply(path.inds, function(ind){
           fromInd(ind = ind, x.max = 1, y.max = n)
         })
