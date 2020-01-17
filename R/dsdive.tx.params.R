@@ -46,21 +46,12 @@
 #' 
 #' @export
 #' 
-dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta, 
-                            lambda, sub.tx, surf.tx, t0.dive, 
-                            shift.params = NULL, t.stage2, 
-                            model) {
+dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
   
   num.depths = nrow(depth.bins)
   
   # extract transition rate
-  rates = lambda[s0] / (2 * depth.bins[d0, 2])
-  
-  # extract probability of transitioning to next dive stage
-  prob.stage = dsdive.tx.stage(t0 = t0, s0 = s0, sub.tx = sub.tx, 
-                               surf.tx = surf.tx, t0.dive = t0.dive, 
-                               t.stage2 = t.stage2, rates = rates,
-                               model = model)
+  rate = lambda[s0] / (2 * depth.bins[d0, 2])
   
   # define neighboring dive bins
   if(d0 == 1) { # surface can only transition downward
@@ -71,77 +62,24 @@ dsdive.tx.params = function(t0, depth.bins, d0, d0.last = NULL, s0, beta,
     nbrs = d0 + c(-1, 1)
   }
   
-  # define transition probabilities between dive bins for each dive stage
+  # define transition probabilities between dive bins
   if(length(nbrs) == 1) {
-    probs = matrix(1, ncol = 3)
+    probs = 1
   } else {
     
-    probs.down = c(beta[1], .5, beta[2])
-    probs = rbind(1-probs.down, probs.down)
+    if(s0==1) {
+      probs.down = beta[1]
+    } else if(s0==2) {
+      probs.down = .5
+    } else {
+      probs.down = beta[2]
+    }
     
-    # # downward diving preference component for all stages
-    # logit.probs = beta[1,]
-    #   
-    # # add autoregressive component
-    # if(any(beta[2,] != 0)) {
-    #   if(!is.null(d0.last)) {
-    #     # define directions to neighbors
-    #     dir.nbrs = c(-1,1)
-    #     # compute direction to last node
-    #     dir.last = dir.nbrs[which(d0.last==nbrs)]
-    #     # scale direction by relative bin sizes
-    #     dir.last = dir.last * depth.bins[d0.last, 2] / depth.bins[d0, 2]
-    #     # add autoregressive component
-    #     dirs.ar = dir.nbrs * dir.last
-    #     for(i in 1:3) {
-    #       if(beta[2,i] != 0) {
-    #         logit.probs[i] = logit.probs[i] + beta[2,i] * dirs.ar[2]
-    #       }
-    #     }
-    #   }
-    # }
-    # 
-    # # bias probabilities for computational efficiency
-    # if(!is.null(shift.params)) {
-    #   if(length(nbrs) > 1) {
-    #     # define directions to neighbors
-    #     dir.nbrs = c(-1,1)
-    #     # extract desired destination node
-    #     df = shift.params[1]
-    #     # compute direction to destination node
-    #     dir.df = df - d0
-    #     # add bias if there is a clear direction of desired travel
-    #     if(dir.df != 0 ) {
-    #       # bias probabilities across stages
-    #       for(i in 1:3) {
-    #         # determine bias
-    #         nbr.preferred = (logit.probs[i] > 0) + 1
-    #         clogit = ifelse(nbr.preferred == which.max(c(d0,df)),
-    #                         1, -1) * shift.params[2]
-    #         # apply bias
-    #         logit.probs[i] = logit.probs[i] * (1 + clogit)
-    #       }
-    #     }
-    #   }
-    # }
-    # 
-    # # convert probabilities
-    # probs.down = plogis(logit.probs)
-    # probs = rbind(1-probs.down, probs.down)
+    probs = c(1-probs.down, probs.down)
   }
   
-  # # bias transition rate for computational efficiency
-  # if(!is.null(shift.params)) {
-  #   # compute target rate
-  #   lambda.tgt = abs(diff(depth.bins[c(d0, shift.params[1]),1])) / 
-  #     (shift.params[3] - t0) / (2 * depth.bins[d0, 2])
-  #   # biased rate is convex combination of target and actual rate
-  #   rates = rates + shift.params[4] * (as.numeric(lambda.tgt) - rates)
-  # }
-  
   # package results
-  res = list(rate = rates,
-             prob.stage = prob.stage,
+  res = list(rate = rate,
              probs = probs,
              labels = nbrs)
   
