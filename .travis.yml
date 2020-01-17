@@ -1,28 +1,22 @@
-# .travis.yml from gstat
-
-language: R
-sudo: required
-dist: trusty
-cache:
-  - packages
-  - ccache
-
+language: r
 r:
   - release
-  - devel
-  - oldrel
 
-addons:
-  apt:
-    sources:
-      - sourceline: 'ppa:ubuntugis/ubuntugis-unstable'
-    packages:
-      - devscripts # checkbashisms
-      - libv8-dev
-      - libjq-dev
-      - libgdal-dev
-      - libproj-dev
-      - libgeos-dev
-      - libudunits2-dev
-      - libnetcdf-dev
-      - netcdf-bin
+cache: packages
+
+sudo: required
+
+before_install:
+  - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable --yes
+  - sudo add-apt-repository -y ppa:opencpu/jq
+  - sudo apt-get --yes --force-yes update -qq
+  - sudo apt-get install --yes libudunits2-dev libproj-dev libgeos-dev libgdal-dev libprotobuf-dev protobuf-compiler libv8-3.14-dev libjq-dev
+
+warnings_are_errors: false
+
+cran: https://cloud.r-project.org
+
+r_packages:
+  - rgdal
+  - roxygen2
+  - rmarkdown
