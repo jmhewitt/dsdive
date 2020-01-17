@@ -4,33 +4,14 @@
 \alias{dsdive.tx.params}
 \title{Compute transition parameters for dive trajectories across discrete depths}
 \usage{
-dsdive.tx.params(
-  t0,
-  depth.bins,
-  d0,
-  d0.last = NULL,
-  s0,
-  beta,
-  lambda,
-  sub.tx,
-  surf.tx,
-  t0.dive,
-  shift.params = NULL,
-  t.stage2,
-  model
-)
+dsdive.tx.params(depth.bins, d0, s0, beta, lambda)
 }
 \arguments{
-\item{t0}{time at which transition parameters should be computed}
-
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
 \item{d0}{the depth bin at which transition parameters should be computed}
-
-\item{d0.last}{the previous depth bin in which the trajectory was.  If 
-\code{NULL}, then the autoregressive component will be skipped.}
 
 \item{s0}{the dive stage (PRIMARY DESCENT==1, INTERMEDIATE BEHAVIORS==2, 
 PRIMARY ASCENT==3) for which transition parameters should be computed.}
@@ -41,6 +22,11 @@ preference and directional persistence parameters for the PRIMARY DESCENT
 
 \item{lambda}{length 3 vector that specifies the transition rate, 
 respectively in the PD, IB, and PA stages.}
+
+\item{t0}{time at which transition parameters should be computed}
+
+\item{d0.last}{the previous depth bin in which the trajectory was.  If 
+\code{NULL}, then the autoregressive component will be skipped.}
 
 \item{sub.tx}{length 2 vector that specifies the first depth bin at which 
 transitions to the IB stage can occur and the probability that such 
@@ -77,29 +63,9 @@ time/space locations for a dive model that has 3 stages, PRIMARY DESCENT
 \examples{
 data('dive.sim')
 attach(dive.sim)
-attach(dive.sim$params)
 
-dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 0, 
-                 d0.last = NULL, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, t.stage2 = NA,
-                 model = 'conditional')
+dsdive.tx.params(depth.bins = depth.bins, d0 = 3, s0 = 1, 
+                 beta = c(.8, .2), lambda = rep(1,3))
 
-dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
-                 d0.last = 61, s0 = 1, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, t.stage2 = NA,
-                 model = 'conditional')
-
-dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
-                 d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, t.stage2 = NA,
-                 model = 'conditional')
-
-dsdive.tx.params(t0 = 0, depth.bins = depth.bins, d0 = 60, 
-                 d0.last = 61, s0 = 2, beta = beta, lambda = lambda, 
-                 sub.tx = sub.tx, surf.tx = surf.tx, t0.dive = 0, 
-                 shift.params = c(50, 1.125, 3, .5), t.stage2 = NA,
-                 model = 'conditional')
-
-detach(dive.sim$params)
 detach(dive.sim)
 }
