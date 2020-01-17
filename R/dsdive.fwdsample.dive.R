@@ -58,14 +58,11 @@
 dsdive.fwdsample.dive = function(depth.bins, beta, lambda, t0, steps.max, 
                                  T1, T2) {
   
-  # get sampling time endpoints for each dive segment
-  tf1 = t0 + T1
-  tf2 = tf1 + T2
-  
   #
   # sample stage 1 portion of dive
   #
   
+  tf1 = t0 + T1
   d1 = dsdive.fwdsample.fixedstage(depth.bins = depth.bins, d0 = 1, 
                                    beta = beta, lambda = lambda, t0 = t0, 
                                    tf = tf1, steps.max = steps.max, s0 = 1)
@@ -76,6 +73,7 @@ dsdive.fwdsample.dive = function(depth.bins, beta, lambda, t0, steps.max,
   
   n1 = length(d1$depths)
   
+  tf2 = d1$times[n1] + d1$durations[n1] + T2
   d2 = dsdive.fwdsample.fixedstage(depth.bins = depth.bins, 
                                    beta = beta, lambda = lambda, 
                                    d0 = d1$depths[n1],  
