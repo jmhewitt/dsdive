@@ -67,12 +67,21 @@ dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
     probs = 1
   } else {
     
-    if(s0==1) {
-      probs.down = beta[1]
-    } else if(s0==2) {
-      probs.down = .5
+    if(d0==2) {
+      # dive can only return to surface in stage 3
+      if(s0!=3) {
+        probs.down = 1
+      } else {
+        probs.down = beta[2]
+      }
     } else {
-      probs.down = beta[2]
+      if(s0==1) {
+        probs.down = beta[1]
+      } else if(s0==2) {
+        probs.down = .5
+      } else {
+        probs.down = beta[2]
+      }
     }
     
     probs = c(1-probs.down, probs.down)
