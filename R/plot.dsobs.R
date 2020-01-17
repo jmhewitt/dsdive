@@ -30,6 +30,14 @@ plot.dsobs = function(x, depth.bins, stages = NULL, errorbars = FALSE,
                       underlay = NULL, imputed.alpha = .3, imputed.list = NULL,
                       time.as.POSIXct = FALSE, ...) {
   
+  if(!inherits(x, 'dsobs')) {
+    stop('x is not a dsobs object')
+  }
+  
+  if(any(is.null(x$depths), is.null(x$times))) {
+    stop('x is not a valid dsobs object; missing depths or times')
+  }
+  
   # convert x to a plottable object
   df = ds.df(depths = x$depths, times = x$times, depth.bins = depth.bins, 
              stages = stages, time.as.POSIXct = time.as.POSIXct)

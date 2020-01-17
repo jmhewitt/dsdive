@@ -27,6 +27,14 @@
 plot.dsdive = function(x, depth.bins, imputed.alpha = .3, dsobs = NULL, 
                        imputed.list = NULL, underlay = NULL, 
                        time.as.POSIXct = FALSE, ...) {
+  
+  if(!inherits(x, 'dsdive')) {
+    stop('x is not a dsdive object')
+  }
+  
+  if(any(is.null(x$depths), is.null(x$times), is.null(x$stages))) {
+    stop('x is not a valid dsdive object; missing depths, times, or stages')
+  }
 
   # convert x to a plottable object
   df = ds.df(depths = x$depths, times = x$times, depth.bins = depth.bins, 
