@@ -106,7 +106,7 @@ dsdive.fwdsample.dive = function(depth.bins, beta, lambda, t0, steps.max,
     stages = c(d1$stages, d2$stages[-1], d3$stages[-1])
   )
   
-  res$durations = diff(res$times)
+  res$durations = c(diff(res$times), Inf)
   
   class(res) = 'dsdive'
   
