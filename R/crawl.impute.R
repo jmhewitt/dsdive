@@ -113,7 +113,7 @@ crawl.impute = function(depth.bins, depths, times, N,
   sims = lapply(depths.imputed, function(df){
     
     # fit crawl model
-    crawl.fit = crwMLE(data = df)
+    crawl.fit = crwMLE(data = df, need.hess = FALSE)
     
     # update variance to account for loss in data
     crawl.fit$Cmat = 2 * crawl.fit$Cmat
