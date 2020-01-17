@@ -19,6 +19,7 @@ addons:
     packages:
       - devscripts # checkbashisms
       - libv8-dev
+      - libjq-dev
       - libgdal-dev
       - libproj-dev
       - libgeos-dev
