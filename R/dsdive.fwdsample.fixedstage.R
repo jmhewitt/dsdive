@@ -48,25 +48,20 @@
 #'   
 #' @importFrom stats rexp rbinom dexp
 #' 
-#' @example examples/dsdive.fwdsample.R
+#' @example examples/dsdive.fwdsample.fixedstage.R
 #' 
 #' 
 #' @export
 #' 
 #'
-dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, sub.tx, surf.tx, 
-                            t0, tf, steps.max, dur0 = NULL, nsteps = NULL, s0,
-                            t0.dive, shift.params = NULL, t.stage2,
-                            model) {
+dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, t0, tf, 
+                                       steps.max, dur0 = NULL, nsteps = NULL, 
+                                       s0) {
   
   # initialize output components
   depths = d0
   durations = dur0
   times = t0
-  stages = s0
-  if(!is.null(shift.params)) {
-    logW = 0
-  }
   
   # validate time window
   if(t0 > tf) {
@@ -81,10 +76,7 @@ dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, sub.tx, sur
     current = list(
       depth = d0,
       duration = dur0,
-      t = t0,
-      depth.last = NULL,
-      stage = stages,
-      t.stage2 = t.stage2
+      t = t0
     )
     
     # configure so that we sample an exact number of transitions
@@ -97,87 +89,30 @@ dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, sub.tx, sur
     for(i in 1:steps.max) {
       
       # get sampling parameters for this location
-      params.tx = dsdive.tx.params(t0 = current$t, depth.bins = depth.bins,
-                                   d0 = current$depth, s0 = current$stage,
-                                   d0.last = current$depth.last,  beta = beta, 
-                                   lambda = lambda, sub.tx = sub.tx, 
-                                   surf.tx = surf.tx, t0.dive = t0.dive, 
-                                   shift.params = shift.params, 
-                                   t.stage2 = current$t.stage2,
-                                   model = model)
+      params.tx = dsdive.tx.params(depth.bins = depth.bins, d0 = current$depth, 
+                                   s0 = s0, beta = beta, lambda = lambda)
       
       # if necessary, sample and save duration for current state
       if(is.null(current$duration)) {
         dur = rexp(n = 1, rate = params.tx$rate) 
         durations = c(durations, dur)
-        sampled.duration = TRUE
       } else {
         dur = current$duration
-        sampled.duration = FALSE
       }
       
-      # sample stage
-      stage = current$stage + rbinom(1, 1, params.tx$prob.stage)
-
       # sample new depth
-      if(length(params.tx$labels)==1) {
-        d = params.tx$labels
-      } else {
-        d = sample(x = params.tx$labels, size = 1, 
-                   prob = params.tx$probs[, stage])
-      }
-      
-      # compute importance sampling weight
-      if(!is.null(shift.params)) {
-        # compute unbiased transition parameters
-        params.tx.unbiased = dsdive.tx.params(t0 = current$t, 
-                                              depth.bins = depth.bins,
-                                              d0 = current$depth, 
-                                              s0 = current$stage,
-                                              d0.last = current$depth.last,  
-                                              beta = beta, lambda = lambda, 
-                                              sub.tx = sub.tx, 
-                                              surf.tx = surf.tx, 
-                                              t0.dive = t0.dive, 
-                                              shift.params = NULL, 
-                                              t.stage2 = current$t.stage2,
-                                              model = model)
-        # determine which transition was taken
-        ind = which(d == params.tx$labels)
-        # update log of importance sampling weight
-        logW = logW + 
-          # depth bin transition effect
-          log(params.tx.unbiased$probs[ind, stage]) - 
-          log(params.tx$probs[ind, stage])
-        if(sampled.duration) {
-          # bin duration effect
-          logW = logW + dexp(x = dur, rate = params.tx.unbiased$rate, 
-                             log = TRUE) - 
-                        dexp(x = dur, rate = params.tx$rate, log = TRUE)
-        }
-      }
-      
-      # update stage 2 entry time, as necessary
-      if(is.na(current$t.stage2)) {
-        t.stage2 = ifelse(stage==2, current$t + dur, NA)
-      } else {
-        t.stage2 = current$t.stage2
-      }
-      
+      d = ifelse(length(params.tx$labels)==1, 
+                 params.tx$labels, 
+                 sample(x = params.tx$labels, size = 1, prob = params.tx$probs))
+     
       # update state to prep for next transition
-      current = list(
-        depth = d,
-        duration = NULL, # duration in new state is not yet known
-        t = current$t + dur,
-        depth.last = current$depth,
-        stage = stage,
-        t.stage2 = t.stage2
-      )
+      current$depth = d
+      current$duration = NULL # duration in new state is not yet known
+      current$t = current$t + dur
       
       # append new state and its transition time to output
       depths = c(depths, d)
       times = c(times, current$t)
-      stages = c(stages, stage)
       
       # stop sampling once trajectory is observable at tf
       if(current$t >= tf)
@@ -207,7 +142,6 @@ dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, sub.tx, sur
     depths = depths[inds]
     durations = durations[inds]
     times = times[inds]
-    stages = stages[inds]
   }
   
   
@@ -219,14 +153,8 @@ dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, sub.tx, sur
     depths = depths,
     durations = durations,
     times = times,
-    stages = stages
+    stages = rep(s0, length(depths))
   )
-  
-  if(!is.null(shift.params)) {
-    res$logW = logW
-  } else {
-    res$logW = 0
-  }
   
   class(res) = 'dsdive'
   
