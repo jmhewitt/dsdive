@@ -86,11 +86,11 @@ attach(dive.sim)
 attach(dive.sim$params)
 
 # simulate dive
-x = dsdive.fwdsample(depth.bins = depth.bins, d0 = 1, beta = beta, 
-                     lambda = lambda, sub.tx = sub.tx, surf.tx = surf.tx, 
-                     t0 = 0, tf = Inf, steps.max = 1e5, dur0 = NULL, 
-                     nsteps = NULL, s0 = 1, t0.dive = 0, t.stage2 = NA,
-                     model = 'conditional')
+x = dsdive.fwdsample.fixedstage(depth.bins = depth.bins, d0 = 1, 
+                                beta = c(.8, .2), lambda = rep(1,3), t0 = 0, 
+                                tf = 100, steps.max = 1e3, s0 = 1)
+
+pl = plot(x = x, depth.bins = depth.bins)
 
 detach(dive.sim$params)
 detach(dive.sim)
