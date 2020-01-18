@@ -53,29 +53,36 @@ dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
   # extract transition rate
   rate = lambda[s0] / (2 * depth.bins[d0, 2])
   
-  # define neighboring dive bins
-  if(d0 == 1) { # surface can only transition downward
-    nbrs = 2
-  } else if(d0 == num.depths) { # max depth can only transition upward
-    nbrs = num.depths - 1
-  } else { # all other depths can go up or down one bin
-    nbrs = d0 + c(-1, 1)
-  }
-  
   # define transition probabilities between dive bins
   if(d0 == 1) {
+    
+    # surface can only transition downward
+    nbrs = 2
+    
     # can only leave surface depth bin in stage 1
     probs = ifelse(s0==1, 1, 0)
+    
   } else if(d0 == 2) {
+    
+    nbrs = c(1,3)
+    
     # can only return to surface bin in stage 3
     probs.down = ifelse(s0==3, beta[2], 1)
     probs = c(1-probs.down, probs.down)
+    
   } else if(d0 == num.depths) {
+    
     # bottom bin is a boundary; transition is deterministic
+    nbrs = num.depths - 1
     probs = 1
+    
   } else {
+    
+    nbrs = d0 + c(-1, 1)
+    
     probs.down = ifelse(s0==1, beta[1], ifelse(s0==2, .5, beta[2]))
     probs = c(1-probs.down, probs.down)
+    
   }
   
   # package results
