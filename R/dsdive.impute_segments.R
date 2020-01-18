@@ -51,7 +51,7 @@
 #'   method used to determine stage transition probability curves
 #' @param ld.compute \code{TRUE} to compute likelihood values as well.
 #'
-#' @example examples/dsdive.impute_stage.tpois.R
+#' @example examples/dsdive.impute_segments.R
 #'
 #' @importFrom stats runif
 #' @importFrom extraDistr rtpois dtpois
@@ -60,9 +60,10 @@
 #' @export
 #'
 #'
-dsdive.impute_stage.tpois = function(depth.bins, depths, times, beta, 
-                                     lambda, s0, inflation.factor.lambda = 1.1,
-                                     verbose = FALSE) {
+dsdive.impute_segments = function(depth.bins, depths, times, beta, 
+                                  lambda, s0, inflation.factor.lambda = 1.1,
+                                  verbose = FALSE, method.N = 'exact',
+                                  N.max) {
 
   # sampling requirements for each segment
   T.win = diff(times)
@@ -82,7 +83,14 @@ dsdive.impute_stage.tpois = function(depth.bins, depths, times, beta,
   for(i in 1:length(T.win)) {
     
     # sample number of pseudo-arrivals
-    N = rtpois(n = 1, lambda = rate.unif * T.win[i], a = min.tx[i])
+    if(method.N == 'truncpois') {
+      N = rtpois(n = 1, lambda = rate.unif * T.win[i], a = min.tx[i])
+    } else if(method.N == 'exact') {
+      dN = dN.bridged(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
+                      N.max = N.max, rate.uniformized = rate.unif, 
+                      t = T.win[i], log = FALSE)
+      N = sample(x = 0:N.max, size = 1, prob = dN)
+    }
     
     # sample arrival times
     t.prop[[i]] = times[i] + c(0, T.win[i] * sort(runif(N)))

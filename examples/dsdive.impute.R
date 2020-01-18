@@ -4,9 +4,10 @@ attach(dive.sim$params)
 
 t.stages = sim$times[which(diff(sim$stages)==1)]
   
-x = dsdive.impute.tpois(depth.bins = depth.bins, depths = sim.obs$depths, 
-                        times = sim.obs$times, beta = beta, lambda = lambda, 
-                        inflation.factor.lambda = 1.1, t.stages = t.stages)
+x = dsdive.impute(depth.bins = depth.bins, depths = sim.obs$depths, 
+                  times = sim.obs$times, beta = beta, lambda = lambda, 
+                  inflation.factor.lambda = 1.1, t.stages = t.stages, 
+                  method.N = 'exact', N.max = 100)
 
 x$durations = c(x$durations, Inf)
 
