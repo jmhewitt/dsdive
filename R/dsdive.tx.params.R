@@ -63,34 +63,21 @@ dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
   }
   
   # define transition probabilities between dive bins
-  if(length(nbrs) == 1) {
+  if(d0 == 1) {
+    # can only leave surface depth bin in stage 1
+    probs = ifelse(s0==1, 1, 0)
+  } else if(d0 == 2) {
+    # can only return to surface bin in stage 3
+    probs.down = ifelse(s0==3, beta[2], 1)
+    probs = c(1-probs.down, probs.down)
+  } else if(d0 == num.depths) {
+    # bottom bin is a boundary; transition is deterministic
     probs = 1
   } else {
-    
-    if(d0==2) {
-      # dive can only return to surface in stage 3
-      if(s0!=3) {
-        probs.down = 1
-      } else {
-        probs.down = beta[2]
-      }
-    } else {
-      if(s0==1) {
-        probs.down = beta[1]
-      } else if(s0==2) {
-        probs.down = .5
-      } else {
-        probs.down = beta[2]
-      }
-    }
-    
+    probs.down = ifelse(s0==1, beta[1], ifelse(s0==2, .5, beta[2]))
     probs = c(1-probs.down, probs.down)
   }
   
   # package results
-  res = list(rate = rate,
-             probs = probs,
-             labels = nbrs)
-  
-  res
+  list(rate = rate, probs = probs, labels = nbrs)
 }
