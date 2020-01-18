@@ -57,9 +57,6 @@ dsdive.tx.matrix.uniformized = function(depth.bins, beta, lambda, s0,
   jm = numeric(length = nd)
   next.entry = 1
   
-  # initialize storage for out-edges from nodes (overcommit space)
-  out.inds = vector('list', n)
-  
   # loop over depth bins
   for(i in 1:n) {
     
@@ -74,7 +71,6 @@ dsdive.tx.matrix.uniformized = function(depth.bins, beta, lambda, s0,
       im[next.entry] = i
       jm[next.entry] = i
       next.entry = next.entry + 1
-      out.inds[[i]] = c(out.inds[[i]], i)
     }
     
     # transitions to new depths
@@ -86,7 +82,6 @@ dsdive.tx.matrix.uniformized = function(depth.bins, beta, lambda, s0,
         im[next.entry] = i
         jm[next.entry] = bin.ind
         next.entry = next.entry + 1
-        out.inds[[i]] = c(out.inds[[i]], bin.ind)
       }
     }
   }
@@ -98,6 +93,5 @@ dsdive.tx.matrix.uniformized = function(depth.bins, beta, lambda, s0,
   jm = jm[keep.inds]
   
   # build and return matrix
-  list(m = sparseMatrix(i = im, j = jm, x = x, dims = rep(n, 2)), 
-       out.inds = out.inds)
+  sparseMatrix(i = im, j = jm, x = x, dims = rep(n, 2))
 }
