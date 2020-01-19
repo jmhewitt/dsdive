@@ -8,12 +8,12 @@ dsdive.sample.stages(
   depths,
   durations,
   times,
-  t0.dive,
   t.stages,
   beta,
   lambda,
   depth.bins,
-  prior.t
+  T1.prior,
+  T2.prior
 )
 }
 \arguments{
