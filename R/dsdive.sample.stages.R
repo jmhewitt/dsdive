@@ -8,8 +8,6 @@
 dsdive.sample.stages = function(depths, durations, times, t.stages, 
                                 beta, lambda, depth.bins, T1.prior, T2.prior) {
   
-  t0.dive = times[1]
-  
   # get sequence of downward transitions
   tx.down = diff(depths) == 1
   
@@ -49,7 +47,7 @@ dsdive.sample.stages = function(depths, durations, times, t.stages,
   nl2 = length(ld.2)
   for(i in 1:nd) {
     b = support.tx12[i]
-    d[i] = sum(ld.1[1:(b-1)]) + sum(ld.2[b:nl2]) + lp((times[b] - t0.dive)/60)
+    d[i] = sum(ld.1[1:(b-1)]) + sum(ld.2[b:nl2]) + lp((times[b] - times[1])/60)
   }
   
   # sample new stage 1->2 transition index/time
