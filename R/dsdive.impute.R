@@ -83,7 +83,7 @@ dsdive.impute = function(depth.bins, depths, times, beta, lambda,
   }
   
   # impute stage 2 segments
-  if(any(s1.obs)) {
+  if(any(s2.obs)) {
     tgt.inds = c(s2.inds, s3.inds[1])
     tgt.inds = tgt.inds[!is.na(tgt.inds)]
     s2.imputed = dsdive.impute_segments(
