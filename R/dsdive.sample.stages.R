@@ -5,8 +5,10 @@
 #' 
 #' @export
 #' 
-dsdive.sample.stages = function(depths, durations, times, t0.dive, t.stages, 
-                                beta, lambda, depth.bins, prior.t) {
+dsdive.sample.stages = function(depths, durations, times, t.stages, 
+                                beta, lambda, depth.bins, T1.prior, T2.prior) {
+  
+  t0.dive = times[1]
   
   # get sequence of downward transitions
   tx.down = diff(depths) == 1
@@ -41,7 +43,7 @@ dsdive.sample.stages = function(depths, durations, times, t0.dive, t.stages,
   support.tx12 = 2:max(s3.start - 1, 2)
   
   # determine log-posterior across support
-  lp = prior.t[[1]]
+  lp = T1.prior
   d = numeric(length(support.tx12))
   nd = length(d)
   nl2 = length(ld.2)
@@ -79,7 +81,7 @@ dsdive.sample.stages = function(depths, durations, times, t0.dive, t.stages,
   
   # determine log-posterior across support
   t.stage2 = times[tx.12.ind]
-  lp = prior.t[[2]]
+  lp = T2.prior
   d = numeric(length(support.tx23))
   nd = length(d)
   nl3 = length(ld.3)
