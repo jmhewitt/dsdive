@@ -20,7 +20,9 @@ dsdive.fit(
   it,
   inflation.factor.lambda = 1.1,
   checkpoint.interval = Inf,
-  checkpoint.function = function(x, ...) { }
+  checkpoint.function = function(x, ...) { },
+  method.N = "exact",
+  N.max = 100
 )
 }
 \arguments{

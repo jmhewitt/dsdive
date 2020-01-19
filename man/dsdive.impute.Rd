@@ -14,7 +14,7 @@ dsdive.impute(
   verbose = FALSE,
   t.stages,
   method.N = "exact",
-  N.max
+  N.max = NULL
 )
 }
 \arguments{

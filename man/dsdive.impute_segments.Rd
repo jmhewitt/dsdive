@@ -14,7 +14,7 @@ dsdive.impute_segments(
   inflation.factor.lambda = 1.1,
   verbose = FALSE,
   method.N = "exact",
-  N.max
+  N.max = NULL
 )
 }
 \arguments{

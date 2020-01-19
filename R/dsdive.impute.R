@@ -56,7 +56,7 @@
 #'
 dsdive.impute = function(depth.bins, depths, times, beta, lambda,
                          inflation.factor.lambda = 1.1, verbose = FALSE, 
-                         t.stages, method.N = 'exact', N.max) {
+                         t.stages, method.N = 'exact', N.max = NULL) {
   
   # find stage breaks
   s1.obs = times < t.stages[1]

@@ -63,7 +63,7 @@
 dsdive.impute_segments = function(depth.bins, depths, times, beta, 
                                   lambda, s0, inflation.factor.lambda = 1.1,
                                   verbose = FALSE, method.N = 'exact',
-                                  N.max) {
+                                  N.max = NULL) {
 
   # sampling requirements for each segment
   T.win = diff(times)

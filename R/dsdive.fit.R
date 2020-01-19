@@ -34,21 +34,22 @@ dsdive.fit = function(
   dives.obs, cl, beta.init, lambda.init, verbose = FALSE, T1.prior, T2.prior, 
   pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, it, 
   inflation.factor.lambda = 1.1, checkpoint.interval = Inf, 
-  checkpoint.function = function(x, ...) {} ) {
+  checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100 ) {
   
   impute = function(depth.bins, depths, times, beta, lambda, t.stages) {
     dsdive.impute(
       depth.bins = depth.bins, depths = depths, times = times, beta = beta, 
       lambda = lambda, inflation.factor.lambda = inflation.factor.lambda, 
-      verbose = FALSE, t.stages = t.stages, method.N = 'exact', N.max = 20)
+      verbose = FALSE, t.stages = t.stages, method.N = method.N, N.max = N.max)
   }
   
-  imp.gibbs = function(depth.bins, depths, times, beta, lambda, imputed.cond) {
+  impute.gibbs = function(depth.bins, depths, times, beta, lambda, 
+                          imputed.cond) {
     impute(depth.bins, depths, times, beta, lambda, imputed.cond$t.stages)
   }
   
   res = dsdive.gibbs(dives.obs = dives.obs, cl = cl, impute.init = impute, 
-                     impute.gibbs = imp.gibbs,
+                     impute.gibbs = impute.gibbs,
                      init = list(beta = beta.init, lambda = lambda.init), 
                      verbose = verbose, maxit = it, T1.prior = T1.prior, 
                      T2.prior = T2.prior, pi1.prior = pi1.prior, 
