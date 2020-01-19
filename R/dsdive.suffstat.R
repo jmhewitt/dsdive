@@ -38,7 +38,7 @@ dsdive.suffstat = function(depths, durations, stages, depth.bins) {
   n.bins = nrow(depth.bins)
   
   # identify non-trivial depth transitions
-  nontrivial.tx1 = !(dep.stage.1 %in% c(1, n.bins))
+  nontrivial.tx1 = !(dep.stage.1 %in% c(1, 2, n.bins))
   nontrivial.tx3 = !(dep.stage.3tx %in% c(1, n.bins))
   
   # tally non-trivial downward transitions
