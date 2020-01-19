@@ -88,8 +88,8 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     } else if(method.N == 'exact') {
       dN = dN.bridged(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
                       N.max = N.max, rate.uniformized = rate.unif, 
-                      t = T.win[i], log = FALSE)
-      N = sample(x = 0:N.max, size = 1, prob = dN)
+                      t = T.win[i], log = TRUE)
+      N = sample.gumbeltrick(dN) - 1
     }
     
     # sample arrival times
