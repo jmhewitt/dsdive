@@ -14,7 +14,8 @@ dsdive.impute_segments(
   inflation.factor.lambda = 1.1,
   verbose = FALSE,
   method.N = "exact",
-  N.max = NULL
+  N.max = NULL,
+  t.sbreaks = NULL
 )
 }
 \arguments{
@@ -96,14 +97,16 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-s1.inds = sim.obs$stages==1
+inds = sim.obs$times < min(sim$times[sim$stages==3])
 
 x = dsdive.impute_segments(depth.bins = depth.bins, 
-                           depths = sim.obs$depths[s1.inds], 
-                           times = sim.obs$times[s1.inds], beta = beta, 
+                           depths = sim.obs$depths[inds], 
+                           times = sim.obs$times[inds], beta = beta, 
                            lambda = lambda, s0 = 1, 
-                           inflation.factor.lambda = 1.1, method.N = 'exact', 
-                           N.max = 100)
+                           inflation.factor.lambda = 1.1, 
+                           method.N = 'truncpois', N.max = 100, 
+                           t.sbreaks = sim$times[
+                             c(FALSE, diff(sim$stages)==1)] )
 
 pl = plot(x = sim.obs, depth.bins = depth.bins, stages = sim.obs$stages, 
           errorbars = TRUE, imputed.list = x, imputed.alpha = .6)

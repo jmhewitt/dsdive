@@ -63,23 +63,37 @@
 dsdive.impute_segments = function(depth.bins, depths, times, beta, 
                                   lambda, s0, inflation.factor.lambda = 1.1,
                                   verbose = FALSE, method.N = 'exact',
-                                  N.max = NULL) {
+                                  N.max = NULL, t.sbreaks = NULL) {
 
+  if(!is.null(t.sbreaks)) {
+    if(any(t.sbreaks < times[1])) {
+      stop('t.sbreaks cannot occur before first imputation time')
+    }
+  }
+  
+  # end stage for segment
+  sf = s0 + ifelse(is.null(t.sbreaks), 0 , 
+                   sum(t.sbreaks < times[length(times)]))
+  
   # sampling requirements for each segment
   T.win = diff(times)
   min.tx = abs(diff(depths))
   
   # determine rate for uniformized poisson process
-  rate.unif = inflation.factor.lambda * max(lambda[s0] / (2 * depth.bins[,2]))
+  rate.unif = inflation.factor.lambda * 
+    max(outer(lambda[s0:sf], 2 * depth.bins[,2], '/'))
   
-  # compute uniformized stage transition matrix
-  tx.mat = dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
-                                        lambda = lambda, s0 = s0, 
-                                        rate.uniformized = rate.unif)
+  # compute uniformized stage transition matrices
+  tx.mat = lapply(s0:sf, function(s) {
+    dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
+                                 lambda = lambda, s0 = s, 
+                                 rate.uniformized = rate.unif)
+  })
   
   # sample dive segments
   t.prop = vector('list', length(T.win))
   d.prop = vector('list', length(T.win))
+  stages.prop = vector('list', length(T.win))
   for(i in 1:length(T.win)) {
     
     # sample number of pseudo-arrivals
@@ -92,12 +106,18 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
       N = sample.gumbeltrick(dN) - 1
     }
     
-    # sample arrival times
+    # if it is in the interval, add t.sbreak as a transition time as well, since this is true!
+    
+    # sample arrival times and stages
     t.prop[[i]] = times[i] + c(0, T.win[i] * sort(runif(N)))
+    stages.prop[[i]] = (s0:sf)[findInterval(t.prop[[i]], t.sbreaks) + 1]
+    
+    # pair transition matrices with each timepoint
+    B = lapply(stages.prop[[i]], function(s) tx.mat[[s-s0+1]])
+    
     
     # sample path
-    d.prop[[i]] = ffbs.segment(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
-                               N = N)
+    d.prop[[i]] = ffbs.segment(B = B, x0 = depths[i], xN = depths[i+1], N = N)
   }
   
   
@@ -108,17 +128,19 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
   # assemble segment imputations
   path.full = do.call(c, d.prop)
   times.full = do.call(c, t.prop) 
+  stages.full = do.call(c, stages.prop) 
   
   # remove self-transitions, and include initial state
   true.tx.inds = c(TRUE, diff(path.full) != 0)
   path.full = path.full[true.tx.inds]
   times.full = times.full[true.tx.inds]
+  stages.full = stages.full[true.tx.inds]
   
   res = list(
     depths = path.full,
     durations = diff(times.full),
     times = times.full,
-    stages = rep(s0, length(path.full))
+    stages = stages.full
   )
   
   class(res) = 'dsdive'
