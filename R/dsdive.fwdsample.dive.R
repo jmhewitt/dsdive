@@ -78,7 +78,7 @@ dsdive.fwdsample.dive = function(depth.bins, beta, lambda, t0, steps.max,
                                    beta = beta, lambda = lambda, 
                                    d0 = d1$depths[n1],  
                                    dur0 = d1$durations[n1],
-                                   t0 = d1$times[n1] + d1$durations[n1], 
+                                   t0 = d1$times[n1], 
                                    tf = tf2, steps.max = steps.max, s0 = 2)
   
   #
@@ -91,7 +91,7 @@ dsdive.fwdsample.dive = function(depth.bins, beta, lambda, t0, steps.max,
                                    beta = beta, lambda = lambda, 
                                    d0 = d2$depths[n2],  
                                    dur0 = d2$durations[n2],
-                                   t0 = d2$times[n2] + d2$durations[n2], 
+                                   t0 = d2$times[n2], 
                                    tf = Inf, steps.max = steps.max, s0 = 3)
   
   #
