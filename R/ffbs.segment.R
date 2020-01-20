@@ -4,9 +4,8 @@
 #' so has an extra level of approximation in the proposal distributions.
 #' 
 #' @param B single-step transition matrix, after uniformization
-#' @param x0 state at which chain begins
-#' @param xN state at which chain ends
-#' @param N number of steps to take
+#' @param L likelihood matrix where each column is the probability distribution
+#'  for the state at each of the discrete transitions
 #' 
 #' @importFrom Matrix sparseVector
 #' 
@@ -14,57 +13,49 @@
 #' 
 #' @export
 #'
-ffbs.segment = function(B, x0, xN, N) {
-  
-  if(N==0) {
-    
-    if(x0==xN) {
-      s = x0
-    } else {
-      stop('Bridging is not possible; N==0, and x0!=xN.')
-    }
-    
-  } else if(N==1) {
-    
-    if(B[[1]][x0,xN] > 0) {
-      s = c(x0, xN)
-    } else {
-      stop('Bridging is not possible; N==1, and B indicates P(xN | x0) = 0.')
-    }
-    
-  } else {
-    
-    # state space size
-    m = nrow(B[[1]])
-    
-    # initialize forward-filtering vectors
-    a = vector('list', N+1)
-    
-    # encode initial state distribution
-    a[[1]] = sparseVector(1, x0, m)
-    
-    # forward filter
-    
-    for(i in 2:length(a)) {
-      a[[i]] = t(B[[i-1]]) %*% a[[i-1]]
-      # standardize for numerical stability
-      a[[i]] = a[[i]] / sum(a[[i]])
-    }
-    
-    #
-    # backward sample
-    #
-    
-    s = numeric(N+1)
-    s[1] = x0
-    s[N+1] = xN
-    
-    for(t in N:2) {
-      p = as.numeric(B[[t]][,s[t+1]] * a[[t]])
-      s[t] = sample(x = 1:m, size = 1, prob = p)
-    }
-    
+ffbs.segment = function(B, L) {
+
+  if(!inherits(B, 'list')) {
+    stop('B must be a list of single-step transition matrices')
   }
   
+  # number of transitions to sample
+  N = ncol(L)
+  
+  if(length(B) != N) {
+    stop('Not enough transition matrices for implied number of transitions')
+  }
+  
+  # state space size
+  m = nrow(B[[1]])
+  
+  # initialize forward-filtering vectors
+  a = vector('list', N+1)
+  
+  # extract initial state distribution
+  a[[1]] = L[,1]
+  
+  # forward filter
+  
+  for(i in 2:length(a)) {
+    a[[i]] = t(B[[i-1]]) %*% (a[[i-1]] * L[,i-1])
+    # standardize for numerical stability
+    a[[i]] = a[[i]] / sum(a[[i]])
+  }
+  
+  #
+  # backward sample
+  #
+  
+  s = numeric(N)
+  
+  p = as.numeric(L[,N] * a[[N+1]])
+  s[N] = sample(x = 1:m, size = 1, prob = p)
+  
+  for(t in (N-1):1) {
+    p = as.numeric(B[[t]][,s[t+1]] * a[[t]] * L[,t])
+    s[t] = sample(x = 1:m, size = 1, prob = p)
+  }
+ 
   s
 }
