@@ -37,10 +37,11 @@ dsdive.fit = function(
   checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100 ) {
   
   impute = function(depth.bins, depths, times, beta, lambda, t.stages) {
-    dsdive.impute(
+    dsdive.impute_segments(
       depth.bins = depth.bins, depths = depths, times = times, beta = beta, 
-      lambda = lambda, inflation.factor.lambda = inflation.factor.lambda, 
-      verbose = FALSE, t.stages = t.stages, method.N = method.N, N.max = N.max)
+      lambda = lambda, s0 = 1, verbose = FALSE, method.N = method.N,
+      inflation.factor.lambda = inflation.factor.lambda, N.max = N.max, 
+      t.sbreaks = t.stages)
   }
   
   impute.gibbs = function(depth.bins, depths, times, beta, lambda, 
@@ -56,7 +57,7 @@ dsdive.fit = function(
                      pi2.prior = pi2.prior, lambda1.prior = lambda1.prior, 
                      lambda2.prior = lambda2.prior, 
                      lambda3.prior = lambda3.prior, 
-                     checkpoint.fn = checkpoint.fn, 
+                     checkpoint.fn = checkpoint.function, 
                      checkpoint.interval = checkpoint.interval)
    
   res 
