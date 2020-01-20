@@ -259,6 +259,10 @@ dsdive.gibbs = function(
              rate = lambda3.prior[2] + suffstats.all['d.lambda3'])
     )
     
+    if(verbose) {
+      print(theta)
+    }
+    
     
     #
     # save trace
