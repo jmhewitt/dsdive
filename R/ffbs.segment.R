@@ -26,7 +26,7 @@ ffbs.segment = function(B, x0, xN, N) {
     
   } else if(N==1) {
     
-    if(B[x0,xN] > 0) {
+    if(B[[1]][x0,xN] > 0) {
       s = c(x0, xN)
     } else {
       stop('Bridging is not possible; N==1, and B indicates P(xN | x0) = 0.')
@@ -35,7 +35,7 @@ ffbs.segment = function(B, x0, xN, N) {
   } else {
     
     # state space size
-    m = nrow(B)
+    m = nrow(B[[1]])
     
     # initialize forward-filtering vectors
     a = vector('list', N+1)
@@ -44,9 +44,9 @@ ffbs.segment = function(B, x0, xN, N) {
     a[[1]] = sparseVector(1, x0, m)
     
     # forward filter
-    Bt = t(B)
+    
     for(i in 2:length(a)) {
-      a[[i]] = Bt %*% a[[i-1]]
+      a[[i]] = t(B[[i-1]]) %*% a[[i-1]]
       # standardize for numerical stability
       a[[i]] = a[[i]] / sum(a[[i]])
     }
@@ -60,7 +60,7 @@ ffbs.segment = function(B, x0, xN, N) {
     s[N+1] = xN
     
     for(t in N:2) {
-      p = as.numeric(B[,s[t+1]] * a[[t]])
+      p = as.numeric(B[[t]][,s[t+1]] * a[[t]])
       s[t] = sample(x = 1:m, size = 1, prob = p)
     }
     

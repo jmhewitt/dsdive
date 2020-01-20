@@ -8,7 +8,11 @@ m = dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta,
                                  lambda = lambda, s0 = 2, 
                                  rate.uniformized = r.unif)
 
-x = ffbs.segment(B = m$m, x0 = 5, xN = 10, N = 10)
+N = 10
+
+B = lapply(1:N, function(i) m)
+
+x = ffbs.segment(B = B, x0 = 5, xN = 10, N = N)
 
 detach(dive.sim$params)
 detach(dive.sim)
