@@ -14,7 +14,7 @@ tx.matrix = lapply(s.range, function(s) {
     lambda = lambda, s0 = s, rate.uniformized = r.unif)
 })
 
-m = dsdive.stage_tx.matrix.uniformized(m.list = tx.matrix)
+m = stage_tx.matrix.uniformized(m.list = tx.matrix)
 
 detach(dive.sim$params)
 detach(dive.sim)

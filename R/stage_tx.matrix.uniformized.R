@@ -39,13 +39,13 @@
 #' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
 #'   method used to determine stage transition probability curves
 #'   
-#' @example examples/dsdive.stage_tx.matrix.uniformized.R
+#' @example examples/stage_tx.matrix.uniformized.R
 #' 
 #' @importFrom Matrix sparseMatrix
 #' 
 #' @export
 #' 
-dsdive.stage_tx.matrix.uniformized = function(m.list) {
+stage_tx.matrix.uniformized = function(m.list) {
   
   if(!inherits(m.list, 'list')) {
     stop('Must provide a list of transition matrices')
