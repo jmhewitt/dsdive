@@ -61,7 +61,7 @@ dsdive.impute = function(depth.bins, depths, times, beta, lambda,
   # find stage breaks
   s1.obs = times < t.stages[1]
   s2.obs = (times < t.stages[2]) & (!s1.obs) 
-  s3.obs = times > t.stages[2]
+  s3.obs = times >= t.stages[2]
   
   # convert to indices
   s1.inds = which(s1.obs)
@@ -76,7 +76,7 @@ dsdive.impute = function(depth.bins, depths, times, beta, lambda,
       depth.bins = depth.bins, depths = depths[tgt.inds], 
       times = times[tgt.inds], beta = beta, lambda = lambda, s0 = 1, 
       inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max
+      method.N = method.N, N.max = N.max, t.sbreaks = t.stages
     )
   } else {
     s1.imputed = NULL
@@ -90,7 +90,7 @@ dsdive.impute = function(depth.bins, depths, times, beta, lambda,
       depth.bins = depth.bins, depths = depths[tgt.inds], 
       times = times[tgt.inds], beta = beta, lambda = lambda, s0 = 2, 
       inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max
+      method.N = method.N, N.max = N.max, t.sbreaks = t.stages[-1]
     )
   } else {
     s2.imputed = NULL
@@ -102,7 +102,7 @@ dsdive.impute = function(depth.bins, depths, times, beta, lambda,
       depth.bins = depth.bins, depths = depths[s3.obs], times = times[s3.obs], 
       beta = beta, lambda = lambda, s0 = 3, 
       inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max
+      method.N = method.N, N.max = N.max, t.sbreaks = NULL
     )
   } else {
     s3.imputed = NULL
