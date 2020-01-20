@@ -61,6 +61,6 @@ min.tx = function(d0, df, ns) {
    dtx.even = dtx %% 2 == 0
    ns.even = ns %% 2 == 0
    # require extra transitions to satisfy parity requirements
-   ns + ifelse(dts.even == ns.even, 0, 1)
+   ns + ifelse(dtx.even == ns.even, 0, 1)
  }
 }
