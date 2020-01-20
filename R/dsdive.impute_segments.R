@@ -142,12 +142,16 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     if(n.breaks > 0) {
       
       B = lapply(stages.prop[[i]], function(s) tx.within)
-      B[diff(stages.prop[[i]])==1] = tx.between
+      stx.inds = which(diff(stages.prop[[i]])==1)
+      for(j in stx.inds) {
+        B[[j]] = tx.between
+      }
       
       ind.start = toInd(x = 1, y = depths[i], x.max = 1, y.max = n.bins,
                         z = which(s.range == stages.prop[[i]][1]))
       ind.end = toInd(x = 1, y = depths[i+1], x.max = 1, y.max = n.bins, 
-                      z = which(s.range == stages.prop[[i]][N+1]))  # TODO: double check indexing!
+                      z = which(s.range == 
+                                  stages.prop[[i]][length(stages.prop[[i]])]))
       
       L = matrix(0, nrow = nrow(tx.between), ncol = N+1)
       L[ind.start,1] = 1                  # fix start bin
