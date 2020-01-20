@@ -60,11 +60,7 @@ min.tx = function(d0, df, ns) {
    # determine even/odd, counting 0 as even
    dtx.even = dtx %% 2 == 0
    ns.even = ns %% 2 == 0
-   # determine number of transitions
-   if(dtx.even) {
-    ifelse(ns.even, ns, ns + 1)
-   } else {
-    ifelse(ns.even, ns + 1, ns)
-   }
+   # require extra transitions to satisfy parity requirements
+   ns + ifelse(dts.even == ns.even, 0, 1)
  }
 }
