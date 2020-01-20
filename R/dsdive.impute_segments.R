@@ -66,26 +66,17 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
                                   N.max = NULL, t.sbreaks = NULL) {
 
   if(!is.null(t.sbreaks)) {
-    
-    if(any(t.sbreaks < times[1])) {
-      stop('t.sbreaks cannot occur before first imputation time')
+    if(any(t.sbreaks <= times[1])) {
+      stop('stage tx times cannot occur at or before first imputation time')
     }
-    
     if(any(t.sbreaks > times[length(times)])) {
-      stop('t.sbreaks cannot occur after last observation time')
+      stop('stage tx times cannot occur after last observation')
     }
-    
-    # add stage break times and pseudo-observations to bridging constraints
-    n.breaks = length(t.sbreaks)
-    depths = c(rep(NA, n.breaks), depths)
-    times = c(t.sbreaks, times)
-    o = order(times, decreasing = FALSE)
-    depths = depths[o]
-    times = times[o]
   }
   
   # end stage for segment
-  sf = s0 + sum(is.na(depths))
+  sf = s0 + length(t.sbreaks)
+  s.range = s0:sf
   
   # sampling requirements for each segment
   T.win = diff(times)
@@ -93,14 +84,22 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
   
   # determine rate for uniformized poisson process
   rate.unif = inflation.factor.lambda * 
-    max(outer(lambda[s0:sf], 2 * depth.bins[,2], '/'))
+    max(outer(lambda[s.range], 2 * depth.bins[,2], '/'))
   
-  # compute uniformized stage transition matrices
-  tx.mat = lapply(s0:sf, function(s) {
+  # compute uniformized depth bin transition matrices
+  tx.mat = lapply(s.range, function(s) {
     dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
                                  lambda = lambda, s0 = s, 
                                  rate.uniformized = rate.unif)
   })
+  
+  # build within and between-stage transition matrices
+  if(s0!=sf) {
+    # transition matrix to force stage transitions
+    tx.between = stage_tx.matrix.uniformized(m.list = tx.mat)
+    # only allow transitions within stages
+    tx.within = bdiag(tx.mat)
+  }
   
   # extract number of depth bins
   n.bins = nrow(tx.mat[[1]])
@@ -111,10 +110,18 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
   stages.prop = vector('list', length(T.win))
   for(i in 1:length(T.win)) {
     
+    # check to see if any stage breaks occur within interval
+    breaks.now = which((times[i] < t.sbreaks) & (t.sbreaks <= times[i+1]))
+    n.breaks = length(breaks.now)
+    
+    # adjust minimum number of transitions to accomodate stage txs.
+    if(n.breaks > 0) {
+      min.tx[i] = min.tx(d0 = depths[i], df = depths[i+1], ns = n.breaks)
+    }
+    
     # sample number of pseudo-arrivals
     if(method.N == 'truncpois') {
-      N = rtpois(n = 1, lambda = rate.unif * T.win[i], 
-                 a = ifelse(is.na(min.tx[i]), 1, min.tx[i]))
+      N = rtpois(n = 1, lambda = rate.unif * T.win[i], a = min.tx[i])
     } else if(method.N == 'exact') {
       dN = dN.bridged(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
                       N.max = N.max, rate.uniformized = rate.unif, 
@@ -123,29 +130,46 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     }
     
     # sample arrival times and stages
-    t.prop[[i]] = times[i] + c(0, T.win[i] * sort(runif(N)))
-    stages.prop[[i]] = (s0:sf)[findInterval(t.prop[[i]], t.sbreaks) + 1]
+    t.prop[[i]] = unique(sort(c(
+      t.sbreaks[breaks.now], 
+      times[i] + c(0, T.win[i] * runif(N-n.breaks))
+    )))
     
-    # pair transition matrices with each timepoint
-    B = lapply(stages.prop[[i]], function(s) tx.mat[[s-s0+1]])
+    # determine stages for each timepoint
+    stages.prop[[i]] = s.range[findInterval(t.prop[[i]], t.sbreaks) + 1]
     
-    # build likelihood matrix for bridging
-    L = matrix(0, nrow = n.bins, ncol = N+1)
-    L[depths[i],1] = 1
-    if(is.na(depths[i+1])) {
-      L[-depths[i], N+1] = 1/(n.bins - 1)
+    # build transition and likelihood matrices for each timepoint
+    if(n.breaks > 0) {
+      
+      B = lapply(stages.prop[[i]], function(s) tx.within)
+      B[diff(stages.prop[[i]])==1] = tx.between
+      
+      ind.start = toInd(x = 1, y = depths[i], x.max = 1, y.max = n.bins,
+                        z = which(s.range == stages.prop[[i]][1]))
+      ind.end = toInd(x = 1, y = depths[i+1], x.max = 1, y.max = n.bins, 
+                      z = which(s.range == stages.prop[[i]][N+1]))  # TODO: double check indexing!
+      
+      L = matrix(0, nrow = nrow(tx.between), ncol = N+1)
+      L[ind.start,1] = 1                  # fix start bin
+      L[ind.end,N+1] = 1                  # fix end bin
+      L[,-c(1,N+1)] = 1/nrow(tx.between)  # free transitions for other steps
+      
     } else {
-      L[depths[i+1], N+1] = 1
+      B = lapply(stages.prop[[i]], function(s) tx.mat[[s-s0+1]])
+      L = matrix(0, nrow = n.bins, ncol = N+1)
+      L[depths[i],1] = 1        # fix start bin
+      L[depths[i+1],N+1] = 1    # fix end bin
+      L[,-c(1,N+1)] = 1/n.bins  # free transitions for intermediate bins
     }
-    L[,-c(1,N+1)] = 1 / n.bins
     
     # sample path
     d.prop[[i]] = ffbs.segment(B = B, L = L)
     
-    # if end location was NA (i.e., a stage transition), then update depth data
-    if(is.na(depths[i+1])) {
-      depths[i+1] = d.prop[[i]][N]
-      min.tx = abs(diff(depths))
+    # decode stage-break indices
+    if(n.breaks > 0) {
+      d.prop[[i]] = sapply(d.prop[[i]], function(ind) 
+        fromInd(ind = ind, x.max = 1, y.max = n.bins)[2]
+      )
     }
   }
   
