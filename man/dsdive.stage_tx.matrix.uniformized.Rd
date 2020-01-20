@@ -4,16 +4,11 @@
 \alias{dsdive.stage_tx.matrix.uniformized}
 \title{Compute transition matrix for Markov chain representation of dive model}
 \usage{
-dsdive.stage_tx.matrix.uniformized(
-  depth.bins,
-  beta,
-  lambda,
-  s0,
-  sf,
-  rate.uniformized
-)
+dsdive.stage_tx.matrix.uniformized(m.list)
 }
 \arguments{
+\item{t0}{time at which transition parameters should be computed}
+
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
@@ -24,8 +19,6 @@ and SURFACING dive stages.}
 
 \item{lambda}{length 3 vector that specifies the transition rate, 
 respectively in the DIVING, SUBMERGED, and SURFACING stages.}
-
-\item{t0}{time at which transition parameters should be computed}
 
 \item{sub.tx}{length 2 vector that specifies the first depth bin at which 
 transitions to the SUBMERGED stage can occur and the probability that such 
@@ -73,8 +66,17 @@ attach(dive.sim$params)
 
 r.unif = max(outer(lambda, 2 * depth.bins$halfwidth, '/'))
 
-m = dsdive.stage_tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
-      lambda = lambda, s0 = 2, sf = 3, rate.uniformized = r.unif)
+s0 = 1
+sf = 3
+s.range = s0:sf
+
+# get standard uniformized transition matrices
+tx.matrix = lapply(s.range, function(s) {
+  dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
+    lambda = lambda, s0 = s, rate.uniformized = r.unif)
+})
+
+m = dsdive.stage_tx.matrix.uniformized(m.list = tx.matrix)
 
 detach(dive.sim$params)
 detach(dive.sim)

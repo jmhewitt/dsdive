@@ -45,38 +45,35 @@
 #' 
 #' @export
 #' 
-dsdive.stage_tx.matrix.uniformized = function(depth.bins, beta, lambda, s0, sf,
-                                              rate.uniformized) {
+dsdive.stage_tx.matrix.uniformized = function(m.list) {
   
-  if(s0==sf) {
-    stop('Start and end stage are identical; no stage transition is specified')
+  if(!inherits(m.list, 'list')) {
+    stop('Must provide a list of transition matrices')
   }
   
-  n.bins = nrow(depth.bins)
+  # get number of stages
+  stages = length(m.list)
   
-  s.range = s0:sf
-  n.stages = length(s.range)
-  
-  # get standard uniformized transition matrices
-  tx.matrix = lapply(s.range, function(s) {
-    dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
-      lambda = lambda, s0 = s, rate.uniformized = rate.uniformized)
-  })
+  # get state space dimension
+  n = nrow(m.list[[1]])
   
   # remove self-transitions from transition matrices
-  tx.matrix.nonunif = lapply(tx.matrix[1:(n.stages-1)], function(m) {
-    diag(m)[diag(m)!=1] = 0   # ensures we don't remove any true non-transitions
+  m.nonunif = lapply(m.list[1:(stages-1)], function(m) {
+    # diag(m)!=1 ensures we don't remove any absorbing states
+    diag(m)[diag(m)!=1] = 0   
+    # standardize transition probabilities
     sweep(m,1,rowSums(m),'/')
   })
   
   # stage transition matrix is a block matrix
-  m = sparseMatrix(i = 1, j = 1, x = 0, dims = rep(n.bins * n.stages, 2))
-  for(i in 1:(n.stages-1)) {
-    row.inds = (i-1)*n.bins + 1:n.bins
-    col.inds = n.bins + row.inds
-    m[row.inds, col.inds] = tx.matrix.nonunif[[i]]
+  m = sparseMatrix(i = 1, j = 1, x = 0, dims = rep(n * stages, 2))
+  all.state.inds = 1:n
+  for(i in 1:(stages-1)) {
+    row.inds = (i-1)*n + all.state.inds
+    col.inds = n + row.inds
+    m[row.inds, col.inds] = m.nonunif[[i]]
   }
-  m[col.inds, col.inds] = tx.matrix[[length(s.range)]]
+  m[col.inds, col.inds] = m.list[[stages]]
   
   m
 }
