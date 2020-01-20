@@ -1,26 +1,27 @@
-# checkForRemoteErrors = function (val) {
-#   count <- 0
-#   firstmsg <- NULL
-#   nodes = c()
-#   for(i in 1:length(val)) {
-#     v = val[[i]]
-#     if (inherits(v, "try-error")) {
-#       nodes = c(nodes, i)
-#       count <- count + 1
-#       if (count == 1) 
-#         firstmsg <- v
-#     }
-#   }
-#   if(count > 0 ) {
-#     print(nodes)
-#   }
-#   if (count == 1) 
-#     stop("one node produced an error: ", firstmsg)
-#   else if (count > 1) 
-#     stop(count, " nodes produced errors; first error: ", 
-#          firstmsg)
-#   val
-# }
+checkForRemoteErrors = function (val) {
+  count <- 0
+  firstmsg <- NULL
+  nodes = c()
+  for(i in 1:length(val)) {
+    v = val[[i]]
+    if (inherits(v, "try-error")) {
+      nodes = c(nodes, i)
+      count <- count + 1
+      if (count == 1)
+        firstmsg <- v
+    }
+  }
+  if(count > 0 ) {
+    print(nodes)
+    browser()
+  }
+  if (count == 1)
+    stop("one node produced an error: ", firstmsg)
+  else if (count > 1)
+    stop(count, " nodes produced errors; first error: ",
+         firstmsg)
+  val
+}
 
 #' Likelihood for completely observed dive trajectories
 #'
@@ -186,6 +187,7 @@ dsdive.gibbs = function(
             
             d = obs.local[[j]]
             r = imputed.local[[j]]
+            t.stages = r$t.stages
             
             # impute trajectory
             r = impute.gibbs(depth.bins = d$depth.bins, depths = d$dive$depths, 
@@ -195,7 +197,7 @@ dsdive.gibbs = function(
             # sample stage transition times and updated stage vector
             stages.cond = dsdive.sample.stages(
               depths = r$depths, durations = r$durations, times = r$times,
-              t.stages = r$t.stages, beta = theta$beta, lambda = theta$lambda,
+              t.stages = t.stages, beta = theta$beta, lambda = theta$lambda,
               depth.bins = d$depth.bins, T1.prior = T1.prior, 
               T2.prior = T2.prior
             )
