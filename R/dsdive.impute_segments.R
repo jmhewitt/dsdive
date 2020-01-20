@@ -66,14 +66,26 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
                                   N.max = NULL, t.sbreaks = NULL) {
 
   if(!is.null(t.sbreaks)) {
+    
     if(any(t.sbreaks < times[1])) {
       stop('t.sbreaks cannot occur before first imputation time')
     }
+    
+    if(any(t.sbreaks > times[length(times)])) {
+      stop('t.sbreaks cannot occur after last observation time')
+    }
+    
+    # add stage break times and pseudo-observations to bridging constraints
+    n.breaks = length(t.sbreaks)
+    depths = c(rep(NA, n.breaks), depths)
+    times = c(t.sbreaks, times)
+    o = order(times, decreasing = FALSE)
+    depths = depths[o]
+    times = times[o]
   }
   
   # end stage for segment
-  sf = s0 + ifelse(is.null(t.sbreaks), 0 , 
-                   sum(t.sbreaks < times[length(times)]))
+  sf = s0 + sum(is.na(depths))
   
   # sampling requirements for each segment
   T.win = diff(times)
@@ -90,6 +102,9 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
                                  rate.uniformized = rate.unif)
   })
   
+  # extract number of depth bins
+  n.bins = nrow(tx.mat[[1]])
+  
   # sample dive segments
   t.prop = vector('list', length(T.win))
   d.prop = vector('list', length(T.win))
@@ -98,15 +113,14 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     
     # sample number of pseudo-arrivals
     if(method.N == 'truncpois') {
-      N = rtpois(n = 1, lambda = rate.unif * T.win[i], a = min.tx[i])
+      N = rtpois(n = 1, lambda = rate.unif * T.win[i], 
+                 a = ifelse(is.na(min.tx[i]), 1, min.tx[i]))
     } else if(method.N == 'exact') {
       dN = dN.bridged(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
                       N.max = N.max, rate.uniformized = rate.unif, 
                       t = T.win[i], log = TRUE)
       N = sample.gumbeltrick(dN) - 1
     }
-    
-    # if it is in the interval, add t.sbreak as a transition time as well, since this is true!
     
     # sample arrival times and stages
     t.prop[[i]] = times[i] + c(0, T.win[i] * sort(runif(N)))
@@ -115,9 +129,24 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     # pair transition matrices with each timepoint
     B = lapply(stages.prop[[i]], function(s) tx.mat[[s-s0+1]])
     
+    # build likelihood matrix for bridging
+    L = matrix(0, nrow = n.bins, ncol = N+1)
+    L[depths[i],1] = 1
+    if(is.na(depths[i+1])) {
+      L[-depths[i], N+1] = 1/(n.bins - 1)
+    } else {
+      L[depths[i+1], N+1] = 1
+    }
+    L[,-c(1,N+1)] = 1 / n.bins
     
     # sample path
-    d.prop[[i]] = ffbs.segment(B = B, x0 = depths[i], xN = depths[i+1], N = N)
+    d.prop[[i]] = ffbs.segment(B = B, L = L)
+    
+    # if end location was NA (i.e., a stage transition), then update depth data
+    if(is.na(depths[i+1])) {
+      depths[i+1] = d.prop[[i]][N]
+      min.tx = abs(diff(depths))
+    }
   }
   
   
