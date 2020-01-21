@@ -121,15 +121,15 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     
     # sample number of pseudo-arrivals
     if(method.N == 'truncpois') {
-      N = rtpois(n = 1, lambda = rate.unif * T.win[i], a = min.tx[i])
+      N = rtpois(n = 1, lambda = .95 * rate.unif * T.win[i], a = min.tx[i])
     } else if(method.N == 'exact') {
-      dN = dN.bridged(B = tx.mat, x0 = depths[i], xN = depths[i+1], 
+      dN = dN.bridged(B = tx.mat[[1]], x0 = depths[i], xN = depths[i+1], 
                       N.max = N.max, rate.uniformized = rate.unif, 
                       t = T.win[i], log = TRUE)
       N = sample.gumbeltrick(dN) - 1
     }
     
-    # sample arrival times and stages
+    # sample arrival times
     t.prop[[i]] = unique(sort(c(
       t.sbreaks[breaks.now], 
       times[i] + c(0, T.win[i] * runif(N-n.breaks))
@@ -137,6 +137,27 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     
     # determine stages for each timepoint
     stages.prop[[i]] = s.range[findInterval(t.prop[[i]], t.sbreaks) + 1]
+    
+    # we end up with N+1 arrival times
+    
+    # reshuffle arrival times if necessary
+    if(n.breaks > 0) {
+      if(depths[i+1] == 1) {
+        # need at least two stage 3 transitions to guarantee surfacing
+        if(sum(stages.prop[[i]] == 3) < 2) {
+          # redistribute number of arrivals between stage 3 transition and end
+          t.s3 = t.prop[[i]][stages.prop[[i]] == 3]
+          win.3 = times[i+1] - t.s3
+          N.3 = rtpois(n = 1, lambda = .95 * rate.unif * win.3, a = 1, b = N-1)
+          t.prop[[i]] = unique(sort(c(
+            times[i] + c(0, (t.s3 - times[i]) * runif(N-N.3-1)),
+            t.s3 + c(0, win.3 * runif(N.3))
+          )))
+          # reset the stages
+          stages.prop[[i]] = s.range[findInterval(t.prop[[i]], t.sbreaks) + 1]
+        }
+      }
+    }
     
     # build transition and likelihood matrices for each timepoint
     if(n.breaks > 0) {
@@ -165,7 +186,7 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
       L[depths[i+1],N+1] = 1    # fix end bin
       L[,-c(1,N+1)] = 1/n.bins  # free transitions for intermediate bins
     }
-    
+      
     # sample path
     d.prop[[i]] = ffbs.segment(B = B, L = L)
     
