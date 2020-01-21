@@ -23,7 +23,9 @@ ffbs.segment = function(B, L) {
   N = ncol(L)
   
   if(length(B) != N) {
-    stop('Not enough transition matrices for implied number of transitions')
+    msg = paste('Number of transition matrices (', length(B), ')', 
+      ' does not match implied number of transitions (', N, ')', sep ='')
+    stop(msg)
   }
   
   # state space size
