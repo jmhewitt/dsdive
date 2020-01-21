@@ -1,10 +1,10 @@
-checkForRemoteErrors = function (val) {
+checkForRemoteErrors = function (val, crash.fn) {
   count <- 0
   firstmsg <- NULL
   nodes = c()
   for(i in 1:length(val)) {
     v = val[[i]]
-    if (inherits(v, "try-error")) {
+    if (inherits(v, c("try-error", 'character'))) {
       nodes = c(nodes, i)
       count <- count + 1
       if (count == 1)
@@ -12,8 +12,8 @@ checkForRemoteErrors = function (val) {
     }
   }
   if(count > 0 ) {
-    print(nodes)
-    browser()
+    print(firstmsg)
+    crash.fn(nodes, firstmsg)
   }
   if (count == 1)
     stop("one node produced an error: ", firstmsg)
@@ -51,13 +51,13 @@ checkForRemoteErrors = function (val) {
 #' 
 #' @example examples/ld.R
 #' 
-#' @importFrom snow checkCluster sendCall checkForRemoteErrors recvResult
+#' @importFrom snow checkCluster sendCall recvResult
 #' 
 #' 
 dsdive.gibbs = function(
   dives.obs, cl, impute.init, impute.gibbs, init, verbose = FALSE, maxit, 
   checkpoint.fn, checkpoint.interval, T1.prior, T2.prior, pi1.prior, pi2.prior, 
-  lambda1.prior, lambda2.prior, lambda3.prior) {
+  lambda1.prior, lambda2.prior, lambda3.prior, crash.fn) {
   
   #
   # initialize cluster
@@ -141,7 +141,8 @@ dsdive.gibbs = function(
   }
   
   # collect initial trajectory imputations
-  dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult))
+  dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult), 
+                                       crash.fn)
   dives.imputed = do.call(c, dives.imputed)
   
   if(verbose) {
@@ -223,7 +224,8 @@ dsdive.gibbs = function(
     }
     
     # collect trajectory imputations
-    dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult))
+    dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult), 
+                                         crash.fn)
     dives.imputed = do.call(c, dives.imputed)
     
     #

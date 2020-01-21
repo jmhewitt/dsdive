@@ -34,7 +34,8 @@ dsdive.fit = function(
   dives.obs, cl, beta.init, lambda.init, verbose = FALSE, T1.prior, T2.prior, 
   pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, it, 
   inflation.factor.lambda = 1.1, checkpoint.interval = Inf, 
-  checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100 ) {
+  checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100,
+  crash.function = function(x, ...) {}) {
   
   impute = function(depth.bins, depths, times, beta, lambda, t.stages) {
     dsdive.impute_segments(
@@ -58,7 +59,8 @@ dsdive.fit = function(
                      lambda2.prior = lambda2.prior, 
                      lambda3.prior = lambda3.prior, 
                      checkpoint.fn = checkpoint.function, 
-                     checkpoint.interval = checkpoint.interval)
+                     checkpoint.interval = checkpoint.interval, 
+                     crash.fn = crash.function)
    
   res 
 }

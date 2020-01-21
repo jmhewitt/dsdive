@@ -22,7 +22,8 @@ dsdive.fit(
   checkpoint.interval = Inf,
   checkpoint.function = function(x, ...) { },
   method.N = "exact",
-  N.max = 100
+  N.max = 100,
+  crash.function = function(x, ...) { }
 )
 }
 \arguments{

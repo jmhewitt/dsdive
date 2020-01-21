@@ -20,7 +20,8 @@ dsdive.gibbs(
   pi2.prior,
   lambda1.prior,
   lambda2.prior,
-  lambda3.prior
+  lambda3.prior,
+  crash.fn
 )
 }
 \arguments{
