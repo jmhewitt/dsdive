@@ -23,7 +23,8 @@ dsdive.fit(
   checkpoint.function = function(x, ...) { },
   method.N = "exact",
   N.max = 100,
-  crash.function = function(x, ...) { }
+  crash.function = function(x, ...) { },
+  truncpois.scale = 0.8
 )
 }
 \arguments{

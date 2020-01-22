@@ -35,14 +35,14 @@ dsdive.fit = function(
   pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, it, 
   inflation.factor.lambda = 1.1, checkpoint.interval = Inf, 
   checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100,
-  crash.function = function(x, ...) {}) {
+  crash.function = function(x, ...) {}, truncpois.scale = .8) {
   
   impute = function(depth.bins, depths, times, beta, lambda, t.stages) {
     dsdive.impute_segments(
       depth.bins = depth.bins, depths = depths, times = times, beta = beta, 
       lambda = lambda, s0 = 1, verbose = FALSE, method.N = method.N,
       inflation.factor.lambda = inflation.factor.lambda, N.max = N.max, 
-      t.sbreaks = t.stages)
+      t.sbreaks = t.stages, truncpois.scale = truncpois.scale)
   }
   
   impute.gibbs = function(depth.bins, depths, times, beta, lambda, 
