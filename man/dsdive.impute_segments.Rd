@@ -15,7 +15,8 @@ dsdive.impute_segments(
   verbose = FALSE,
   method.N = "exact",
   N.max = NULL,
-  t.sbreaks = NULL
+  t.sbreaks = NULL,
+  truncpois.scale = 0.8
 )
 }
 \arguments{

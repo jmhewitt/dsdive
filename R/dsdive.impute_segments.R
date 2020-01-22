@@ -63,7 +63,8 @@
 dsdive.impute_segments = function(depth.bins, depths, times, beta, 
                                   lambda, s0, inflation.factor.lambda = 1.1,
                                   verbose = FALSE, method.N = 'exact',
-                                  N.max = NULL, t.sbreaks = NULL) {
+                                  N.max = NULL, t.sbreaks = NULL, 
+                                  truncpois.scale = .8) {
 
   if(!is.null(t.sbreaks)) {
     if(any(t.sbreaks <= times[1])) {
@@ -121,7 +122,8 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
     
     # sample number of pseudo-arrivals
     if(method.N == 'truncpois') {
-      N = rtpois(n = 1, lambda = .95 * rate.unif * T.win[i], a = min.tx[i])
+      N = rtpois(n = 1, lambda = truncpois.scale * rate.unif * T.win[i], 
+                 a = min.tx[i])
     } else if(method.N == 'exact') {
       dN = dN.bridged(B = tx.mat[[1]], x0 = depths[i], xN = depths[i+1], 
                       N.max = N.max, rate.uniformized = rate.unif, 
@@ -148,7 +150,8 @@ dsdive.impute_segments = function(depth.bins, depths, times, beta,
           # redistribute number of arrivals between stage 3 transition and end
           t.s3 = t.prop[[i]][stages.prop[[i]] == 3]
           win.3 = times[i+1] - t.s3
-          N.3 = rtpois(n = 1, lambda = .95 * rate.unif * win.3, a = 1, b = N-1)
+          N.3 = rtpois(n = 1, lambda = truncpois.scale * rate.unif * win.3, 
+                       a = 1, b = N-1)
           t.prop[[i]] = unique(sort(c(
             times[i] + c(0, (t.s3 - times[i]) * runif(N-N.3-1)),
             t.s3 + c(0, win.3 * runif(N.3))
