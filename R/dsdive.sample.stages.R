@@ -55,13 +55,15 @@ dsdive.sample.stages = function(depths, durations, times, t.stages,
     
     # depth bin transition component of likelihood
     if(depth.ind + 1 <= n) {
-      df = depths[depth.ind + 1]
-      success1 = p1$labels[1] == df
-      success2 = p2$labels[1] == df
-      ld1[i] = ld1[i] + dbinom(x = success1, size = 1, prob = p1$probs[1], 
-                               log = TRUE)
-      ld2[i] = ld2[i] + dbinom(x = success2, size = 1, prob = p2$probs[1], 
-                               log = TRUE)
+      went.down = depths[depth.ind + 1] > d0
+      if(length(p1$labels)>1) {
+        p.down = p1$probs[which(p1$labels > d0)]
+        ld1[i] = ld1[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
+      }
+      if(length(p2$labels)>1) {
+        p.down = p2$probs[which(p2$labels > d0)]
+        ld2[i] = ld2[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
+      }
     }
     
   }
@@ -114,13 +116,15 @@ dsdive.sample.stages = function(depths, durations, times, t.stages,
     
     # depth bin transition component of likelihood
     if(depth.ind + 1 <= n) {
-      df = depths[depth.ind + 1]
-      success2 = p2$labels[1] == df
-      success3 = p3$labels[1] == df
-      ld2[i] = ld2[i] + dbinom(x = success2, size = 1, prob = p2$probs[1], 
-                               log = TRUE)
-      ld3[i] = ld3[i] + dbinom(x = success3, size = 1, prob = p3$probs[1], 
-                               log = TRUE)
+      went.down = depths[depth.ind + 1] > d0
+      if(length(p2$labels)>1) {
+        p.down = p2$probs[which(p2$labels > d0)]
+        ld2[i] = ld2[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
+      }
+      if(length(p3$labels)>1) {
+        p.down = p3$probs[which(p3$labels > d0)]
+        ld3[i] = ld3[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
+      }
     }
     
   }
