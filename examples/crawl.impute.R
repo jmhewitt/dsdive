@@ -1,8 +1,6 @@
 data('dive.sim')
 attach(dive.sim)
 
-library(ggpubr)
-
 n.impute = 10
 tstep = 1
 
@@ -31,7 +29,8 @@ pl.u = plot(x = sim.obs, depth.bins = depth.bins, errorbars = TRUE,
 pl.n = plot(x = sim.obs, depth.bins = depth.bins, errorbars = TRUE, 
             imputed.list = imputed.tnorm)
 
-ggarrange(pl.u, pl.n, pl.m, labels = c('Uniform', 'Trunc. norm.', 'Midpoint'), 
-          ncol = 1, nrow = 3)
+ggpubr::ggarrange(pl.u, pl.n, pl.m, 
+                  labels = c('Uniform', 'Trunc. norm.', 'Midpoint'), 
+                  ncol = 1, nrow = 3)
 
 detach(dive.sim)
