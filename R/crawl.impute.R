@@ -53,16 +53,16 @@
 #' @importFrom stats runif
 #' @importFrom crawl crwMLE crwSimulator crwPostIS
 #' @import dplyr
+#' @importFrom extraDistr rtnorm
 #' 
 #' @export
 #'
 crawl.impute = function(depth.bins, depths, times, N, 
-                        depths.impute = 'uniform', tstep) {
+                        depths.impute = 'uniform', tstep, sd.scale = 1) {
   
   # precompute depth bin ranges
   depth.ranges = data.frame(min = depth.bins[,1] - depth.bins[,2],
                             max = depth.bins[,1] + depth.bins[,2])
-  
   
   # impute continuous depths
   if(depths.impute == 'midpoint') {
@@ -76,7 +76,7 @@ crawl.impute = function(depth.bins, depths, times, N,
     # package in list
     depths.imputed = list(df)
     
-  } else if(depths.impute == 'uniform') {
+  } else {
     
     # initialize storage
     depths.imputed = vector("list", length = N)
@@ -87,8 +87,16 @@ crawl.impute = function(depth.bins, depths, times, N,
       # use random depth within each observed bin
       df = data.frame( 
         x = sapply(depths, function(ind) {
-          runif(n = 1, min = depth.ranges[ind,1], max = depth.ranges[ind,2])
-          }),
+          if(depths.impute == 'uniform') {
+            runif(n = 1, min = depth.ranges[ind,1], max = depth.ranges[ind,2])
+          } else if(depths.impute == 'truncnorm') {
+            rtnorm(n = 1, 
+                   mean = depth.bins[ind,1], 
+                   sd = sd.scale * depth.bins[ind,2], 
+                   a = depth.ranges[ind,1], 
+                   b = depth.ranges[ind,2])
+          }
+        }),
         time = times
       )
     
@@ -151,7 +159,7 @@ crawl.impute = function(depth.bins, depths, times, N,
                    t = s$time)
     
     # fill in missing transitions as necessary
-    if(!all(unique(diff(d$depth.bin)) %in% c(-1,0,1))) {
+    if(!all(diff(d$depth.bin) %in% c(-1,0,1))) {
       # identify indices where direct transitions were not observed
       inds = which(!(diff(d$depth.bin) %in% c(-1,0,1)))
       # splice in direct transitions; must be done in reverse order

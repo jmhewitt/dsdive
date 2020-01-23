@@ -4,7 +4,15 @@
 \alias{crawl.impute}
 \title{Use bridged sampling to impute a dive trajectory consistent with observations}
 \usage{
-crawl.impute(depth.bins, depths, times, N, depths.impute = "uniform", tstep)
+crawl.impute(
+  depth.bins,
+  depths,
+  times,
+  N,
+  depths.impute = "uniform",
+  tstep,
+  sd.scale = 1
+)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -71,9 +79,28 @@ inference, the dive stages should be treated as missing data.
 data('dive.sim')
 attach(dive.sim)
 
-imputed = crawl.impute(depth.bins = depth.bins, depths = sim.obs$depths, 
-                       times = sim.obs$times, N = 10, depths.impute = 'midpoint', 
-                       tstep = 5)
+n.impute = 10
 
-  detach(dive.sim)
+imputed.midpoint = crawl.impute(depth.bins = depth.bins, 
+                                depths = sim.obs$depths, 
+                                times = sim.obs$times, N = n.impute, 
+                                depths.impute = 'midpoint', tstep = 5)
+
+imputed.unif = crawl.impute(depth.bins = depth.bins, 
+                                depths = sim.obs$depths, 
+                                times = sim.obs$times, N = n.impute, 
+                                depths.impute = 'uniform', tstep = 1)
+
+imputed.tnorm = crawl.impute(depth.bins = depth.bins, 
+                            depths = sim.obs$depths, 
+                            times = sim.obs$times, N = n.impute, 
+                            depths.impute = 'truncnorm', tstep = 1, 
+                            sd.scale = .125)
+
+pl = plot(x = sim.obs, depth.bins = depth.bins, errorbars = TRUE, 
+          imputed.list = imputed.tnorm)
+
+pl
+
+detach(dive.sim)
 }
