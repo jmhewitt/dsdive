@@ -24,7 +24,7 @@ x = dsdive.fwdsample.dive(depth.bins = depth.bins, beta = beta, lambda = lambda,
 
 # observe dive at regular time intervals
 obs = dsdive.observe(depths = x$depths, times = x$times, stages = x$stages, 
-                     t.obs = seq(from = 0, to = max(x$times) + 60, by = 60))
+                     t.obs = seq(from = 0, to = max(x$times) + 60, by = 5*60))
 
 plot(x = x, depth.bins = depth.bins, dsobs = obs)
 
