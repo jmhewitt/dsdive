@@ -56,13 +56,14 @@ dsdive.ld.fixedstages = function(depths, durations, times, stages, beta, lambda,
     ld = ld + dexp(x = durations[j], rate = p$rate, log = TRUE)
     
     # only consider non-trivial depth bin transitions
-    if(length(p$labels) > 1) {
-      d0 = depths[j]
-      df = depths[j+1]
-      went.down = df > d0
-      ld = ld + dbinom(x = went.down, size = 1, prob = p$probs[p$labels > d0])
+    d0 = depths[j]
+    df = depths[j+1]
+    if(d0 != df) {
+      if(length(p$labels) > 1) {
+        went.down = df > d0
+        ld = ld + dbinom(x = went.down, size = 1, prob = p$probs[p$labels > d0])
+      }  
     }
-    
   }
   
   ld
