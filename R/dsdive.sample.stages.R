@@ -7,145 +7,97 @@
 #' 
 #' @export
 #' 
-dsdive.sample.stages = function(depths, durations, times, t.stages, 
-                                beta, lambda, depth.bins, T1.prior, T2.prior) {
+dsdive.sample.stages = function(depths, times, t.stages, beta, lambda, 
+                                depth.bins, T1.logprior, T2.logprior, t1.sd, 
+                                t2.sd) {
   
-  n = length(depths)
+  # compute stages, durations, and log-density for input
+  
+  augmented = dsdive.augment.trajectory(depths = depths, times = times, 
+                                        t.stages = t.stages)
+  
+  ld = dsdive.ld.fixedstages(depths = augmented$depths, 
+                             durations = augmented$durations, 
+                             times = augmented$times, 
+                             stages = augmented$stages, 
+                             beta = beta, lambda = lambda, 
+                             depth.bins = depth.bins)
+    
   
   #
-  # sample stage 1->2 transition, conditional on stage 3 time
+  # sample stage 1->2 transition time, conditional on stage 3 transition time
   #
   
-  # compute dive stages, given conditional information
-  stages = findInterval(times, t.stages) + 1
+  # get start time for dive
+  t0.dive = times[1]
   
-  # get index of stage 3 time
-  s3.start = min(which(stages == 3))
-  if(is.infinite(s3.start)) {
-    s3.start = n-1
+  # propose new transition time
+  T1.prop = proposal.logit(x0 = t.stages[1], sd = t1.sd, 
+                           a = t0.dive, b = t.stages[2])
+  
+  # compute stages, durations, and log-density for proposal
+  
+  augmented.prop = dsdive.augment.trajectory(depths = depths, times = times, 
+                                             t.stages = c(T1.prop$x, 
+                                                          t.stages[2]))
+  
+  ld.prop = dsdive.ld.fixedstages(depths = augmented.prop$depths, 
+                                  durations = augmented.prop$durations, 
+                                  times = augmented.prop$times, 
+                                  stages = augmented.prop$stages, 
+                                  beta = beta, lambda = lambda, 
+                                  depth.bins = depth.bins)
+  
+  # accept/reject
+  lR = ld.prop + T1.logprior((T1.prop$x - t0.dive)/60) - ld - 
+    T1.logprior((t.stages[1] - t0.dive)/60) + T1.prop$lR
+  a1 = log(runif(1)) < lR
+  if(a1) {
+    t.stages[1] = T1.prop$x
+    ld = ld.prop
+    augmented = augmented.prop
   }
-  
-  # determine support of stage 1->2 transition
-  s2.start.support = 2:max(s3.start-1, 2)
-  ns2 = length(s2.start.support)
-  
-  # density of each transition index under stage 1 and stage 2 parameters
-  ld1 = numeric(length = ns2)
-  ld2 = numeric(length = ns2)
-  for(i in 1:ns2) {
-    
-    # map back to a depth bin in the dive
-    depth.ind = s2.start.support[i]
-    d0 = depths[depth.ind]
-    tau = durations[depth.ind]
-    
-    # stage 1 and stage 2 parameters for depth bin
-    
-    p1 = dsdive.tx.params(depth.bins = depth.bins, d0 = d0, s0 = 1, 
-                          beta = beta, lambda = lambda)
-    
-    p2 = dsdive.tx.params(depth.bins = depth.bins, d0 = d0, s0 = 2, 
-                          beta = beta, lambda = lambda)
-    
-    # duration component of likelihood
-    if(is.finite(tau)) {
-      ld1[i] = dexp(x = tau, rate = p1$rate, log = TRUE)
-      ld2[i] = dexp(x = tau, rate = p2$rate, log = TRUE)
-    }
-    
-    # depth bin transition component of likelihood
-    if(depth.ind + 1 <= n) {
-      went.down = depths[depth.ind + 1] > d0
-      if(length(p1$labels)>1) {
-        p.down = p1$probs[which(p1$labels > d0)]
-        ld1[i] = ld1[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
-      }
-      if(length(p2$labels)>1) {
-        p.down = p2$probs[which(p2$labels > d0)]
-        ld2[i] = ld2[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
-      }
-    }
-    
-  }
-  
-  # compute log-posterior across support
-  d = numeric(length = ns2)
-  for(i in 1:ns2) {
-    d[i] = ifelse(i>1, sum(ld1[1:(i-1)]), 0) + sum(ld2[i:ns2]) +
-      T1.prior((times[s2.start.support[i]] - times[1])/60)
-  }
-  
-  # sample new time at which stage 2 begins
-  s2.start = s2.start.support[sample.gumbeltrick(log.p = d)]
-  
-  # build new stage vector
-  stages = stagevec(length.out = length(depths), breaks = c(s2.start, s3.start))
   
   
   #
-  # sample stage 2->3 transition, conditional on stage 2 time
+  # sample stage 2->3 transition time, conditional on stage 2 transition time
   #
-
-  # determine support of stage 2->3 transition
-  s3.start.support = (s2.start+1):(n-1)
-  ns3 = length(s3.start.support)
   
-  # density of each transition index under stage 2 and stage 3 parameters
-  ld2 = numeric(length = ns3)
-  ld3 = numeric(length = ns3)
-  for(i in 1:ns3) {
-    
-    # map back to a depth bin in the dive
-    depth.ind = s3.start.support[i]
-    d0 = depths[depth.ind]
-    tau = durations[depth.ind]
-    
-    # stage 2 and stage 3 parameters for depth bin
-    
-    p2 = dsdive.tx.params(depth.bins = depth.bins, d0 = d0, s0 = 2, 
-                          beta = beta, lambda = lambda)
-    
-    p3 = dsdive.tx.params(depth.bins = depth.bins, d0 = d0, s0 = 3, 
-                          beta = beta, lambda = lambda)
-    
-    # duration component of likelihood
-    if(is.finite(tau)) {
-      ld2[i] = dexp(x = tau, rate = p2$rate, log = TRUE)
-      ld3[i] = dexp(x = tau, rate = p3$rate, log = TRUE)
-    }
-    
-    # depth bin transition component of likelihood
-    if(depth.ind + 1 <= n) {
-      went.down = depths[depth.ind + 1] > d0
-      if(length(p2$labels)>1) {
-        p.down = p2$probs[which(p2$labels > d0)]
-        ld2[i] = ld2[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
-      }
-      if(length(p3$labels)>1) {
-        p.down = p3$probs[which(p3$labels > d0)]
-        ld3[i] = ld3[i] + dbinom(went.down, size = 1, prob = p.down, log = TRUE)
-      }
-    }
-    
+  # get end time for dive
+  tf.dive = times[length(times)]
+  
+  # propose new transition time
+  T2.prop = proposal.logit(x0 = t.stages[2], sd = t2.sd, 
+                           a = t.stages[1], b = tf.dive)
+  
+  # compute stages, durations, and log-density for proposal
+  
+  augmented.prop = dsdive.augment.trajectory(depths = depths, times = times, 
+                                             t.stages = c(t.stages[1], 
+                                                          T2.prop$x))
+  
+  ld.prop = dsdive.ld.fixedstages(depths = augmented.prop$depths, 
+                                  durations = augmented.prop$durations, 
+                                  times = augmented.prop$times, 
+                                  stages = augmented.prop$stages, 
+                                  beta = beta, lambda = lambda, 
+                                  depth.bins = depth.bins)
+  
+  # accept/reject
+  lR = ld.prop + T2.logprior((T2.prop$x - t.stages[1])/60) - ld - 
+    T2.logprior((t.stages[2] - t.stages[1])/60) + T2.prop$lR
+  a2 = log(runif(1)) < lR
+  if(a2) {
+    t.stages[2] = T2.prop$x
+    ld = ld.prop
+    augmented = augmented.prop
   }
-  
-  # compute log-posterior across support
-  d = numeric(length = ns3)
-  for(i in 1:ns3) {
-    d[i] = ifelse(i>1, sum(ld2[1:(i-1)]), 0) + sum(ld3[i:ns3]) + 
-      T2.prior((times[s3.start.support[i]] - times[s2.start])/60)
-  }
-  
-  # sample new time at which stage 3 begins
-  s3.start = s3.start.support[sample.gumbeltrick(log.p = d)]
-  
-  # build new stage vector
-  stages = stagevec(length.out = length(depths), breaks = c(s2.start, s3.start))
-  
   
   # package results
   list(
-    stages = stages,
-    t.stages = times[c(s2.start, s3.start)]
+    augmented = augmented,
+    ld = ld, 
+    t.stages = t.stages,
+    accepted = c(a1, a2)
   )
 }
