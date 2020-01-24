@@ -59,4 +59,21 @@ q2 = envelope.quad(breaks = breaks,
 # compare envelope to target function
 curve(exp(-x), from = xmin, to = xmax)
 curve(q2(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
+
+
+#
+# example 3: f(x) = sin(x)
+#
+
+# build envelope
+q2 = envelope.quad(breaks = breaks, 
+                   f = sin(breaks[1:(n-1)]), 
+                   df = cos(breaks[1:(n-1)]), 
+                   ddf.sup = sapply(1:(n-1), function(i) {
+                     max(-sin(c(breaks[i:(i+1)])))
+                   }))
+
+# compare envelope to target function
+curve(sin(x), from = xmin, to = xmax)
+curve(q2(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
 }
