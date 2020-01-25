@@ -10,6 +10,10 @@
 #' 
 envelope.quad = function(breaks, f, df, ddf.sup) {
   
+  if(any(f<0)) {
+    stop('Probabilistic envelopes can only be built for non-negative fns.')
+  }
+  
   # number of segments for piecewise-quadratic envelope
   n = length(f)
   
