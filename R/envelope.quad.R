@@ -40,6 +40,12 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
   # compute cumulative mass at start of each segment
   mass.cum = c(0, cumsum(sapply(1:n, function(i) mass.segment(i, breaks[i+1]))))
   
+  # standardized density function
+  dquad = function(x, log = FALSE) {
+    r = e(x) / mass.cum[n+1]
+    if(log) { log(r) } else { r }
+  }
+  
   # CDF associated with piecewise-quadratic envelope (defined for all x \in R)
   pquad = function(x, log = FALSE) {
     r = sapply(x, function(x) {
@@ -50,6 +56,19 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
     })
     if(log) { log(r) } else { r }
   }
+  
+  # inverse CDF associated with envelope
+  qquad = function(p) {
+    sapply(p, function(p) {
+      uniroot(f = function(x) {pquad(x) - p}, lower = breaks[1], 
+              upper = breaks[n+1])$root
+    })
+  }
+  
+  # inverse-CDF sampling
+  rquad = function(n) {
+    qquad(runif(n))
+  }
 
- list(e = e, pquad = pquad)
+ list(e = e, pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad)
 }

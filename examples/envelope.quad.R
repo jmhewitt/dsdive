@@ -27,6 +27,16 @@ curve(q$e(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
 curve(q$pquad(x), from = xmin - 1, to = xmax + 1, ylab = expression(F(x)))
 abline(v = c(xmin, xmax), lty = 3)
 
+# look at inverse CDF 
+curve(q$qquad(x), ylab = expression(F^-1*(x)))
+
+# sample from density
+samples = q$rquad(n = 1e4)
+
+# look at standardized density, compare with kernel density estimate
+curve(q$dquad(x), from = xmin, to = xmax, ylab = expression(f(x)))
+lines(density(samples), col = 2)
+
 #
 # example 2: f(x) = exp(-x)
 #
@@ -48,12 +58,13 @@ curve(q2$e(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
 
 # build envelope
 q3 = envelope.quad(breaks = breaks, 
-                   f = sin(breaks[1:(n-1)]), 
+                   f = sin(breaks[1:(n-1)]) + 1, 
                    df = cos(breaks[1:(n-1)]), 
                    ddf.sup = sapply(1:(n-1), function(i) {
                      max(-sin(c(breaks[i:(i+1)])))
                    }))
 
 # compare envelope to target function
-curve(sin(x), from = xmin, to = xmax)
+curve(sin(x) + 1, from = xmin, to = xmax)
 curve(q3$e(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
+
