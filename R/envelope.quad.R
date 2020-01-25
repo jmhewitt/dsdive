@@ -10,22 +10,46 @@
 #' 
 envelope.quad = function(breaks, f, df, ddf.sup) {
   
+  # number of segments for piecewise-quadratic envelope
+  n = length(f)
+  
   # specify parameters for the piecewise-quadratic functions
   a = ddf.sup / 2
   b = df
   c = f
   
+  # assemble parameters into matrix, for simpler access
   coefs.mat = cbind(a, b, c)
   
-  # assemble into an envelope function that can be evaluated
+  # assemble an envelope function, which is an unnormalized density
   e = function(x) {
-    rows = nrow(coefs.mat)
     sapply(x, function(x){
       ind = findInterval(x, breaks)
-      ifelse(ind > rows | ind < 1, NA, 
-             polyval(coefs.mat[ind,], x - breaks[ind]))
+      ifelse(ind > n | ind < 1, NA, 
+             polyval(coefs.mat[ind,], x - breaks[ind])
+             )
     })
   }
   
- e 
+  # build partial integral function, which is a CDF component
+  mass.segment = function(i, x) {
+    # Integrate the i^th quadratic envelope from start of segment to t = x
+    polyval(c(coefs.mat[i,]/3:1, 0), x - breaks[i])
+  }
+  
+  # compute cumulative mass at start of each segment
+  mass.cum = c(0, cumsum(sapply(1:n, function(i) mass.segment(i, breaks[i+1]))))
+  
+  # CDF associated with piecewise-quadratic envelope (defined for all x \in R)
+  pquad = function(x, log = FALSE) {
+    r = sapply(x, function(x) {
+      ind = findInterval(x, breaks, rightmost.closed = TRUE)
+      if(ind == 0) { 0 }
+      else if(ind == n + 1) { 1 } 
+      else { (mass.cum[ind] + mass.segment(ind, x)) / mass.cum[n+1] }
+    })
+    if(log) { log(r) } else { r }
+  }
+
+ list(e = e, pquad = pquad)
 }
