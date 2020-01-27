@@ -14,26 +14,11 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
     stop('Probabilistic envelopes can only be built for non-negative fns.')
   }
   
-  # number of segments for piecewise-quadratic envelope
-  n = length(f)
-  
-  # specify parameters for the piecewise-quadratic functions
-  a = ddf.sup / 2
-  b = df
-  c = f
-  
-  # assemble parameters into matrix, for simpler access
-  coefs.mat = cbind(a, b, c)
-  
-  # assemble an envelope function, which is an unnormalized density
-  e = function(x) {
-    sapply(x, function(x){
-      ind = findInterval(x, breaks)
-      ifelse(ind > n | ind < 1, NA, 
-             polyval(coefs.mat[ind,], x - breaks[ind])
-             )
-    })
-  }
+  # build envelope and extract key components
+  bound.quad = bound.quad(breaks = breaks, f = f, df = df, ddf.sup = ddf.sup)
+  coefs.mat = bound.quad$coefs
+  n = nrow(coefs.mat)
+  e = bound.quad$e
   
   # build partial integral function, which is a CDF component
   mass.segment = function(i, x) {
@@ -74,5 +59,5 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
     qquad(runif(n))
   }
 
- list(e = e, pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad)
+ list(pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad)
 }
