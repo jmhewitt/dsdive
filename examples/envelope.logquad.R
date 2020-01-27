@@ -15,8 +15,6 @@ n = length(breaks)
 # example 1: f(x) = exp(-x); log f(x) = -x
 #
 
-devtools::document()
-
 # build envelope
 q = envelope.logquad(breaks = breaks, 
                      logf = -breaks[1:(n-1)], 
