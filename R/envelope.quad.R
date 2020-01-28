@@ -8,14 +8,16 @@
 #' 
 #' @example examples/envelope.quad.R
 #' 
-envelope.quad = function(breaks, f, df, ddf.sup) {
+envelope.quad = function(breaks, f, df, ddf.sup, 
+                         anchors = breaks[1:(length(breaks)-1)]) {
   
   if(any(f<0)) {
     stop('Probabilistic envelopes can only be built for non-negative fns.')
   }
   
   # build envelope and extract key components
-  bound.quad = bound.quad(breaks = breaks, f = f, df = df, ddf.sup = ddf.sup)
+  bound.quad = bound.quad(breaks = breaks, f = f, df = df, ddf.sup = ddf.sup, 
+                          anchors = anchors)
   coefs.mat = bound.quad$coefs
   n = nrow(coefs.mat)
   e = bound.quad$e
@@ -23,7 +25,8 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
   # build partial integral function, which is a CDF component
   mass.segment = function(i, x) {
     # Integrate the i^th quadratic envelope from start of segment to t = x
-    polyval(c(coefs.mat[i,]/3:1, 0), x - breaks[i])
+    polyval(c(coefs.mat[i,]/3:1, 0), x - anchors[i]) - 
+    polyval(c(coefs.mat[i,]/3:1, 0), breaks[i] - anchors[i])
   }
   
   # compute cumulative mass at start of each segment
@@ -59,5 +62,6 @@ envelope.quad = function(breaks, f, df, ddf.sup) {
     qquad(runif(n))
   }
 
- list(pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad)
+ list(pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad, 
+      C = mass.cum[length(mass.cum)])
 }

@@ -32,3 +32,32 @@ samples = q$rquad(n = 1e4)
 # look at standardized density, compare with kernel density estimate
 curve(q$dquad(x), from = xmin, to = xmax, ylab = expression(f(x)))
 lines(density(samples), col = 2)
+
+
+#
+# example 2: f(x) = (sin(x) + 1) / C
+#
+
+# integration constant
+C = xmax - xmin + cos(xmin) - cos(xmax)
+
+# build envelope with shifted anchors
+anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
+q2 = envelope.quad(breaks = breaks, 
+                   f = (sin(anchors) + 1)/C, 
+                   df = cos(anchors)/C, 
+                   ddf.sup = sapply(1:(n-1), function(i) {
+                    extrema = floor(2*breaks[i + 0:1]/pi) * pi / 2
+                    extrema = extrema[
+                      (extrema >= breaks[i]) & extrema <= breaks[i+1]
+                      ]
+                    max(-sin(c(extrema, breaks[i + 0:1]))/C )
+                  }), 
+                  anchors = anchors)
+
+# compare envelope to target function
+curve((sin(x) + 1)/C, from = xmin, to = xmax, n = 1e3)
+curve(q2$dquad(x)*q2$C, from = xmin, to = xmax, add = TRUE, col = 2, n = 1e3)
+
+# efficiency of a rejection sampler that uses the envelope q2 
+1/q2$C
