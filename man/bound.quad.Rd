@@ -4,7 +4,7 @@
 \alias{bound.quad}
 \title{Build a piecewise-quadratic envelope for a given function}
 \usage{
-bound.quad(breaks, f, df, ddf.sup)
+bound.quad(breaks, f, df, ddf.sup, anchors = breaks[1:(length(breaks) - 1)])
 }
 \arguments{
 \item{breaks}{Breakpoints that define the start and end points of each 
@@ -73,7 +73,22 @@ q3 = bound.quad(breaks = breaks,
                   max(-sin(c(breaks[i:(i+1)])))
                 }))
 
+# build envelope with shifted anchors
+anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
+q4 = bound.quad(breaks = breaks, 
+                f = sin(anchors) + 1, 
+                df = cos(anchors), 
+                ddf.sup = sapply(1:(n-1), function(i) {
+                  extrema = floor(2*breaks[i + 0:1]/pi) * pi / 2
+                  extrema = extrema[
+                    (extrema >= breaks[i]) & extrema <= breaks[i+1]
+                  ]
+                  max(-sin(c(extrema, breaks[i + 0:1])) )
+                }), 
+                anchors = anchors)
+
 # compare envelope to target function
 curve(sin(x) + 1, from = xmin, to = xmax)
 curve(q3$e(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
+curve(q4$e(x), from = xmin, to = xmax, add = TRUE, col = 2, n = 1e3)
 }

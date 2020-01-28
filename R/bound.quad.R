@@ -8,7 +8,8 @@
 #' 
 #' @example examples/bound.quad.R
 #' 
-bound.quad = function(breaks, f, df, ddf.sup) {
+bound.quad = function(breaks, f, df, ddf.sup, 
+                      anchors = breaks[1:(length(breaks)-1)]) {
   
   # number of segments for piecewise-quadratic envelope
   n = length(f)
@@ -26,7 +27,7 @@ bound.quad = function(breaks, f, df, ddf.sup) {
     sapply(x, function(x){
       ind = findInterval(x, breaks)
       ifelse(ind > n | ind < 1, NA, 
-             polyval(coefs.mat[ind,], x - breaks[ind])
+             polyval(coefs.mat[ind,], x - anchors[ind])
              )
     })
   }
