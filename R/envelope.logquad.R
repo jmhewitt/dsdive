@@ -10,11 +10,12 @@
 #' 
 #' @example examples/envelope.logquad.R
 #' 
-envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup) {
+envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
+                            anchors = breaks[1:(length(breaks)-1)]) {
   
   # build envelope for log(f) and extract key components
   bound.logquad = bound.quad(breaks = breaks, f = logf, df = d.logf, 
-                     ddf.sup = dd.logf.sup)
+                     ddf.sup = dd.logf.sup, anchors = anchors)
   coefs.mat = bound.logquad$coefs
   e.log = bound.logquad$e
   n = nrow(coefs.mat)
@@ -29,12 +30,13 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup) {
     c = coefs.mat[i,3]
     
     if(a==0) {
-      exp(c) / b * ( exp(b * (x - breaks[i])) - 1)
+      exp(c) / b * ( exp(b * (x - anchors[i])) - 
+                     exp(b * (breaks[i] - anchors[i])) )
     } else {
       Re(sqrt(pi) * exp(c-b^2/(4*a)) / 2 / sqrt(a) * (
-         erfi((2*a*(x-breaks[i]) + b)/(2*sqrt(a))) -
-         erfi(b/(2*sqrt(a))))
-      )
+        erfi((2*a*(x-anchors[i]) + b)/(2*sqrt(a))) -
+        erfi((2*a*(breaks[i]-anchors[i]) + b)/(2*sqrt(a)))
+      ))
     }
   }
 
@@ -72,5 +74,6 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup) {
   }
 
  list(pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad, 
-      e = function(x) exp(e.log(x)))
+      e = function(x) exp(e.log(x)), e.log = e.log, 
+      C = mass.cum[n+1])
 }
