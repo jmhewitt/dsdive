@@ -75,5 +75,5 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
 
  list(pquad = pquad, dquad = dquad, qquad = qquad, rquad = rquad, 
       e = function(x) exp(e.log(x)), e.log = e.log, 
-      C = mass.cum[n+1])
+      C = mass.cum[n+1], mass.cum = mass.cum)
 }
