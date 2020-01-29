@@ -99,12 +99,20 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
     
     n = length(breaks)
     if(prior.params[1] == 0) {
-      rep(0, n-1)
+      r = rep(0, n-1)
     } else if(prior.params[1] > 0) {
-      (1 - prior.params[1]) / (x.dur[-1])^2
+      r = (1 - prior.params[1]) / (x.dur[-1])^2
     } else if(prior.params[1] < 0) {
-      (1 - prior.params[1]) / (x.dur[1:(n-1)])^2
+      r = (1 - prior.params[1]) / (x.dur[1:(n-1)])^2
     }
+    
+    # zap small curvatures to increase numerical stability of envelope sampler.
+    # Notes: 
+    #  1) If the curvature was positive, then we might not have a true envelope
+    #  2) For reasonable prior parameterizations, we will have neg. curvature
+    r[abs(r) < 1e-5] = 0
+    
+    r
   }
   
   
