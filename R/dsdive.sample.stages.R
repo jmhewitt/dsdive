@@ -116,7 +116,9 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
   inds.jumps = which(times <= t.stages[2])
   
   # determine intervals and midpoints for log-quadratic sampling envelope
-  breaks = refine.partition(breaks = times[inds.jumps], max.width = max.width)
+  breaks = refine.partition(
+    breaks = sort(unique(c(times[1], times[inds.jumps], t.stages[2]))),
+    max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
   # build envelope
@@ -149,7 +151,10 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
   inds.jumps = which(times >= t.stages[1])
   
   # determine intervals and midpoints for log-quadratic sampling envelope
-  breaks = refine.partition(breaks = times[inds.jumps], max.width = max.width)
+  breaks = refine.partition(
+    breaks = sort(unique(c(t.stages[1], times[inds.jumps], 
+                           times[length(times)]))),
+    max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
   # build envelope
