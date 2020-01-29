@@ -38,7 +38,6 @@
 dsdive.ld.fixedstages = function(depths, durations, times, stages, beta, lambda, 
                                  depth.bins) {
   
-  
   # extract dimensional information
   nt = length(times)
   
