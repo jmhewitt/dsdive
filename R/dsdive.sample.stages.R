@@ -1,107 +1,188 @@
 #' Sample stage transition times from full conditional posterior
 #' 
-#' @param prior.t list of two functions that will allow the prior density for 
-#'   stage transition times to be called
+#' We assume the prior distributions for the stage transition times are Gamma 
+#' distributions with shape/rate parameterization.
+#' 
+#' @param max.width for numerical stability of the sampling envelopes
 #' 
 #' @example examples/dsdive.sample.stages.R
 #' 
 #' @export
 #' 
 dsdive.sample.stages = function(depths, times, t.stages, beta, lambda, 
-                                depth.bins, T1.logprior, T2.logprior, t1.sd, 
-                                t2.sd) {
+                                depth.bins, T1.prior.params, T2.prior.params,
+                                max.width, debug = FALSE) {
   
-  # compute stages, durations, and log-density for input
+  #
+  # components for constructing proposal densities for full conditionals
+  # 
   
-  augmented = dsdive.augment.trajectory(depths = depths, times = times, 
-                                        t.stages = t.stages)
+  lp = function(x, stage.ind, t.stages) { sapply(x, function(x) {
+    # log-posterior for data given a stage transition time
+    # 
+    # Parameters: 
+    #  x - stage transition time
+    #  stage.ind - 1 if x represents the 1->2 stage transition time; 2 otherwise
+    #  t.stages - current values of stage transition times
+    
+    tstages = t.stages
+    tstages[stage.ind] = x
+    
+    # split depth bin durations according to the stage transition times
+    augmented = dsdive.augment.trajectory(depths = depths, times = times, 
+                                          t.stages = tstages)
+    
+    # log density associated with stage transition time
+    ld = dsdive.ld.fixedstages(
+      depths = augmented$depths, durations = augmented$durations, 
+      times = augmented$times, stages = augmented$stages, beta = beta, 
+      lambda = lambda, depth.bins = depth.bins)
+    
+    # extract the parameters for the prior distribution, and convert the stage 
+    # transition time into a duration
+    if(stage.ind==1) { 
+      prior.params = T1.prior.params 
+      x.dur = x - times[1]
+    } else if(stage.ind==2) { 
+      prior.params = T2.prior.params 
+      x.dur = x - t.stages[1]
+    }
+    
+    # return log-posterior by adding log prior
+    ld + dgamma(x = x.dur, shape = prior.params[1], rate = prior.params[2], 
+                log = TRUE)
+  })}
   
-  ld = dsdive.ld.fixedstages(depths = augmented$depths, 
-                             durations = augmented$durations, 
-                             times = augmented$times, 
-                             stages = augmented$stages, 
-                             beta = beta, lambda = lambda, 
-                             depth.bins = depth.bins)
+  dlp = function(x, stage.ind, t.stages) { sapply(x, function(x) {
+    # derivative of log-posterior given a stage transition time
+    # 
+    # Parameters:
+    #  x - stage transition time
+    #  stage.ind - 1 if x represents the 1->2 stage transition time; 2 otherwise
+    #  t.stages - current values of stage transition times
+    
+    # get depth bin at time x
+    bin = depths[findInterval(x, times)]
+    
+    # extract the parameters for the prior distribution, and convert the stage 
+    # transition time into a duration
+    if(stage.ind==1) { 
+      prior.params = T1.prior.params 
+      x.dur = x - times[1]
+    } else if(stage.ind==2) { 
+      prior.params = T2.prior.params 
+      x.dur = x - t.stages[1]
+    }
+    
+    diff(lambda[stage.ind + 0:1]) / (2*depth.bins[bin, 2]) - prior.params[2] + 
+      (prior.params[1] - 1) / x.dur
+  })}
+  
+  ddlp.sup = function(breaks, stage.ind, t.stages) {
+    # suprema of second derivative for log-posterior across intervals defined 
+    # via breaks
+    #
+    # Parameters:
+    #  breaks - endpoints of intervals
+    #  stage.ind - 1 if x represents the 1->2 stage transition time; 2 otherwise
+    #  t.stages - current values of stage transition times
+    
+    # extract the parameters for the prior distribution, and convert the 
+    # interval times into durations
+    if(stage.ind==1) { 
+      prior.params = T1.prior.params 
+      x.dur = breaks - times[1]
+    } else if(stage.ind==2) { 
+      prior.params = T2.prior.params 
+      x.dur = breaks - t.stages[1]
+    }
+    
+    n = length(breaks)
+    if(prior.params[1] == 0) {
+      rep(0, n-1)
+    } else if(prior.params[1] > 0) {
+      (1 - prior.params[1]) / (x.dur[-1])^2
+    } else if(prior.params[1] < 0) {
+      (1 - prior.params[1]) / (x.dur[1:(n-1)])^2
+    }
+  }
+  
+  
+  #
+  # sample stage 1->2 transition time
+  #
+  
+  # identify timepoints where there are jump-discontinuities in log posterior
+  inds.jumps = which(times <= t.stages[2])
+  
+  # determine intervals and midpoints for log-quadratic sampling envelope
+  breaks = refine.partition(breaks = times[inds.jumps], max.width = max.width)
+  anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
+  
+  # build envelope
+  q1 = envelope.logquad(
+    breaks = breaks, logf = lp(x = anchors, stage.ind = 1, t.stages = t.stages), 
+    d.logf = dlp(x = anchors, stage.ind = 1, t.stages = t.stages), 
+    dd.logf.sup = ddlp.sup(breaks = breaks, stage.ind = 1, t.stages = t.stages), 
+    anchors = anchors)
+  
+  # draw proposal
+  prop = q1$rquad(n = 1)
+  
+  # compute metropolis ratio (as an independence sampler)
+  lR = (lp(x = prop, stage.ind = 1, t.stages = t.stages) - 
+          q1$dquad(x = prop, log = TRUE)) - 
+       (lp(x = t.stages[1], stage.ind = 1, t.stages = t.stages) - 
+          q1$dquad(x = t.stages[1], log = TRUE))
+  
+  # accept/reject
+  if(log(runif(1)) <= lR) {
+    t.stages[1] = prop
+  }
     
   
   #
-  # sample stage 1->2 transition time, conditional on stage 3 transition time
+  # sample stage 2->3 transition time
   #
   
-  # get start time for dive
-  t0.dive = times[1]
+  # identify timepoints where there are jump-discontinuities in log posterior
+  inds.jumps = which(times >= t.stages[1])
   
-  # propose new transition time
-  T1.prop = proposal.logit(x0 = t.stages[1], sd = t1.sd, 
-                           a = t0.dive, b = t.stages[2])
+  # determine intervals and midpoints for log-quadratic sampling envelope
+  breaks = refine.partition(breaks = times[inds.jumps], max.width = max.width)
+  anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
-  # compute stages, durations, and log-density for proposal
+  # build envelope
+  q2 = envelope.logquad(
+    breaks = breaks, logf = lp(x = anchors, stage.ind = 2, t.stages = t.stages), 
+    d.logf = dlp(x = anchors, stage.ind = 2, t.stages = t.stages), 
+    dd.logf.sup = ddlp.sup(breaks = breaks, stage.ind = 2, t.stages = t.stages), 
+    anchors = anchors)
   
-  augmented.prop = dsdive.augment.trajectory(depths = depths, times = times, 
-                                             t.stages = c(T1.prop$x, 
-                                                          t.stages[2]))
+  # draw proposal
+  prop = q2$rquad(n = 1)
   
-  ld.prop = dsdive.ld.fixedstages(depths = augmented.prop$depths, 
-                                  durations = augmented.prop$durations, 
-                                  times = augmented.prop$times, 
-                                  stages = augmented.prop$stages, 
-                                  beta = beta, lambda = lambda, 
-                                  depth.bins = depth.bins)
+  # compute metropolis ratio (as an independence sampler)
+  lR = (lp(x = prop, stage.ind = 2, t.stages = t.stages) - 
+          q2$dquad(x = prop, log = TRUE)) - 
+       (lp(x = t.stages[2], stage.ind = 2, t.stages = t.stages) - 
+          q2$dquad(x = t.stages[2], log = TRUE))
   
   # accept/reject
-  lR = ld.prop + T1.logprior((T1.prop$x - t0.dive)/60) - ld - 
-    T1.logprior((t.stages[1] - t0.dive)/60) + T1.prop$lR
-  a1 = log(runif(1)) < lR
-  if(a1) {
-    t.stages[1] = T1.prop$x
-    ld = ld.prop
-    augmented = augmented.prop
+  if(log(runif(1)) <= lR) {
+    t.stages[2] = prop
   }
   
   
   #
-  # sample stage 2->3 transition time, conditional on stage 2 transition time
+  # Package results
   #
   
-  # get end time for dive
-  tf.dive = times[length(times)]
+  res = list(t.stages = t.stages)
   
-  # propose new transition time
-  T2.prop = proposal.logit(x0 = t.stages[2], sd = t2.sd, 
-                           a = t.stages[1], b = tf.dive)
-  
-  # compute stages, durations, and log-density for proposal
-  
-  augmented.prop = dsdive.augment.trajectory(depths = depths, times = times, 
-                                             t.stages = c(t.stages[1], 
-                                                          T2.prop$x))
-  
-  ld.prop = dsdive.ld.fixedstages(depths = augmented.prop$depths, 
-                                  durations = augmented.prop$durations, 
-                                  times = augmented.prop$times, 
-                                  stages = augmented.prop$stages, 
-                                  beta = beta, lambda = lambda, 
-                                  depth.bins = depth.bins)
-  
-  # accept/reject
-  lR = ld.prop + T2.logprior((T2.prop$x - t.stages[1])/60) - ld - 
-    T2.logprior((t.stages[2] - t.stages[1])/60) + T2.prop$lR
-  a2 = log(runif(1)) < lR
-  if(a2) {
-    t.stages[2] = T2.prop$x
-    ld = ld.prop
-    augmented = augmented.prop
+  if(debug == TRUE) {
+    res$debug = list(lp = lp, dlp = dlp, ddlp.sup = ddlp.sup, q1 = q1, q2 = q2)
   }
   
-  simplified = dsdive.simplify.trajectory(depths = augmented$depths, 
-                                          times = augmented$times, 
-                                          stages = augmented$stages)
-  
-  # package results
-  list(
-    dive = simplified,
-    ld = ld, 
-    t.stages = t.stages,
-    accepted = c(a1, a2)
-  )
+  res
 }
