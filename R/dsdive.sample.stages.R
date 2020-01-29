@@ -93,9 +93,13 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
     augmented = augmented.prop
   }
   
+  simplified = dsdive.simplify.trajectory(depths = augmented$depths, 
+                                          times = augmented$times, 
+                                          stages = augmented$stages)
+  
   # package results
   list(
-    augmented = augmented,
+    dive = simplified,
     ld = ld, 
     t.stages = t.stages,
     accepted = c(a1, a2)
