@@ -158,6 +158,9 @@ crawl.impute = function(depth.bins, depths, times, N,
                                             vec = depth.ranges$max) + 1,
                    t = s$time)
     
+    # snap bins to max
+    d$depth.bin[d$depth.bin > nrow(depth.bins)] = nrow(depth.bins)
+    
     # fill in missing transitions as necessary
     if(!all(diff(d$depth.bin) %in% c(-1,0,1))) {
       # identify indices where direct transitions were not observed
