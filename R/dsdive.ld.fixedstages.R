@@ -52,7 +52,7 @@ dsdive.ld.fixedstages = function(depths, durations, times, stages, beta, lambda,
                          s0 = stages[j], beta = beta, lambda = lambda)
 
     # account for duration
-    ld = ld + dexp(x = durations[j], rate = p$rate, log = TRUE)
+    # ld = ld + dexp(x = durations[j], rate = p$rate, log = TRUE)
     
     # only consider non-trivial depth bin transitions
     d0 = depths[j]
@@ -65,5 +65,21 @@ dsdive.ld.fixedstages = function(depths, durations, times, stages, beta, lambda,
     }
   }
   
+  
+  #
+  # account for durations
+  #
+  
+  pace = durations / (2 * depth.bins[depths, 2])
+  
+  p1 = pace[stages==1]
+  p2 = pace[stages==2]
+  p3 = pace[stages==3]
+  
+  ld = ld + 
+    dexp(x = sum(p1[is.finite(p1)&!is.na(p1)]), rate = lambda[1], log = TRUE) +
+    dexp(x = sum(p2[is.finite(p2)&!is.na(p2)]), rate = lambda[2], log = TRUE) +
+    dexp(x = sum(p3[is.finite(p3)&!is.na(p3)]), rate = lambda[3], log = TRUE)
+    
   ld
 }
