@@ -100,7 +100,7 @@ dsdive.gibbs = function(
                                                theta) {
           
           # ensure node has loaded tools
-          library(dsdive)
+          require(dsdive)
           
           # impute initial trajectories
           imputed.local = lapply(pkg$dives.obs, function(d) {
