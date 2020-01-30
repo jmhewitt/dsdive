@@ -10,6 +10,7 @@ dsdive.sample.stages(
   t.stages,
   beta,
   lambda,
+  T.range,
   depth.bins,
   T1.prior.params,
   T2.prior.params,

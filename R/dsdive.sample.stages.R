@@ -9,7 +9,7 @@
 #' 
 #' @export
 #' 
-dsdive.sample.stages = function(depths, times, t.stages, beta, lambda, 
+dsdive.sample.stages = function(depths, times, t.stages, beta, lambda, T.range,
                                 depth.bins, T1.prior.params, T2.prior.params,
                                 max.width, debug = FALSE) {
   
@@ -42,7 +42,7 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
     # transition time into a duration
     if(stage.ind==1) { 
       prior.params = T1.prior.params 
-      x.dur = x - times[1]
+      x.dur = x - T.range[1]
     } else if(stage.ind==2) { 
       prior.params = T2.prior.params 
       x.dur = x - t.stages[1]
@@ -68,7 +68,7 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
     # transition time into a duration
     if(stage.ind==1) { 
       prior.params = T1.prior.params 
-      x.dur = x - times[1]
+      x.dur = x - T.range[1]
     } else if(stage.ind==2) { 
       prior.params = T2.prior.params 
       x.dur = x - t.stages[1]
@@ -91,7 +91,7 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
     # interval times into durations
     if(stage.ind==1) { 
       prior.params = T1.prior.params 
-      x.dur = breaks - times[1]
+      x.dur = breaks - T.range[1]
     } else if(stage.ind==2) { 
       prior.params = T2.prior.params 
       x.dur = breaks - t.stages[1]
@@ -125,7 +125,7 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
   
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(times[1], times[inds.jumps], t.stages[2]))),
+    breaks = sort(unique(c(T.range[1], times[inds.jumps], t.stages[2]))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
@@ -160,8 +160,7 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
   
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(t.stages[1], times[inds.jumps], 
-                           times[length(times)]))),
+    breaks = sort(unique(c(t.stages[1], times[inds.jumps], T.range[2]))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
@@ -191,7 +190,12 @@ dsdive.sample.stages = function(depths, times, t.stages, beta, lambda,
   # Package results
   #
   
-  res = list(t.stages = t.stages)
+  res = dsdive.augment.trajectory(depths = depths, times = times, 
+                                  t.stages = t.stages)
+  res = dsdive.simplify.trajectory(depths = res$depths, times = res$times, 
+                                   stages = res$stages)
+  
+  res$t.stages = t.stages
   
   if(debug == TRUE) {
     res$debug = list(lp = lp, dlp = dlp, ddlp.sup = ddlp.sup, q1 = q1, q2 = q2)
