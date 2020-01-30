@@ -14,14 +14,15 @@ dsdive.gibbs(
   maxit,
   checkpoint.fn,
   checkpoint.interval,
-  T1.prior,
-  T2.prior,
+  T1.prior.params,
+  T2.prior.params,
   pi1.prior,
   pi2.prior,
   lambda1.prior,
   lambda2.prior,
   lambda3.prior,
-  crash.fn
+  crash.fn,
+  max.width
 )
 }
 \arguments{

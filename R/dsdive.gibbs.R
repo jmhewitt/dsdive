@@ -56,8 +56,9 @@ checkForRemoteErrors = function (val, crash.fn) {
 #' 
 dsdive.gibbs = function(
   dives.obs, cl, impute.init, impute.gibbs, init, verbose = FALSE, maxit, 
-  checkpoint.fn, checkpoint.interval, T1.prior, T2.prior, pi1.prior, pi2.prior, 
-  lambda1.prior, lambda2.prior, lambda3.prior, crash.fn) {
+  checkpoint.fn, checkpoint.interval, T1.prior.params, T2.prior.params, 
+  pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, crash.fn,
+  max.width) {
   
   #
   # initialize cluster
@@ -120,8 +121,9 @@ dsdive.gibbs = function(
 
           # save data to node
           assign.fn('impute.gibbs', pkg$impute.gibbs)
-          assign.fn('T1.prior', pkg$T1.prior)
-          assign.fn('T2.prior', pkg$T2.prior)
+          assign.fn('T1.prior.params', pkg$T1.prior.params)
+          assign.fn('T2.prior.params', pkg$T2.prior.params)
+          assign.fn('max.width', pkg$max.width)
           assign.fn('obs.local', pkg$dives.obs)
           assign.fn('imputed.local', imputed.local)
           assign.fn('assign.fn', assign.fn)
@@ -130,8 +132,10 @@ dsdive.gibbs = function(
           list(imputed.local)
           
         }, args = list(pkg = list(dives.obs = dives.obs[inds], 
-                                  T1.prior = T1.prior, T2.prior = T2.prior, 
-                                  impute.gibbs = impute.gibbs), 
+                                  T1.prior.params = T1.prior.params, 
+                                  T2.prior.params = T2.prior.params, 
+                                  impute.gibbs = impute.gibbs, 
+                                  max.width = max.width), 
                        assign.fn = gets, impute.init = impute.init, 
                        theta = init))
       })
@@ -196,15 +200,20 @@ dsdive.gibbs = function(
                              lambda = theta$lambda, imputed.cond = r)
             
             # sample stage transition times and updated stage vector
-            stages.cond = dsdive.sample.stages(
-              depths = r$depths, durations = r$durations, times = r$times,
-              t.stages = t.stages, beta = theta$beta, lambda = theta$lambda,
-              depth.bins = d$depth.bins, T1.prior = T1.prior, 
-              T2.prior = T2.prior
-            )
+            dive.new = dsdive.sample.stages(
+              depths = r$depths, times = r$times, t.stages = t.stages, 
+              beta = theta$beta, lambda = theta$lambda, 
+              depth.bins = d$depth.bins, T1.prior.params = T1.prior.params, 
+              T2.prior.params = T2.prior.params, max.width = max.width, 
+              debug = FALSE, T.range = d$dive$times[c(1, length(d$dive$times))])
             
-            r$stages = stages.cond$stages
-            r$t.stages = stages.cond$t.stages
+            # explicitly copy information out of the resampled dive stages
+            r$depths = dive.new$depths
+            r$durations = dive.new$durations
+            r$stages = dive.new$stages
+            r$times = dive.new$times
+            r$t.stages = dive.new$t.stages
+            
             r$suffstat = dsdive.suffstat(depths = r$depths, 
                                          durations = r$durations, 
                                          stages = r$stages, 
