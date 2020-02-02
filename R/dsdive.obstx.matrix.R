@@ -41,6 +41,8 @@
 #'   
 #' @example examples/dsdive.obstx.matrix.R
 #' 
+#' @export
+#' 
 #' 
 dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep, 
                                include.raw = FALSE) {
