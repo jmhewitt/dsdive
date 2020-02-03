@@ -86,20 +86,16 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
           # matrix-vector products
           #
           
-          # initial depth bin
-          u0 = sparseVector(x = 1, i = d0, length = n.bins)
-          # depth bin distribution at time of stage transition
-          u0 = ((t(u0) %*% P.raw[[s0.step]]$evecs) * 
-                  exp(P.raw[[s0.step]]$evals * 
-                      (t.stages[s0.step] - times[i]))) %*% 
+          # depth bin distribution from observation to stage transition
+          u0 = (P.raw[[s0.step]]$evecs[d0,] * 
+                exp(P.raw[[s0.step]]$evals * 
+                    (t.stages[s0.step] - times[i]))) %*%
             P.raw[[s0.step]]$evecs.inv
           
-          # final depth bin
-          uf = sparseVector(x = 1, i = df, length = n.bins)
-          # depth bin distribution at end of stage transition
-          uf = P.raw[[sf.step]]$evecs %*%
-            (exp(P.raw[[sf.step]]$evals * (times[i+1] - t.stages[s0.step])) * 
-               (P.raw[[sf.step]]$evecs.inv %*% uf))
+          # depth bin distribution from stage transition to next observation
+          uf = P.raw[[sf.step]]$evecs %*% 
+               (exp(P.raw[[sf.step]]$evals * (times[i+1] - t.stages[s0.step])) * 
+                P.raw[[sf.step]]$evecs.inv[,df])
           
           # add contribution for between-stage transition
           ld = ld + log(as.numeric(u0 %*% uf))
