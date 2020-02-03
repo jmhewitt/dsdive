@@ -13,7 +13,8 @@ dsdive.obs.sampleparams(
   beta,
   lambda,
   lambda.priors.list,
-  beta.priors.list
+  beta.priors.list,
+  tstep
 )
 }
 \arguments{

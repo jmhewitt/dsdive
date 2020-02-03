@@ -26,6 +26,7 @@
 #' 
 #' @example examples/dsdive.gibbs.obs.R
 #' 
+#' @export
 #' 
 dsdive.gibbs.obs = function(
   dsobs.list, t.stages.list, beta.init, lambda.init, verbose = FALSE, maxit, 
@@ -77,7 +78,7 @@ dsdive.gibbs.obs = function(
       dsobs.list = dsobs.list, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 1, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list)
+      beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 1 tx matrix 
     P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
@@ -88,7 +89,7 @@ dsdive.gibbs.obs = function(
       dsobs.list = dsobs.list, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 2, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list)
+      beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 2 tx matrix 
     P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
@@ -100,7 +101,7 @@ dsdive.gibbs.obs = function(
       dsobs.list = dsobs.list, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 3, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list)
+      beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 3 tx matrix 
     P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
@@ -135,14 +136,13 @@ dsdive.gibbs.obs = function(
       if(verbose) {
         message('--- Checkpoint ---')
       }
-      checkpoint.fn(trace = trace[1:it,], imputed.trace = imputed.trace[1:it])
+      checkpoint.fn(trace = trace[1:it,])
       tick.checkpoint = proc.time()[3]
     }
     
   }
   
   list(
-    theta = trace,
-    dives = imputed.trace
+    theta = trace
   )
 }

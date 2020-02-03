@@ -14,7 +14,7 @@
 #'
 dsdive.obs.sampleparams = function(
   dsobs.list, t.stages.list, P.raw, s0, depth.bins, beta, lambda,
-  lambda.priors.list, beta.priors.list) {
+  lambda.priors.list, beta.priors.list, tstep) {
 
   #
   # components for evaluating log-posteriors
