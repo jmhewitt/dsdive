@@ -44,7 +44,10 @@
 #' 
 #' @export
 #'
-dsdive.obsld = function(dsobs.list, t.stages.list, P.raw) {
+dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
+  
+  # compute likelihood for these stages
+  s.range = s0:sf
   
   # number of depth bins
   n.bins = nrow(P.raw[[1]]$obstx.mat)
@@ -68,35 +71,39 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw) {
       d0 = depths[i]
       df = depths[i+1]
       # extract start/end stages
-      s0 = stages[i]
-      sf = stages[i+1]
-      # add likelihood contribution of observation
-      if(s0==sf) { 
-        # add contribution for within-stage transition
-        ld = ld + log(P.raw[[s0]]$obstx.mat[d0,df])
-      } else {
-        
-        #
-        # build contribution for between-stage transitions as a series of 
-        # matrix-vector products
-        #
-        
-        # initial depth bin
-        u0 = sparseVector(x = 1, i = d0, length = n.bins)
-        # depth bin distribution at time of stage transition
-        u0 = ((t(u0) %*% P.raw[[s0]]$evecs) * 
-              exp(P.raw[[s0]]$evals * (t.stages[s0] - times[i]))) %*% 
-             P.raw[[s0]]$evecs.inv
-        
-        # final depth bin
-        uf = sparseVector(x = 1, i = df, length = n.bins)
-        # depth bin distribution at end of stage transition
-        uf = ((t(uf) %*% t(P.raw[[sf]]$evecs.inv)) * 
-              exp(P.raw[[sf]]$evals * (times[i+1] - t.stages[s0]))) %*% 
-             t(P.raw[[sf]]$evecs)
-        
-        # add contribution for between-stage transition
-        ld = ld + log(sum(u0 * uf))
+      s0.step = stages[i]
+      sf.step = stages[i+1]
+      
+      if(any(c(s0.step, sf.step) %in% s.range)) {
+        # add likelihood contribution of observation
+        if(s0.step==sf.step) { 
+          # add contribution for within-stage transition
+          ld = ld + log(P.raw[[s0.step]]$obstx.mat[d0,df])
+        } else {
+          
+          #
+          # build contribution for between-stage transitions as a series of 
+          # matrix-vector products
+          #
+          
+          # initial depth bin
+          u0 = sparseVector(x = 1, i = d0, length = n.bins)
+          # depth bin distribution at time of stage transition
+          u0 = ((t(u0) %*% P.raw[[s0.step]]$evecs) * 
+                  exp(P.raw[[s0.step]]$evals * 
+                      (t.stages[s0.step] - times[i]))) %*% 
+            P.raw[[s0.step]]$evecs.inv
+          
+          # final depth bin
+          uf = sparseVector(x = 1, i = df, length = n.bins)
+          # depth bin distribution at end of stage transition
+          uf = P.raw[[sf.step]]$evecs %*%
+            (exp(P.raw[[sf.step]]$evals * (times[i+1] - t.stages[s0.step])) * 
+               (P.raw[[sf.step]]$evecs.inv %*% uf))
+          
+          # add contribution for between-stage transition
+          ld = ld + log(as.numeric(u0 %*% uf))
+        }
       }
     }
     

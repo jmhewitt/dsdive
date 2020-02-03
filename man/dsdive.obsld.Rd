@@ -4,7 +4,7 @@
 \alias{dsdive.obsld}
 \title{Full conditional distribution for dive stages given data and parameters}
 \usage{
-dsdive.obsld(dsobs.list, t.stages.list, P.raw)
+dsdive.obsld(dsobs.list, t.stages.list, P.raw, s0, sf)
 }
 \arguments{
 \item{breaks}{the two indices where a new dive stage is entered}
