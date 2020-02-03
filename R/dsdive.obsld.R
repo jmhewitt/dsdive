@@ -75,10 +75,14 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
       sf.step = stages[i+1]
       
       if(any(c(s0.step, sf.step) %in% s.range)) {
+        
         # add likelihood contribution of observation
+        
         if(s0.step==sf.step) { 
+          
           # add contribution for within-stage transition
           ld = ld + log(P.raw[[s0.step]]$obstx.mat[d0,df])
+          
         } else {
           
           #
