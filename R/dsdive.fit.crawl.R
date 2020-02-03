@@ -24,7 +24,6 @@
 #' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
 #'   method used to determine stage transition probability curves
 #' 
-#' @example examples/dsdive.fit.crawl.R
 #' 
 #' @importFrom stats dexp dbinom
 #' 
