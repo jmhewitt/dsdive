@@ -71,8 +71,8 @@ dsdive.obs.sampleparams = function(
     
     # extract parameters and related quantities
     theta.build = build.params(theta = theta)
-    
-    if(any(theta.build$beta %in% c(0,1))) {
+     
+    if(min(abs(outer(theta.build$beta, c(0,1), '-'))) <= 1e-16) {
       -Inf
     } else {
       # update depth bin transition probability matrices
