@@ -19,7 +19,10 @@ dsdive.gibbs.obs(
   lambda2.prior,
   lambda3.prior,
   tstep,
-  depth.bins
+  depth.bins,
+  T1.prior.params,
+  T2.prior.params,
+  max.width
 )
 }
 \arguments{
@@ -84,12 +87,17 @@ beta.priors = list(
   c(31.5, 3.5), c(3.5, 31.5)
 )
 
+T1.prior.params = c(25, .04)
+T2.prior.params = c(56, .06)
+
 fit = dsdive.gibbs.obs(
   dsobs.list = list(sim.obs), t.stages.list = list(t.stages), 
   beta.init = beta, lambda.init = lambda, verbose = TRUE, maxit = 1e3, 
   pi1.prior = beta.priors[[1]], pi2.prior = beta.priors[[2]], 
   lambda1.prior = lambda.priors[[1]], lambda2.prior = lambda.priors[[2]], 
-  lambda3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins)
+  lambda3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins, 
+  T1.prior.params = T1.prior.params, T2.prior.params = T2.prior.params, 
+  max.width = 100)
 
 
 detach(dive.sim$params)

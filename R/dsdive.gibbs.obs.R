@@ -31,8 +31,11 @@
 dsdive.gibbs.obs = function(
   dsobs.list, t.stages.list, beta.init, lambda.init, verbose = FALSE, maxit, 
   checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
-  lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins) {
+  lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
+  T1.prior.params, T2.prior.params, max.width) {
 
+  
+  n = length(dsobs.list)
   
   lambda.priors.list = list(lambda1.prior, lambda2.prior, lambda3.prior)
   beta.priors.list = list(pi1.prior, pi2.prior)
@@ -45,6 +48,7 @@ dsdive.gibbs.obs = function(
   theta = list(beta = beta.init, lambda = lambda.init)
   
   trace = matrix(NA, nrow = maxit, ncol = 5)
+  trace.t.stages = vector('list', length = maxit)
   colnames(trace) = c('pi1', 'pi2', 'lambda1', 'lambda2', 'lambda3')
   
   tick.checkpoint = proc.time()[3]
@@ -112,6 +116,22 @@ dsdive.gibbs.obs = function(
       print(theta)
     }
     
+    #
+    # update stage transition time parameters
+    #
+    
+    
+    for(i in 1:n) {
+      d = dsobs.list[[i]]
+      t.stages.list[[i]] = dsdive.obs.sample.stages(
+        depths = d$depths, times = d$times, t.stages = t.stages.list[[i]], 
+        P.raw = P.raw, T.range = c(d$times[1], d$times[length(d$times)]), 
+        depth.bins = depth.bins, T1.prior.params = T1.prior.params, 
+        T2.prior.params = T2.prior.params, max.width = max.width, 
+        debug = FALSE)$t.stages
+    }
+    
+    
     
     #
     # save trace
@@ -119,6 +139,7 @@ dsdive.gibbs.obs = function(
     
     # save trace 
     trace[it,1:5] = unlist(theta[1:2])
+    trace.t.stages[[it]] = t.stages.list
     
     tock = proc.time()[3]
     
@@ -136,7 +157,7 @@ dsdive.gibbs.obs = function(
       if(verbose) {
         message('--- Checkpoint ---')
       }
-      checkpoint.fn(trace = trace[1:it,])
+      checkpoint.fn(trace = trace[1:it,], trace.t.stages = trace.t.stages[1:it])
       tick.checkpoint = proc.time()[3]
     }
     
