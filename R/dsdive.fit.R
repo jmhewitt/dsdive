@@ -31,11 +31,12 @@
 #' @export
 #' 
 dsdive.fit = function(
-  dives.obs, cl, beta.init, lambda.init, verbose = FALSE, T1.prior, T2.prior, 
-  pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, it, 
-  inflation.factor.lambda = 1.1, checkpoint.interval = Inf, 
-  checkpoint.function = function(x, ...) {}, method.N = 'exact', N.max = 100,
-  crash.function = function(x, ...) {}, truncpois.scale = .8) {
+  dives.obs, cl, beta.init, lambda.init, verbose = FALSE, T1.prior.params, 
+  T2.prior.params, pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, 
+  lambda3.prior, max.width, it, inflation.factor.lambda = 1.1, 
+  checkpoint.interval = Inf, checkpoint.function = function(x, ...) {}, 
+  method.N = 'exact', N.max = 100, crash.function = function(x, ...) {}, 
+  truncpois.scale = .8) {
   
   impute = function(depth.bins, depths, times, beta, lambda, t.stages) {
     dsdive.impute_segments(
@@ -53,14 +54,15 @@ dsdive.fit = function(
   res = dsdive.gibbs(dives.obs = dives.obs, cl = cl, impute.init = impute, 
                      impute.gibbs = impute.gibbs,
                      init = list(beta = beta.init, lambda = lambda.init), 
-                     verbose = verbose, maxit = it, T1.prior = T1.prior, 
-                     T2.prior = T2.prior, pi1.prior = pi1.prior, 
+                     verbose = verbose, maxit = it, 
+                     T1.prior.params = T1.prior.params, 
+                     T2.prior.params = T2.prior.params, pi1.prior = pi1.prior, 
                      pi2.prior = pi2.prior, lambda1.prior = lambda1.prior, 
                      lambda2.prior = lambda2.prior, 
                      lambda3.prior = lambda3.prior, 
                      checkpoint.fn = checkpoint.function, 
                      checkpoint.interval = checkpoint.interval, 
-                     crash.fn = crash.function)
+                     crash.fn = crash.function, max.width = max.width)
    
   res 
 }
