@@ -60,9 +60,13 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   # identify timepoints where there are jump-discontinuities in log posterior
   inds.jumps = which(times <= t.stages[2])
   
+  # can't allow stage 1->2 transition at surface
+  inds.jumps = inds.jumps[depths[inds.jumps]!=1]
+  
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(T.range[1], times[inds.jumps], t.stages[2]))),
+    breaks = sort(unique(c(max(T.range[1], times[inds.jumps][1]), 
+                           times[inds.jumps], t.stages[2]))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
@@ -75,7 +79,7 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
                         d.logf = diff(lp.eval)/diff(anchors.extra), 
                         dd.logf.sup = rep(0, length(anchors)), 
                         anchors = anchors)
-
+  
   # draw proposal
   prop = q1$rquad(n = 1)
 
@@ -97,10 +101,20 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
 
   # identify timepoints where there are jump-discontinuities in log posterior
   inds.jumps = which(times >= t.stages[1])
+  
+  # can't allow stage 2->3 transition at surface
+  inds.jumps = inds.jumps[depths[inds.jumps]!=1]
 
+  breaks = refine.partition(
+    breaks = sort(unique(c(max(T.range[1], times[inds.jumps][1]), 
+                           times[inds.jumps], t.stages[2]))),
+    max.width = max.width)
+  
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(t.stages[1], times[inds.jumps], T.range[2]))),
+    breaks = sort(unique(c(t.stages[1], times[inds.jumps], 
+                           min(T.range[2], 
+                               times[inds.jumps][length(inds.jumps)])))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
