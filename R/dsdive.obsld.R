@@ -46,6 +46,11 @@
 #'
 dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
   
+  if(inherits(dsobs.list, 'dsobs')) {
+    dsobs.list = list(dsobs.list)
+    t.stages.list = list(t.stages.list)
+  }
+  
   # compute likelihood for these stages
   s.range = s0:sf
   
