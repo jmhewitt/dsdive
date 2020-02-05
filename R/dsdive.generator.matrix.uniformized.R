@@ -56,8 +56,7 @@ dsdive.generator.matrix.uniformized = function(depth.bins, beta, lambda, s0,
   
   # rescale matrix and diagonal entries
   A = A * rate.uniformized
-  diag(A) = 0
-  diag(A) = - rowSums(A)
+  diag(A) = diag(A) - rate.uniformized
   
   A
 }
