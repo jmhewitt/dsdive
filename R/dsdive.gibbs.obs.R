@@ -164,6 +164,7 @@ dsdive.gibbs.obs = function(
   }
   
   list(
-    theta = trace
+    theta = trace,
+    t.stages = trace.t.stages
   )
 }
