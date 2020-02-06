@@ -9,11 +9,11 @@
 #' 
 #' @importFrom Matrix sparseVector
 #' 
-#' @example examples/ffbs.segment.R
+#' @example examples/ffbs.R
 #' 
 #' @export
 #'
-ffbs.segment = function(B, L) {
+ff = function(B, L, a0 = L[,1]) {
 
   if(!inherits(B, 'list')) {
     stop('B must be a list of single-step transition matrices')
@@ -35,29 +35,15 @@ ffbs.segment = function(B, L) {
   a = vector('list', N+1)
   
   # extract initial state distribution
-  a[[1]] = L[,1]
+  a[[1]] = a0
   
   # forward filter
-  
   for(i in 2:length(a)) {
     a[[i]] = t(B[[i-1]]) %*% (a[[i-1]] * L[,i-1])
     # standardize for numerical stability
     a[[i]] = a[[i]] / sum(a[[i]])
   }
   
-  #
-  # backward sample
-  #
-  
-  s = numeric(N)
-  
-  p = as.numeric(L[,N] * a[[N+1]])
-  s[N] = sample(x = 1:m, size = 1, prob = p)
-  
-  for(t in (N-1):1) {
-    p = as.numeric(B[[t]][,s[t+1]] * a[[t]] * L[,t])
-    s[t] = sample(x = 1:m, size = 1, prob = p)
-  }
- 
-  s
+  # return list of forward-filtering distributions
+  a
 }

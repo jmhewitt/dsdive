@@ -1,55 +1,49 @@
-devtools::document()
+data('dive.sim')
+attach(dive.sim)
+attach(dive.sim$params)
 
-# construct transition matrix
-# B = matrix(runif(100), nrow = 10, ncol = 10)
-B = matrix(0, nrow = 30000, ncol = 30000)
-diag(B) = 4
-diag(B[,-1]) = 1
-diag(B[-1,]) = 1
-B = B / rowSums(B)
+# uniformized transition rate
+r.unif = max(outer(lambda, 2 * depth.bins$halfwidth, '/'))
 
-library(Matrix)
-library(spam)
+# single-step transition matrix
+m = dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
+                                 lambda = lambda, s0 = 2, 
+                                 rate.uniformized = r.unif)
 
-B = as.dgCMatrix.spam(as.spam(B))
+# number of states
+k = nrow(m)
 
+# number of transitions
+N = 10
 
-# set initial conditions
-init = 1
+# list of transition matrices
+B = lapply(1:N, function(i) m)
 
-# set number of transitions to make
-t = 20
+# starting and ending coordinates
+x0 = 5
+xN = 10
 
-# forward sample transitions
-s = numeric(t)
-s[1] = init
-for(i in 2:t) {
-  s[i] = sample(x = 1:nrow(B), size = 1, prob = B[s[i-1],])
-}
+# encode likelihood information
+L = matrix(0, nrow = k, ncol = N)
+L[x0,1] = 1                       # fixed starting location
+L[xN,N] = 1                       # fixed ending location
+L[,-c(1,N)] = 1/k                 # free transitions
+L[x0,2] = 0                       # force a transition by 2nd step
+L = sweep(L, 2, colSums(L), '/')  # restandardize likelihood
 
-# observe process at some indices
-na.inds = sample(x = 2:(t-1), size = .5*t)
-O = s
-O[na.inds] = NA
+# forward filter
+a = ff(B = B, L = L)
 
-# wrap transition matrices
-Bt = vector('list', t)
-for(i in 1:t) {
-  Bt[[i]] = B
-}
+# backwards sample
+set.seed(2019)
+y = bs(a = a, B = B, L = L)
 
-devtools::document()
-# draw from posterior
-x = t(replicate(1e3, ffbs(Bt = Bt, O = O)))
+# execute forward filtering and backwards sampling via wrapper
+set.seed(2019)
+x = ffbs(B = B, L = L)
 
-# verify sampling reproduces observations
-all(t(x[,!is.na(O)]) == O[!is.na(O)])
+# sampling steps are identical
+identical(x,y)
 
-
-#
-# check some posterior distributions of missing values
-#
-
-ind = which(is.na(O))[9]
-table(x[,ind])/sum(table(x[,ind]))
-s[ind]
+detach(dive.sim$params)
+detach(dive.sim)
