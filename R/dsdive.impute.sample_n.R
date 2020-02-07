@@ -55,9 +55,12 @@
 #' 
 dsdive.impute.sample_n = function(
   n0=NULL, d0, df, s0, sf, t0, tf, t.stages, rate.unif, P.raw, P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins, max.tx) {
+  ff.s0 = NULL, ff.sf = NULL, n.bins, max.tx, ff.out = FALSE) {
   
+  #
   # initialize n-step forward distributions if necessary
+  #
+  
   if(is.null(ff.s0)) {
     ff.s0 = vector('list', length = 0)
     a = numeric(length = n.bins)
@@ -65,7 +68,18 @@ dsdive.impute.sample_n = function(
     ff.s0[[1]] = a
   }
   
-  # compute normalizing constant and sampling window
+  if(is.null(ff.sf)) {
+    ff.sf = vector('list', length = 0)
+    a = numeric(length = n.bins)
+    a[df] = 1
+    ff.sf[[1]] = a
+  }
+  
+  
+  #
+  # compute normalizing constant, sampling window, and transition constants
+  #
+  
   if(s0 == sf) {
     # sampling window
     twin = tf - t0
@@ -104,6 +118,11 @@ dsdive.impute.sample_n = function(
     C = as.numeric(t(u0) %*% uf)
   }
   
+  
+  #
+  # sample n via inverse-transform method
+  #
+  
   # inverse-transform sampling variate
   uC = runif(1) * C
   
@@ -112,15 +131,28 @@ dsdive.impute.sample_n = function(
   for(n in 0:max.tx) {
     
     # update n-step forward distributions if necessary
-    if(length(ff.s0) <= n) {
-      ff.s0[[n+1]] = t(P.tx[[s0]]) %*% ff.s0[[n]]
+    if(is.null(n0)) {
+      if(length(ff.s0) <= n) {
+        ff.s0[[n+1]] = t(P.tx[[s0]]) %*% ff.s0[[n]]
+      }
+    } else {
+      if(length(ff.sf) <= n) {
+        ff.sf[[n+1]] = t(P.tx[[sf]]) %*% ff.sf[[n]]
+      }
     }
     
     # probability of reaching df after n transitions
     if(s0==sf) {
+      # within-stage transition
       p.df = ff.s0[[n+1]][df]
     } else {
-      
+      if(is.null(n0)) {
+        # between stage transition and number of s0 transitions is unknown
+        p.df = as.numeric(t(ff.s0[[n+1]]) %*% uf)
+      } else {
+        # between stage transition and number of s0 transitions is known
+        p.df = as.numeric(t(u0) %*% ff.sf[[n+1]])
+      }
     }
     
     # aggregate probability mass
@@ -139,5 +171,9 @@ dsdive.impute.sample_n = function(
     warning(msg)
   }
   
-  n
+  if(ff.out) {
+    list(n = n, ff.s0 = ff.s0, ff.sf = ff.sf)
+  } else {
+    n
+  }
 }
