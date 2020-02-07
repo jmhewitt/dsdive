@@ -20,7 +20,7 @@ bs = function(a, B, L) {
   }
   
   # number of transitions to sample
-  N = ncol(L)
+  N = ncol(L) - 1
   
   if(length(B) != N) {
     msg = paste('Number of transition matrices (', length(B), ')', 
@@ -39,12 +39,12 @@ bs = function(a, B, L) {
   # backward sample
   #
   
-  s = numeric(N)
+  s = numeric(N+1)
   
-  p = as.numeric(L[,N] * a[[N+1]])
-  s[N] = sample(x = 1:m, size = 1, prob = p)
+  p = as.numeric(L[,N+1] * a[[N+1]])
+  s[N+1] = sample(x = 1:m, size = 1, prob = p)
   
-  for(t in (N-1):1) {
+  for(t in N:1) {
     p = as.numeric(B[[t]][,s[t+1]] * a[[t]] * L[,t])
     s[t] = sample(x = 1:m, size = 1, prob = p)
   }

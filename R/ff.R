@@ -5,7 +5,7 @@
 #' 
 #' @param B single-step transition matrix, after uniformization
 #' @param L likelihood matrix where each column is the probability distribution
-#'  for the state at each of the discrete transitions
+#'  for the state at each of the discrete transitions, and the initial location
 #' 
 #' @importFrom Matrix sparseVector
 #' 
@@ -20,7 +20,7 @@ ff = function(B, L, a0 = L[,1]) {
   }
   
   # number of transitions to sample
-  N = ncol(L)
+  N = ncol(L) - 1
   
   if(length(B) != N) {
     msg = paste('Number of transition matrices (', length(B), ')', 
