@@ -24,12 +24,12 @@ x0 = 5
 xN = 10
 
 # encode likelihood information
-L = matrix(0, nrow = k, ncol = N+1)
-L[x0,1] = 1                           # fixed starting location
-L[xN,N+1] = 1                         # fixed ending location
-L[,-c(1,N+1)] = 1/k                   # free transitions
-L[x0,2] = 0                           # force a transition by 2nd step
-L = sweep(L, 2, colSums(L), '/')      # restandardize likelihood
+L = matrix(0, nrow = k, ncol = N)
+L[x0,1] = 1                       # fixed starting location
+L[xN,N] = 1                       # fixed ending location
+L[,-c(1,N)] = 1/k                 # free transitions
+L[x0,2] = 0                       # force a transition by 2nd step
+L = sweep(L, 2, colSums(L), '/')  # restandardize likelihood
 
 # forward filter
 a = ff(B = B, L = L)
