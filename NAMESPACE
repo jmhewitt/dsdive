@@ -3,6 +3,7 @@
 S3method(min,tx)
 S3method(plot,dsdive)
 S3method(plot,dsobs)
+export(balance_inds)
 export(bs)
 export(crawl.impute)
 export(ds.df)
