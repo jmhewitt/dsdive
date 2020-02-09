@@ -54,72 +54,111 @@
 #' @example examples/dsdive.impute.R
 #' @export
 #'
-dsdive.impute = function(depth.bins, depths, times, beta, lambda,
-                         inflation.factor.lambda = 1.1, verbose = FALSE, 
-                         t.stages, method.N = 'exact', N.max = NULL) {
+dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, P.tx, 
+                         n.bins, max.tx) {
   
-  # find stage breaks
-  s1.obs = times < t.stages[1]
-  s2.obs = (times < t.stages[2]) & (!s1.obs) 
-  s3.obs = times >= t.stages[2]
+  # number of observations
+  nt = length(depths)
   
-  # convert to indices
-  s1.inds = which(s1.obs)
-  s2.inds = which(s2.obs)
-  s3.inds = which(s3.obs)
+  # associate stages with observations
+  stages = findInterval(times, t.stages) + 1
   
-  # impute stage 1 segments
-  if(any(s1.obs)) {
-    tgt.inds = c(s1.inds, s2.inds[1])
-    tgt.inds = tgt.inds[!is.na(tgt.inds)]
-    s1.imputed = dsdive.impute_segments(
-      depth.bins = depth.bins, depths = depths[tgt.inds], 
-      times = times[tgt.inds], beta = beta, lambda = lambda, s0 = 1, 
-      inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max, t.sbreaks = t.stages
-    )
-  } else {
-    s1.imputed = NULL
+  # initialize containers for segments
+  depths.raw = vector('list', nt-1)
+  times.raw = vector('list', nt-1)
+  
+  # impute segments
+  for(i in 1:(nt-1)) {
+    
+    # extract start and end information for segment
+    d0 = depths[i]
+    df = depths[i+1]
+    s0 = stages[i]
+    sf = stages[i+1]
+    t0 = times[i]
+    tf = times[i+1]
+    
+    if(s0==sf) {
+      
+      # number of transitions to impute
+      n = dsdive.impute.sample_n(
+        n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
+        ff.s0 = NULL, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
+        filters.out = TRUE)
+      
+      # assemble single-step transition matrices
+      B = lapply(1:n$n, function(j) P.tx[[s0]])
+      
+      # assemble likelihood for transitions
+      L = matrix(0, nrow = n.bins, ncol = n$n + 1)
+      L[d0,1] = 1                    # initial location is fixed
+      L[df,ncol(L)] = 1              # final location is fixed
+      L[,-c(1,ncol(L))] = 1/n.bins   # all other transitions are free
+
+      # impute via backward sampling
+      depths.raw[[i]] = bs(a = n$ff.s0, B = B, L = L)
+      
+      # uniformly sample transition times
+      times.raw[[i]] = t0 + c(0, sort((tf-t0) * runif(n = n$n)))
+      
+    } else {
+      
+      # number of stage s0 transitions to impute
+      n0 = dsdive.impute.sample_n(
+        n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
+        ff.s0 = NULL, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
+        filters.out = TRUE)
+      
+      # number of stage sf transitions to impute
+      n1 = dsdive.impute.sample_n(
+        n0 = n0$n, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
+        ff.s0 = n0$ff.s0, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
+        filters.out = FALSE)
+      
+      # assemble single-step transition matrices
+      B = list()
+      if(n0$n > 0) { B = c(B, lapply(1:n0$n, function(j) P.tx[[s0]])) }
+      if(n1 > 0) { B = c(B, lapply(1:n1, function(j) P.tx[[sf]])) }
+      
+      # assemble likelihood for transitions
+      L = matrix(0, nrow = n.bins, ncol = n0$n + n1 + 1)
+      L[d0,1] = 1                    # initial location is fixed
+      L[df,ncol(L)] = 1              # final location is fixed
+      L[,-c(1,ncol(L))] = 1/n.bins   # all other transitions are free
+      
+      # impute via backward sampling
+      depths.raw[[i]] = ffbs(B = B, L = L)
+      
+      # uniformly sample transition times
+      times.raw[[i]] = t0 + c(0, sort((tf-t0) * runif(n = n0$n + n1)))
+      
+    }
+    
   }
   
-  # impute stage 2 segments
-  if(any(s2.obs)) {
-    tgt.inds = c(s2.inds, s3.inds[1])
-    tgt.inds = tgt.inds[!is.na(tgt.inds)]
-    s2.imputed = dsdive.impute_segments(
-      depth.bins = depth.bins, depths = depths[tgt.inds], 
-      times = times[tgt.inds], beta = beta, lambda = lambda, s0 = 2, 
-      inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max, t.sbreaks = t.stages[-1]
-    )
-  } else {
-    s2.imputed = NULL
-  }
-  
-  # impute stage 3 segments
-  if(any(s3.obs)) {
-    s3.imputed = dsdive.impute_segments(
-      depth.bins = depth.bins, depths = depths[s3.obs], times = times[s3.obs], 
-      beta = beta, lambda = lambda, s0 = 3, 
-      inflation.factor.lambda = inflation.factor.lambda, verbose = verbose, 
-      method.N = method.N, N.max = N.max, t.sbreaks = NULL
-    )
-  } else {
-    s3.imputed = NULL
-  }
-  
-  
+  # assemble uniformized dive
+  depths.full = do.call(c, depths.raw)
+  times.full = do.call(c, times.raw)
+  stages.full = findInterval(times.full, t.stages) + 1
+    
   #
-  # merge segments
+  # package complete dive
   #
+  
+  # identify depth bin or stage transition times
+  tx.real = c(TRUE, diff(depths.full) != 0) | c(TRUE, diff(stages.full) == 1)
   
   res = list(
-    depths = c(s1.imputed$depths, s2.imputed$depths[-1], s3.imputed$depths[-1]),
-    stages = c(s1.imputed$stages, s2.imputed$stages[-1], s3.imputed$stages[-1]),
-    times = c(s1.imputed$times, s2.imputed$times[-1], s3.imputed$times[-1])
+    depths = depths.full[tx.real],
+    stages = stages.full[tx.real],
+    times = times.full[tx.real]
   )
   
-  res$durations = diff(res$times)
+  res$durations = c(diff(res$times), 
+                    times[length(times)] - res$times[length(res$times)])
   
   class(res) = 'dsdive'
   

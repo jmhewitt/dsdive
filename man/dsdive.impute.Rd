@@ -4,27 +4,22 @@
 \alias{dsdive.impute}
 \title{Use bridged sampling to impute a complete dive trajectory consistent with observations}
 \usage{
-dsdive.impute(
-  depth.bins,
-  depths,
-  times,
-  beta,
-  lambda,
-  inflation.factor.lambda = 1.1,
-  verbose = FALSE,
-  t.stages,
-  method.N = "exact",
-  N.max = NULL
-)
+dsdive.impute(depths, times, t.stages, rate.unif, P.raw, P.tx, n.bins, max.tx)
 }
 \arguments{
+\item{depths}{record of depth bins the trajectory should visit}
+
+\item{times}{times at which the depth bins should be visited}
+
+\item{t.stages}{the times at which stage transitions occur}
+
+\item{M}{the number of trajectories to sample}
+
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
 column defines the half-width of each bin.}
 
-\item{depths}{record of depth bins the trajectory should visit}
-
-\item{times}{times at which the depth bins should be visited}
+\item{s0}{dive stage at which the trajectory should be started from}
 
 \item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
 preference and directional persistence parameters for the DIVING, SUBMERGED, 
@@ -32,6 +27,13 @@ and SURFACING dive stages.}
 
 \item{lambda}{length 3 vector that specifies the transition rate, 
 respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+
+\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
+transitions to the SUBMERGED stage can occur and the probability that such 
+a transition occurs at the next depth transition}
+
+\item{surf.tx}{parameter that specifies the probability the trajectory will 
+transition to the SURFACING stage at the next depth transition}
 
 \item{inflation.factor.lambda}{In order to facilitate bridged transitions, 
 the transition rate of the overall process must be inflated to allow the 
@@ -44,19 +46,6 @@ self-transitions.}
 
 \item{verbose}{If \code{TRUE}, then the sampler's progress will be printed 
 during sampling.}
-
-\item{t.stages}{the times at which stage transitions occur}
-
-\item{M}{the number of trajectories to sample}
-
-\item{s0}{dive stage at which the trajectory should be started from}
-
-\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
-a transition occurs at the next depth transition}
-
-\item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
 
 \item{precompute.bridges}{If \code{TRUE}, then the bridged transition 
 matrices will be precomputed.  Enabling this option will increase the 
@@ -92,19 +81,38 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
+# true stage transition times for the dive
 t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
 
-x = dsdive.impute(depth.bins = depth.bins, depths = sim.obs$depths, 
-                  times = sim.obs$times, beta = beta, lambda = lambda, 
-                  inflation.factor.lambda = 1.1, t.stages = t.stages, 
-                  method.N = 'truncpois', N.max = 100)
+# uniformized transition rate
+rate.unif = max(outer(lambda, 2*depth.bins[,2], '/'))
 
-x$durations = c(x$durations, Inf)
+# time between observations
+tstep = diff(sim.obs$times[1:2])
 
+# probability transition matrix for observations
+P.raw = lapply(1:3, function(s) {
+  dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
+                      lambda = lambda, s0 = s, tstep = tstep, 
+                      include.raw = TRUE)
+})
+
+# probability transition matrix for uniformized DTMC
+P.tx = lapply(1:3, function(s) {
+  dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
+                               lambda = lambda, s0 = s, 
+                               rate.uniformized = rate.unif)
+})
+
+# impute dive trajectory
+x = dsdive.impute(
+  depths = sim.obs$depths, times = sim.obs$times, t.stages = t.stages, 
+  rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, n.bins = nrow(depth.bins), 
+  max.tx = 100)
+
+# overlay trajectory over observations
 pl = plot(x = sim.obs, depth.bins = depth.bins, stages = sim.obs$stages, 
-          errorbars = TRUE, imputed.list = x, imputed.alpha = .6)
-
-pl
+          errorbars = TRUE, imputed.list = x)
 
 detach(dive.sim$params)
 detach(dive.sim)
