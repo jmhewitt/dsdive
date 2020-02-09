@@ -55,7 +55,7 @@
 #' 
 dsdive.impute.sample_n = function(
   n0=NULL, d0, df, s0, sf, t0, tf, t.stages, rate.unif, P.raw, P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins, max.tx, ff.out = FALSE) {
+  ff.s0 = NULL, bf.sf = NULL, n.bins, max.tx, filters.out = FALSE) {
   
   #
   # initialize n-step forward distributions if necessary
@@ -68,11 +68,13 @@ dsdive.impute.sample_n = function(
     ff.s0[[1]] = a
   }
   
-  if(is.null(ff.sf)) {
-    ff.sf = vector('list', length = 0)
-    a = numeric(length = n.bins)
-    a[df] = 1
-    ff.sf[[1]] = a
+  if(!is.null(n0)) {
+    if(is.null(bf.sf)) {
+      bf.sf = vector('list', length = 0)
+      a = numeric(length = n.bins)
+      a[df] = 1
+      bf.sf[[1]] = a
+    }
   }
   
   
@@ -102,17 +104,12 @@ dsdive.impute.sample_n = function(
       twin = tf - t.stages[sf-1]
       # update n-step forward distributions if necessary
       if(length(ff.s0) <= n0) {
-        # number of additional transitions needed
-        steps = n0 - length(ff.s0) + 1
-        # all transitions are to unknown locations
-        L = matrix(1/n.bins, nrow = n.bins, ncol = steps)
-        # transition matrices for each step
-        B = lapply(1:steps, function(i) P.tx[[s0]])
-        # append additional forward distributions
-        ff.s0 = c(ff.s0, ff(B = B, L = L, a0 = ff.s0[[length(ff.s0)]])[-1])
+        for(k in length(ff.s0):(n0+1)) {
+          ff.s0[[k+1]] = t(P.tx[[s0]]) %*% ff.s0[[k]]
+        }
       }
       # number of transitions is known
-      u0 = ff.s0[[length(ff.s0)]]
+      u0 = ff.s0[[n0+1]]
     }
     # between-stage probability of observing the given transition
     C = as.numeric(t(u0) %*% uf)
@@ -136,8 +133,8 @@ dsdive.impute.sample_n = function(
         ff.s0[[n+1]] = t(P.tx[[s0]]) %*% ff.s0[[n]]
       }
     } else {
-      if(length(ff.sf) <= n) {
-        ff.sf[[n+1]] = t(P.tx[[sf]]) %*% ff.sf[[n]]
+      if(length(bf.sf) <= n) {
+        bf.sf[[n+1]] = P.tx[[sf]] %*% bf.sf[[n]]
       }
     }
     
@@ -151,7 +148,7 @@ dsdive.impute.sample_n = function(
         p.df = as.numeric(t(ff.s0[[n+1]]) %*% uf)
       } else {
         # between stage transition and number of s0 transitions is known
-        p.df = as.numeric(t(u0) %*% ff.sf[[n+1]])
+        p.df = as.numeric(t(u0) %*% bf.sf[[n+1]])
       }
     }
     
@@ -171,8 +168,8 @@ dsdive.impute.sample_n = function(
     warning(msg)
   }
   
-  if(ff.out) {
-    list(n = n, ff.s0 = ff.s0, ff.sf = ff.sf)
+  if(filters.out) {
+    list(n = n, ff.s0 = ff.s0, bf.sf = bf.sf)
   } else {
     n
   }

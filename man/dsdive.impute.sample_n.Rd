@@ -17,10 +17,10 @@ dsdive.impute.sample_n(
   P.raw,
   P.tx,
   ff.s0 = NULL,
-  ff.sf = NULL,
+  bf.sf = NULL,
   n.bins,
   max.tx,
-  ff.out = FALSE
+  filters.out = FALSE
 )
 }
 \arguments{

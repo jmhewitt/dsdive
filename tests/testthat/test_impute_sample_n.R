@@ -45,7 +45,7 @@ test_that("sample num. uniformized depth bin tx's. btwn within-stage obs", {
   # within-stage transition example
   #
   
-  ind = 2
+  ind = 1
   
   d0 = sim.obs$depths[ind]
   df = sim.obs$depths[ind+1]
@@ -67,7 +67,7 @@ test_that("sample num. uniformized depth bin tx's. btwn within-stage obs", {
     dsdive.impute.sample_n(
       n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
       t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+      ff.s0 = NULL, bf.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
   })
   
   # theoretical probability distribution, for validation
@@ -152,7 +152,7 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   
   
   #
-  # within-stage transition example
+  # between-stage transition example
   #
   
   ind = max(which(sim.obs$times < t.stages[1]))
@@ -177,13 +177,13 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
     n0 = dsdive.impute.sample_n(
       n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
       t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100, 
-      ff.out = TRUE)
+      ff.s0 = NULL, bf.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100, 
+      filters.out = TRUE)
     
     n1 = dsdive.impute.sample_n(
       n0 = n0$n, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
       t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = n0$ff.s0, ff.sf = n0$ff.sf, n.bins = nrow(depth.bins), 
+      ff.s0 = n0$ff.s0, bf.sf = n0$bf.sf, n.bins = nrow(depth.bins), 
       max.tx = 100)
     
     c(n0$n, n1)
@@ -191,13 +191,13 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   
   # # MC sample number of uniformized depth bin tx's. between observations
   # n1.samples.cond = replicate(n = mcit, expr = {
-  #   n0 = 4
+  #   n0 = 10
   #   n1 = dsdive.impute.sample_n(
-  #     n0 = n0, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-  #     t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  #     ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), 
+  #     n0 = n0, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf,
+  #     t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx,
+  #     ff.s0 = NULL, bf.sf = NULL, n.bins = nrow(depth.bins),
   #     max.tx = 100)
-  #   
+  # 
   #   c(n0, n1)
   # })
   
@@ -235,7 +235,7 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
     pmat.sf = Diagonal(n = n.bins)
     if(n[2] > 0) {
       for(i in 1:n[2]) {
-        pmat.sf = pmat.sf %*% P.tx[[sf]]
+        pmat.sf = pmat.sf %*% P.tx[[sf]] 
       }
     }
     
@@ -253,7 +253,7 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   n1.sampled = as.numeric(colnames(p.samples))
   
   # # MC estimates for conditional pmf
-  # p.samples.cond = table(n0 = n1.samples.cond[1,], 
+  # p.samples.cond = table(n0 = n1.samples.cond[1,],
   #                        n1 = n1.samples.cond[2,])/mcit
   # n0.sampled.cond = as.numeric(rownames(p.samples.cond))
   # n1.sampled.cond = as.numeric(colnames(p.samples.cond))
@@ -263,40 +263,72 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   joint.theoretical = f.joint(joint.theoretical.support)
   
   # helliger distance between MC estimates and theoretical joint dist'n.
-  H.joint = sqrt(sum((sqrt(p.samples) - sqrt(joint.theoretical))^2)) / sqrt(2)
+  H.joint = sqrt(sum( (sqrt(p.samples) - sqrt(joint.theoretical))^2 )) / sqrt(2)
   
-  # expect hellinger distance to be small
-  expect_lt(H.joint, .1)
-  
-  # theoretical joint distribution evaluated at observations
-  joint.theoretical.support.full = expand.grid(n0 = 0:40, n1 = 0:40)
-  joint.theoretical.full = f.joint(joint.theoretical.support.full)
+  # hellinger distance between MC estimates and theoretical marginal for n0
+  H.n0 = sqrt(sum((sqrt(rowSums(p.samples)) -
+                   sqrt(cbind(joint.theoretical.support,
+                              mass = joint.theoretical) %>%
+                          group_by(n0) %>%
+                          summarise(p = sum(mass)) %>%
+                          select(p) %>%
+                          unlist()))^2)) / sqrt(2)
 
+  # hellinger distance between MC estimates and theoretical marginal for n1
+  H.n1 = sqrt(sum((sqrt(colSums(p.samples)) -
+                     sqrt(cbind(joint.theoretical.support,
+                                mass = joint.theoretical) %>%
+                            group_by(n1) %>%
+                            summarise(p = sum(mass)) %>%
+                            select(p) %>%
+                            unlist()))^2)) / sqrt(2)
+  
+  
+  # expect hellinger distances to be small
+  expect_lt(H.joint, .1)
+  expect_lt(H.n0, .05)
+  expect_lt(H.n1, .05)
+  
+  # # theoretical joint distribution evaluated at observations
+  # joint.theoretical.support.full = expand.grid(n0 = 0:40, n1 = 0:40)
+  # joint.theoretical.full = f.joint(joint.theoretical.support.full)
+  # 
   # # visualize marginal distribution for n0
   # plot(n0.sampled, rowSums(p.samples),
   #      xlab = expression(n[0]), ylab = expression(P(N[0]==n[0])))
   # points(cbind(joint.theoretical.support.full,
   #              mass = joint.theoretical.full) %>%
-  #          group_by(n0) %>% summarise(p = sum(mass)), col = 2)
+  #          group_by(n0) %>% summarise(p = sum(mass)), col = 2, pch = 4)
   # 
   # # visualize marginal distribution for n1
   # plot(n1.sampled, colSums(p.samples),
   #      xlab = expression(n[1]), ylab = expression(P(N[1]==n[1])))
   # points(cbind(joint.theoretical.support.full,
   #              mass = joint.theoretical.full) %>%
-  #          group_by(n1) %>% summarise(p = sum(mass)), col = 2)
-  # 
+  #          group_by(n1) %>% summarise(p = sum(mass)), col = 2, pch = 4)
+
   # # visualize all theoretical conditional distributions for n1 | n0
   # cbind(joint.theoretical.support.full, mass = joint.theoretical.full) %>%
   #   filter(n0 <=5) %>%
   #   mutate(n0 = factor(n0)) %>%
   #   group_by(n0) %>%
   #   mutate(p = mass/sum(mass)) %>%
-  # ggplot(aes(x = n1, y = p, shape = n0, col = n0)) +
-  #   geom_point()
-  # 
+  # ggplot(aes(x = n1, y = p, col = n0)) +
+  #   geom_line()
+  
+  # # visualize joint distribution
+  # cbind(joint.theoretical.support.full, mass = joint.theoretical.full) %>%
+  #   ggplot(aes(x=n0, y=n1, fill = mass, z = mass)) + 
+  #   geom_raster() + 
+  #   geom_contour() + 
+  #   xlim(c(0,20)) + 
+  #   ylim(c(0,15)) + 
+  #   coord_equal() + 
+  #   viridis::scale_fill_viridis(direction = -1)
+  
+
   # # visualize a conditional distribution for n1 | n0
-  # n0.cond = 0
+  # n0.cond = n0.sampled.cond #10
   # pcond = p.samples[n0.sampled==n0.cond,]
   # pcond = pcond / sum(pcond)
   # plot(n1.sampled, pcond,
@@ -304,29 +336,29 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   # points(cbind(joint.theoretical.support.full,
   #              mass = joint.theoretical.full) %>%
   #          filter(n0 == n0.cond) %>%
-  #          mutate(p = mass/sum(mass)) %>% select(n1, p), col = 2)
+  #          mutate(p = mass/sum(mass)) %>% select(n1, p), col = 2, pch = 4)
   # 
   # # visualize an improved conditional distribution for n1 | n0
   # n0.cond = n0.sampled.cond
   # pcond = p.samples.cond[n0.sampled.cond==n0.cond,]
   # pcond = pcond / sum(pcond)
   # plot(n1.sampled.cond, pcond,
-  #      xlab = expression(n[0]), ylab = expression(P(N[0]==n[0])))
-  # points(cbind(joint.theoretical.support.full,
-  #              mass = joint.theoretical.full) %>%
-  #          filter(n0 == n0.cond) %>%
-  #          mutate(p = mass/sum(mass)) %>% select(n1, p), col = 2)
-  # 
-  # # visualize a conditional distribution for n0 | n1
-  # n1.cond = 10
-  # pcond = p.samples[,n1.sampled==n1.cond]
-  # pcond = pcond / sum(pcond)
-  # plot(n0.sampled, pcond,
   #      xlab = expression(n[1]), ylab = expression(P(N[1]==n[1])))
   # points(cbind(joint.theoretical.support.full,
   #              mass = joint.theoretical.full) %>%
+  #          filter(n0 == n0.cond) %>%
+  #          mutate(p = mass/sum(mass)) %>% select(n1, p), col = 2, pch = 4)
+  # 
+  # # visualize a conditional distribution for n0 | n1
+  # n1.cond = 3
+  # pcond = p.samples[,n1.sampled==n1.cond]
+  # pcond = pcond / sum(pcond)
+  # plot(n0.sampled, pcond,
+  #      xlab = expression(n[0]), ylab = expression(P(N[0]==n[0])))
+  # points(cbind(joint.theoretical.support.full,
+  #              mass = joint.theoretical.full) %>%
   #          filter(n1 == n1.cond) %>%
-  #          mutate(p = mass/sum(mass)) %>% select(n0, p), col = 2)
+  #          mutate(p = mass/sum(mass)) %>% select(n0, p), col = 2, pch = 4)
   
   detach(params)
   detach(dive.sim)
