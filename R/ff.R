@@ -29,7 +29,7 @@ ff = function(B, L, a0 = L[,1]) {
   }
   
   # state space size
-  m = nrow(B[[1]])
+  m = ncol(L)
   
   # initialize forward-filtering vectors
   a = vector('list', N+1)
@@ -38,10 +38,12 @@ ff = function(B, L, a0 = L[,1]) {
   a[[1]] = a0
   
   # forward filter
-  for(i in 2:length(a)) {
-    a[[i]] = t(B[[i-1]]) %*% (a[[i-1]] * L[,i-1])
-    # standardize for numerical stability
-    a[[i]] = a[[i]] / sum(a[[i]])
+  if(N>0) {
+    for(i in 2:length(a)) {
+      a[[i]] = t(B[[i-1]]) %*% (a[[i-1]] * L[,i-1])
+      # standardize for numerical stability
+      a[[i]] = a[[i]] / sum(a[[i]])
+    }
   }
   
   # return list of forward-filtering distributions

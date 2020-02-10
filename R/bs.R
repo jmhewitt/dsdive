@@ -33,7 +33,7 @@ bs = function(a, B, L) {
   }
   
   # state space size
-  m = nrow(B[[1]])
+  m = nrow(L)
   
   #
   # backward sample
@@ -44,10 +44,12 @@ bs = function(a, B, L) {
   p = as.numeric(L[,N+1] * a[[N+1]])
   s[N+1] = sample(x = 1:m, size = 1, prob = p)
   
-  for(t in N:1) {
-    p = as.numeric(B[[t]][,s[t+1]] * a[[t]] * L[,t])
-    s[t] = sample(x = 1:m, size = 1, prob = p)
+  if(N>0) {
+    for(t in N:1) {
+      p = as.numeric(B[[t]][,s[t+1]] * a[[t]] * L[,t])
+      s[t] = sample(x = 1:m, size = 1, prob = p)
+    }
   }
- 
+  
   s
 }

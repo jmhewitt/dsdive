@@ -88,7 +88,11 @@ dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, P.tx,
         filters.out = TRUE)
       
       # assemble single-step transition matrices
-      B = lapply(1:n$n, function(j) P.tx[[s0]])
+      if(n$n > 0) { 
+        B = lapply(1:n$n, function(j) P.tx[[s0]])
+      } else {
+        B = list()
+      }
       
       # assemble likelihood for transitions
       L = matrix(0, nrow = n.bins, ncol = n$n + 1)
