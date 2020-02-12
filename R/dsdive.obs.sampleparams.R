@@ -101,7 +101,7 @@ dsdive.obs.sampleparams = function(
     x0 = c(log(lambda[3]), qlogis(beta[2]))
   }
   
-  g = gaussapprox(logf = lp, init = x0)
+  g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead')
   
   
   #
