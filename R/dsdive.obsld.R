@@ -46,6 +46,7 @@
 #'
 dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
   
+  # if a single dive is passed in, coerce it to list format
   if(inherits(dsobs.list, 'dsobs')) {
     dsobs.list = list(dsobs.list)
     t.stages.list = list(t.stages.list)
@@ -75,40 +76,43 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
       # extract start/end depth bins
       d0 = depths[i]
       df = depths[i+1]
+      # extract start/end times
+      t0 = times[i]
+      tf = times[i+1]
       # extract start/end stages
       s0.step = stages[i]
       sf.step = stages[i+1]
+      s.step = s0.step:sf.step
       
-      if(any(c(s0.step, sf.step) %in% s.range)) {
+      # add likelihood contribution of observation
+      if(any(s.step %in% s.range)) {
         
-        # add likelihood contribution of observation
+        # determine window of time spent in each stage
+        dt.stages = sapply(s.step, function(s) {
+          min(tf, t.stages[s], na.rm = TRUE) - max(t0, t.stages[s-1])
+        })
         
-        if(s0.step==sf.step) { 
-          
-          # add contribution for within-stage transition
-          ld = ld + log(P.raw[[s0.step]]$obstx.mat[d0,df])
-          
+        # look up or compute transition distribution through s0
+        if(dt.stages[1] == P.raw[[s0.step]]$obstx.tstep) {
+          u0 = P.raw[[s0.step]]$obstx.mat[d0,]
         } else {
-          
-          #
-          # build contribution for between-stage transitions as a series of 
-          # matrix-vector products
-          #
-          
-          # depth bin distribution from observation to stage transition
           u0 = (P.raw[[s0.step]]$evecs[d0,] * 
-                exp(P.raw[[s0.step]]$evals * 
-                    (t.stages[s0.step] - times[i]))) %*%
-            P.raw[[s0.step]]$evecs.inv
-          
-          # depth bin distribution from stage transition to next observation
-          uf = P.raw[[sf.step]]$evecs %*% 
-               (exp(P.raw[[sf.step]]$evals * (times[i+1] - t.stages[s0.step])) * 
-                P.raw[[sf.step]]$evecs.inv[,df])
-          
-          # add contribution for between-stage transition
-          ld = ld + log(as.numeric(u0 %*% uf))
+                  exp(P.raw[[s0.step]]$evals * dt.stages[1])) %*%
+                P.raw[[s0.step]]$evecs.inv
         }
+        
+        # diffuse transition distribution through other stages
+        if(sf.step != s0.step) {
+          for(s.ind in 2:length(s.step)) {
+            s = s.step[s.ind]
+            u0 = (u0 %*% P.raw[[s]]$evecs * 
+                    exp(P.raw[[s]]$evals * dt.stages[s.ind])) %*% 
+                 P.raw[[s]]$evecs.inv
+          }
+        }
+        
+        # add likelihood contribution
+        ld = ld + log(u0[df])
       }
     }
     
