@@ -25,12 +25,12 @@ T2.prior.params = c(56, .06)
 
 fit = dsdive.gibbs.obs(
   dsobs.list = list(sim.obs), t.stages.list = list(t.stages), 
-  beta.init = beta, lambda.init = lambda, verbose = TRUE, maxit = 1e3, 
+  beta.init = beta, lambda.init = lambda, verbose = TRUE, maxit = 10, 
   pi1.prior = beta.priors[[1]], pi2.prior = beta.priors[[2]], 
   lambda1.prior = lambda.priors[[1]], lambda2.prior = lambda.priors[[2]], 
   lambda3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins, 
   T1.prior.params = T1.prior.params, T2.prior.params = T2.prior.params, 
-  max.width = 100)
+  max.width = 100, max.width.offset = 15, t0.prior.params = c(1,1))
 
 
 detach(dive.sim$params)
