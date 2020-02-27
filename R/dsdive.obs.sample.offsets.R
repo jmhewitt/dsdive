@@ -106,7 +106,7 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
   # Package results
   #
 
-  res = list(offst = offset, dsobs.aligned = dsobs.aligned)
+  res = list(offset = offset, dsobs.aligned = dsobs.aligned)
   
   if(debug == TRUE) {
     res$debug = list(lp = lp, q1 = q1)
