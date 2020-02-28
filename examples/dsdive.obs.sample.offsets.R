@@ -2,8 +2,6 @@ data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
 
-devtools::document()
-
 # extract true stage transition times
 t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
 
@@ -19,18 +17,18 @@ P.raw = lapply(1:3, function(s) {
 res = dsdive.obs.sample.offsets(
   dsobs.aligned = sim.obs, dsobs.unaligned = sim.obs, offset = 0, 
   t.stages = t.stages, P.raw = P.raw, depth.bins = depth.bins, tstep = tstep,
-  t0.prior.params = c(1,1), max.width = 15, debug = TRUE)
+  t0.prior.params = c(10,10), max.width = 30, debug = TRUE)
 
 
 par(mar = c(5, 5, 4, 2) + .1)
 xmin = -tstep
 xmax = tstep
 # plot un-normalized full conditional posterior for offset
-curve((res$debug$lp(eps = x)), 
+curve(exp(res$debug$lp(eps = x)), 
       from = xmin, to = xmax, n = 1e3, col = 'grey60',
-      xlab = expression(epsilon), ylab = expression(ln~f(epsilon~'|'~...)))
+      xlab = expression(epsilon), ylab = expression(f(epsilon~'|'~...)))
 # overlay sampling envelope
-curve((res$debug$q1$e.log(x = x)), from = xmin, to = xmax, 
+curve(exp(res$debug$q1$e.log(x = x)), from = xmin, to = xmax, 
       add = TRUE, col = 2, n = 1e3)
 
 

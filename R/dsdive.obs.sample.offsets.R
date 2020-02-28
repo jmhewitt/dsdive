@@ -63,8 +63,9 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                       P.raw = P.raw, s0 = 1, sf = 3)
     
     # return log-posterior (ignoring jacobian)
-    lp = ld + dbeta(x = (eps + tstep)/tstep2, shape1 = t0.prior.params[1],
-                    shape2 = t0.prior.params[2], log = TRUE)
+    ld + dbeta(x = (eps + tstep)/tstep2, 
+               shape1 = t0.prior.params[1], shape2 = t0.prior.params[2], 
+               log = TRUE)
   })}
   
   
@@ -78,19 +79,38 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
-  # evaluate log-posterior at anchor points
-  anchors.extra = c(anchors, breaks[length(breaks)])
-  lp.eval = lp(eps = anchors.extra)
-
-  # build envelope
-  q1 = envelope.logquad(breaks = breaks, logf = lp.eval[1:length(anchors)],
-                        d.logf = diff(lp.eval)/diff(anchors.extra),
-                        dd.logf.sup = rep(0, length(anchors)),
-                        anchors = anchors)
+  # evaluate log-posterior at all points; account for Beta prior boundary issues
+  tol.boundary = .Machine$double.eps * tstep2
+  end.inds = c(1,length(breaks))
+  lp.breaks = lp(eps = c(breaks[1] + tol.boundary, 
+                         breaks[-end.inds],
+                         breaks[length(breaks)] - tol.boundary))
+  lp.anchors = lp(eps = anchors)
   
+  # approximate slopes, avoiding issues at endpoints
+  d.logf = c(
+    (lp.breaks[2] - lp.anchors[1])/(breaks[2]-anchors[1]),
+    diff(lp.breaks[-end.inds])/diff(breaks[-end.inds]),
+    (lp.anchors[length(lp.anchors)] - lp.breaks[length(lp.breaks)-1])/(
+      anchors[length(anchors)] - breaks[length(breaks)-1]
+    )
+  )
+  
+  # approximate curvatures by assuming local quadratic fits
+  dd.logf.sup = c(0, 2*sapply(2:(length(anchors)-1), function(i) {
+      x = breaks[i+1] - anchors[i]
+      (lp.breaks[i+1] - lp.anchors[i] - d.logf[i] * x)/x^2 
+  }), 0)
+  
+  # use local polynomial approximations to build envelope
+  q1 = envelope.logquad(breaks = breaks, logf = lp.anchors,
+                        d.logf = d.logf,
+                        dd.logf.sup = dd.logf.sup,
+                        anchors = anchors)
+
   # draw proposal
   prop = q1$rquad(n = 1)
-
+  
   # compute metropolis ratio (as an independence sampler)
   lR = (lp(eps = prop) - q1$dquad(x = prop, log = TRUE)) -
        (lp(eps = offset) - q1$dquad(x = offset, log = TRUE))
