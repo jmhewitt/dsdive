@@ -87,23 +87,59 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                          breaks[length(breaks)] - tol.boundary))
   lp.anchors = lp(eps = anchors)
   
-  # approximate slopes, avoiding issues at endpoints
-  d.logf = c(
-    (lp.breaks[2] - lp.anchors[1])/(breaks[2]-anchors[1]),
-    diff(lp.breaks[-end.inds])/diff(breaks[-end.inds]),
-    (lp.anchors[length(lp.anchors)] - lp.breaks[length(lp.breaks)-1])/(
-      anchors[length(anchors)] - breaks[length(breaks)-1]
-    )
-  )
+  # determine slope and curvature for each polynomial segment of envelope
+  envelope = sapply(1:length(anchors), function(i) {
+    # extract time-coordinates for interval
+    L.x = breaks[i]
+    M.x = anchors[i]
+    U.x = breaks[i+1]
+    # extract log-posterior for interval
+    L = lp.breaks[i]
+    M = lp.anchors[i]
+    U = lp.breaks[i+1]
+    # the in/finiteness of the points determines processing
+    L.undef = !is.finite(L)
+    M.undef = !is.finite(M)
+    U.undef = !is.finite(U)
+    
+    # assume lp = -Inf throughout entire interval
+    if(L.undef & M.undef & U.undef) {
+      c(0, 0, -Inf)
+    } 
+    # assume lp = -Inf at start and midpoint, but ends finite
+    else if(L.undef & M.undef) {
+      c(0, 0, U)
+    } 
+    # assume lp is only -Inf at start point
+    else if(L.undef) {
+      c(0, (U-M)/(U.x-M.x), M)
+    } 
+    # assume lp is only -Inf at end point
+    else if(U.undef) {
+      c(0, (L-M)/(L.x-M.x), M)
+    } 
+    # assume lp is -Inf at end and midpoint, but starts finite
+    else if(U.undef & M.undef) {
+      c(0, 0, L)
+    } 
+    # assume lp is finite in entire interval
+    else {
+      b = (U-L)/(U.x-L.x)
+      x = U.x - M.x
+      a = (U - M - b * x)/x^2
+      c(2*a, b, M)
+    }
+  })
   
-  # approximate curvatures by assuming local quadratic fits
-  dd.logf.sup = c(0, 2*sapply(2:(length(anchors)-1), function(i) {
-      x = breaks[i+1] - anchors[i]
-      (lp.breaks[i+1] - lp.anchors[i] - d.logf[i] * x)/x^2 
-  }), 0)
+  # extract slopes and curvatures from envelope
+  d.logf = envelope[2,]
+  dd.logf.sup = envelope[1,]
   
+  # zero-out small curvatures, which are numerically unstable in logquad fn.
+  dd.logf.sup[abs(dd.logf.sup)<1e-4] = 0
+
   # use local polynomial approximations to build envelope
-  q1 = envelope.logquad(breaks = breaks, logf = lp.anchors,
+  q1 = envelope.logquad(breaks = breaks, logf = envelope[3,],
                         d.logf = d.logf,
                         dd.logf.sup = dd.logf.sup,
                         anchors = anchors)
