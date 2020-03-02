@@ -42,8 +42,12 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
     # account for mass when log-fn is finite
     else {
       if(a==0) {
-        exp(c) / b * ( exp(b * (x - anchors[i])) - 
-                         exp(b * (breaks[i] - anchors[i])) )
+        if(b==0) {
+          exp(c) * (x - breaks[i])
+        } else {
+          exp(c) / b * ( exp(b * (x - anchors[i])) - 
+                           exp(b * (breaks[i] - anchors[i])) )  
+        }
       } else {
         Re(sqrt(pi) * exp(c-b^2/(4*a)) / 2 / sqrt(a) * (
           erfi((2*a*(x-anchors[i]) + b)/(2*sqrt(a))) -
@@ -52,7 +56,6 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
       }
     }
   }
-    
     
 
   # compute cumulative mass at start of each segment
