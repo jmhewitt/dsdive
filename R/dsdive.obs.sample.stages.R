@@ -103,23 +103,22 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   inds.jumps = which(times >= t.stages[1])
   
   # can't allow stage 2->3 transition at surface
+  surface.inds = inds.jumps[depths[inds.jumps]==1]
+  if(length(surface.inds) > 0) {
+    tmax = min(T.range[2], max(times[surface.inds]))
+  } else {
+    tmax = T.range[2]
+  }
   inds.jumps = inds.jumps[depths[inds.jumps]!=1]
-
-  breaks = refine.partition(
-    breaks = sort(unique(c(max(T.range[1], times[inds.jumps][1]), 
-                           times[inds.jumps], t.stages[2]))),
-    max.width = max.width)
   
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(t.stages[1], times[inds.jumps], 
-                           min(T.range[2], 
-                               times[inds.jumps][length(inds.jumps)])))),
+    breaks = sort(unique(c(t.stages[1], times[inds.jumps], tmax))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
   # evaluate log-posterior at anchor points
-  anchors.extra = c(anchors, breaks[length(breaks)])
+  anchors.extra = c(anchors, breaks[length(breaks)-1])
   lp.eval = lp(x = anchors.extra, stage.ind = 2, t.stages = t.stages)
 
   # build envelope
@@ -133,11 +132,15 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   prop = q2$rquad(n = 1)
 
   # compute metropolis ratio (as an independence sampler)
-  lR = (lp(x = prop, stage.ind = 2, t.stages = t.stages) -
-          q2$dquad(x = prop, log = TRUE)) -
-       (lp(x = t.stages[2], stage.ind = 2, t.stages = t.stages) -
-          q2$dquad(x = t.stages[2], log = TRUE))
-
+  if(t.stages[2] > T.range[2]) {
+    lR = 0
+  } else {
+    lR = (lp(x = prop, stage.ind = 2, t.stages = t.stages) -
+            q2$dquad(x = prop, log = TRUE)) -
+      (lp(x = t.stages[2], stage.ind = 2, t.stages = t.stages) -
+         q2$dquad(x = t.stages[2], log = TRUE))
+  }
+  
   # accept/reject
   if(log(runif(1)) <= lR) {
     t.stages[2] = prop
