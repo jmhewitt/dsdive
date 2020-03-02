@@ -29,16 +29,31 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
     b = coefs.mat[i,2]
     c = coefs.mat[i,3]
     
-    if(a==0) {
-      exp(c) / b * ( exp(b * (x - anchors[i])) - 
-                     exp(b * (breaks[i] - anchors[i])) )
-    } else {
-      Re(sqrt(pi) * exp(c-b^2/(4*a)) / 2 / sqrt(a) * (
-        erfi((2*a*(x-anchors[i]) + b)/(2*sqrt(a))) -
-        erfi((2*a*(breaks[i]-anchors[i]) + b)/(2*sqrt(a)))
-      ))
+    # account for mass when log-fn is -Inf
+    if(is.infinite(c)) {
+      if(c<0) {
+        if(all(Re(a) < Inf, b < Inf)) {
+          0
+        }
+      } else {
+        NaN
+      }
+    } 
+    # account for mass when log-fn is finite
+    else {
+      if(a==0) {
+        exp(c) / b * ( exp(b * (x - anchors[i])) - 
+                         exp(b * (breaks[i] - anchors[i])) )
+      } else {
+        Re(sqrt(pi) * exp(c-b^2/(4*a)) / 2 / sqrt(a) * (
+          erfi((2*a*(x-anchors[i]) + b)/(2*sqrt(a))) -
+            erfi((2*a*(breaks[i]-anchors[i]) + b)/(2*sqrt(a)))
+        ))
+      }
     }
   }
+    
+    
 
   # compute cumulative mass at start of each segment
   mass.cum = c(0, cumsum(sapply(1:n, function(i) mass.segment(i, breaks[i+1]))))
