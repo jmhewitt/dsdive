@@ -59,8 +59,8 @@ dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
     # surface can only transition downward
     nbrs = 2
     
-    # can only leave surface depth bin in stage 1
-    probs = ifelse(s0==1, 1, 0)
+    # can only leave surface depth bin in stages 1 or 2
+    probs = ifelse(s0 < 3, 1, 0)
     
   } else if(d0 == 2) {
     
