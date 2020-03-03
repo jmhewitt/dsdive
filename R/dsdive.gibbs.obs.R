@@ -177,9 +177,9 @@ dsdive.gibbs.obs = function(
       if(verbose) {
         message('--- Checkpoint ---')
       }
-      checkpoint.fn(list(trace = trace[1:it,], 
+      checkpoint.fn(list(theta = trace[1:it,], 
                          trace.t.stages = trace.t.stages[1:it], 
-                         trace.offset = trace.offsets[1:it,]))
+                         trace.offsets = trace.offsets[1:it,]))
       tick.checkpoint = proc.time()[3]
     }
     
