@@ -60,13 +60,9 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   # identify timepoints where there are jump-discontinuities in log posterior
   inds.jumps = which(times <= t.stages[2])
   
-  # can't allow stage 1->2 transition at surface
-  inds.jumps = inds.jumps[depths[inds.jumps]!=1]
-  
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = sort(unique(c(max(T.range[1], times[inds.jumps][1]), 
-                           times[inds.jumps], t.stages[2]))),
+    breaks = sort(unique(c(T.range[1], times[inds.jumps], t.stages[2]))),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
