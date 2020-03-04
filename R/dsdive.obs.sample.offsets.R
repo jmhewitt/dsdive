@@ -114,13 +114,13 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
     else if(L.undef) {
       c(0, (U-M)/(U.x-M.x), M)
     } 
-    # assume lp is only -Inf at end point
-    else if(U.undef) {
-      c(0, (L-M)/(L.x-M.x), M)
-    } 
     # assume lp is -Inf at end and midpoint, but starts finite
     else if(U.undef & M.undef) {
       c(0, 0, L)
+    } 
+    # assume lp is only -Inf at end point
+    else if(U.undef) {
+      c(0, (L-M)/(L.x-M.x), M)
     } 
     # assume lp is finite in entire interval
     else {
