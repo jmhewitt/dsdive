@@ -5,7 +5,6 @@
 \title{Compute transition matrix for Markov chain representation of dive model}
 \usage{
 dsdive.impute.sample_n(
-  n0 = NULL,
   d0,
   df,
   s0,
@@ -16,27 +15,17 @@ dsdive.impute.sample_n(
   rate.unif,
   P.raw,
   P.tx,
-  ff.s0 = NULL,
-  bf.sf = NULL,
   n.bins,
-  max.tx,
-  filters.out = FALSE
+  max.tx
 )
 }
 \arguments{
-\item{n0}{number of transitions during initial stage; if NULL, then this will 
-be the number returned.  Otherwise, nf, the number of transitions during 
-final stage will be returned instead.}
-
 \item{t0}{time at which transition parameters should be computed}
 
 \item{P.raw}{list of continuous time probability transition matrices, and 
 components.}
 
 \item{P.tx}{list of discrete time probability transition matrices}
-
-\item{ff.s0}{list of n-step forward distributions when a DTMC is started at 
-node d0.}
 
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
 column defines the depth at the center of each depth bin, and the second 
@@ -80,6 +69,13 @@ be thinned.  \code{lambda.max} will be scaled by}
 
 \item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
 method used to determine stage transition probability curves}
+
+\item{n0}{number of transitions during initial stage; if NULL, then this will 
+be the number returned.  Otherwise, nf, the number of transitions during 
+final stage will be returned instead.}
+
+\item{ff.s0}{list of n-step forward distributions when a DTMC is started at 
+node d0.}
 }
 \description{
 Given model parameters and transition times, the 3 stage dive model can be 
@@ -128,7 +124,7 @@ P.tx = lapply(1:3, function(s) {
 # within-stage transition
 #
 
-ind = 2
+ind = 1
 
 d0 = sim.obs$depths[ind]
 df = sim.obs$depths[ind+1]
@@ -139,10 +135,11 @@ sf = sim.obs$stages[ind+1]
 t0 = sim.obs$times[ind]
 tf = sim.obs$times[ind+1]
 
+document()
 dsdive.impute.sample_n(
-  n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  n.bins = nrow(depth.bins), max.tx = 100)
 
 
 #
@@ -164,13 +161,13 @@ tf = sim.obs$times[ind+1]
 n0 = dsdive.impute.sample_n(
   n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  ff.s0 = NULL, n.bins = nrow(depth.bins), max.tx = 100)
 
 # sample number of depth bin transitions after stage 1->2 transition
 n1 = dsdive.impute.sample_n(
   n0 = n0, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  ff.s0 = NULL, n.bins = nrow(depth.bins), max.tx = 100)
 
 detach(params)
 detach(dive.sim)

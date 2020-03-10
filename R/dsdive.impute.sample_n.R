@@ -51,126 +51,99 @@
 #'  components.
 #' @param P.tx list of discrete time probability transition matrices
 #' 
+#' @importFrom Matrix sparseVector Diagonal
+#' 
 #' @export
 #' 
-dsdive.impute.sample_n = function(
-  n0=NULL, d0, df, s0, sf, t0, tf, t.stages, rate.unif, P.raw, P.tx, 
-  ff.s0 = NULL, bf.sf = NULL, n.bins, max.tx, filters.out = FALSE) {
+dsdive.impute.sample_n = function(d0, df, s0, sf, t0, tf, t.stages, rate.unif, 
+                                  P.raw, P.tx, n.bins, max.tx) {
   
-  #
-  # initialize n-step forward distributions if necessary
-  #
+  # initialize output
+  s.range = s0:sf
+  n.stages = length(s.range)
+  n = numeric(n.stages)
   
-  if(is.null(ff.s0)) {
-    ff.s0 = vector('list', length = 0)
-    a = numeric(length = n.bins)
-    a[d0] = 1
-    ff.s0[[1]] = a
-  }
+  # initialize initial state distribution
+  u0 = sparseVector(x = 1, i = d0, length = n.bins)
   
-  if(!is.null(n0)) {
-    if(is.null(bf.sf)) {
-      bf.sf = vector('list', length = 0)
-      a = numeric(length = n.bins)
-      a[df] = 1
-      bf.sf[[1]] = a
-    }
-  }
+  # determine window of time spent in each stage
+  dt.stages = sapply(s.range, function(s) {
+    min(tf, t.stages[s], na.rm = TRUE) - max(t0, t.stages[s-1])
+  })
   
-  
-  #
-  # compute normalizing constant, sampling window, and transition constants
-  #
-  
-  if(s0 == sf) {
-    # sampling window
-    twin = tf - t0
-    # within-stage probability of observing the given transition
-    C = P.raw[[s0]]$obstx.mat[d0,df]
-  } else {
-    # depth bin distribution from stage transition to next observation
-    uf = P.raw[[sf]]$evecs %*% 
-      (exp(P.raw[[sf]]$evals * (tf-t.stages[sf-1])) * 
-         P.raw[[sf]]$evecs.inv[,df]) 
-    # depth bin distribution from d0 to stage transition
-    if(is.null(n0)) {
-      # sampling window
-      twin = t.stages[sf-1] - t0
-      # number of transitions is unknown
-      u0 = t((P.raw[[s0]]$evecs[d0,] *  exp(P.raw[[s0]]$evals * twin)) %*% 
-             P.raw[[s0]]$evecs.inv)
-    } else {
-      # sampling window
-      twin = tf - t.stages[sf-1]
-      # update n-step forward distributions if necessary
-      if(length(ff.s0) <= n0) {
-        for(k in length(ff.s0):(n0+1)) {
-          ff.s0[[k+1]] = t(P.tx[[s0]]) %*% ff.s0[[k]]
+  # sample number of transitions in each stage
+  for(i in 1:n.stages) {
+    
+    # extract current stage
+    s = s.range[i]
+
+    # diffuse bridging probabilities through other stages
+    uf = sparseVector(x = 1, i = df, length = n.bins)
+    if(i < n.stages) {
+      for(j in (i+1):n.stages) {
+        s2 = s.range[j]
+        if(dt.stages[j] == P.raw[[s2]]$obstx.tstep) {
+          uf = P.raw[[s2]]$obstx.mat %*% uf
+        } else {
+          uf = P.raw[[s2]]$evecs %*% 
+            Diagonal(x = exp(P.raw[[s2]]$evals * dt.stages[j]), 
+                     n = n.bins) %*%
+            P.raw[[s2]]$evecs.inv %*% uf
         }
       }
-      # number of transitions is known
-      u0 = ff.s0[[n0+1]]
     }
-    # between-stage probability of observing the given transition
-    C = as.numeric(t(u0) %*% uf)
-  }
-  
-  
-  #
-  # sample n via inverse-transform method
-  #
-  
-  # inverse-transform sampling variate
-  uC = runif(1) * C
-  
-  # brute-force CDF inversion
-  pC = 0
-  for(n in 0:max.tx) {
     
-    # update n-step forward distributions if necessary
-    if(is.null(n0)) {
-      if(length(ff.s0) <= n) {
-        ff.s0[[n+1]] = t(P.tx[[s0]]) %*% ff.s0[[n]]
-      }
+    #
+    # compute denominator by assembling u0, uf, and within-stage transitions
+    #
+    
+    if(dt.stages[i] == P.raw[[s]]$obstx.tstep) {
+      utx = P.raw[[s]]$obstx.mat %*% uf
     } else {
-      if(length(bf.sf) <= n) {
-        bf.sf[[n+1]] = P.tx[[sf]] %*% bf.sf[[n]]
-      }
+      utx = P.raw[[s]]$evecs %*% 
+        Diagonal(x = exp(P.raw[[s]]$evals * dt.stages[i]), n = n.bins) %*%
+        P.raw[[s]]$evecs.inv %*% uf
     }
     
-    # probability of reaching df after n transitions
-    if(s0==sf) {
-      # within-stage transition
-      p.df = ff.s0[[n+1]][df]
-    } else {
-      if(is.null(n0)) {
-        # between stage transition and number of s0 transitions is unknown
-        p.df = as.numeric(t(ff.s0[[n+1]]) %*% uf)
-      } else {
-        # between stage transition and number of s0 transitions is known
-        p.df = as.numeric(t(u0) %*% bf.sf[[n+1]])
+    C = as.numeric(u0 %*% utx)
+    
+    #
+    # sample n[i] via inverse-transform method
+    #
+    
+    # inverse-transform sampling variate
+    uC = runif(1) * C
+    
+    # brute-force CDF inversion
+    pC = 0
+    for(n.step in 0:max.tx) {
+      
+      # diffuse u0 wrt. another transition
+      if(n.step > 0) {
+        u0 = u0 %*% P.tx[[s]]
       }
-    }
-    
-    # aggregate probability mass
-    pC = pC + p.df * dpois(x = n, lambda = rate.unif * twin)
-    
-    # stop if minimal mass is exceeded
-    if(pC >= uC) {
-      break
+      
+      # probability of reaching df after n.step transitions
+      p.df = as.numeric(u0 %*% uf)
+      
+      # aggregate probability mass
+      pC = pC + p.df * dpois(x = n.step, lambda = rate.unif * dt.stages[i])
+
+      # stop if minimal mass is exceeded
+      if(pC >= uC) {
+        n[i] = n.step
+        break
+      }
+      
+      if(n.step==max.tx) {
+        msg = paste('Inverse-transform sampling failed; upper bound (max.tx)',
+                    'reached before inversion completed for stage', s,
+                    'Excess mass:', (uC-pC)/C, sep = ' ')
+        warning(msg)
+      }
+      
     }
   }
   
-  if(n==max.tx) {
-    msg = paste('Inverse-transform sampling failed; upper bound (max.tx)',
-                'reached before inversion completed.  Excess mass:',
-                (uC-pC)/C, sep = ' ')
-    warning(msg)
-  }
-  
-  if(filters.out) {
-    list(n = n, ff.s0 = ff.s0, bf.sf = bf.sf)
-  } else {
-    n
-  }
+  n
 }

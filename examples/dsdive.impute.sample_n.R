@@ -37,7 +37,7 @@ P.tx = lapply(1:3, function(s) {
 # within-stage transition
 #
 
-ind = 2
+ind = 1
 
 d0 = sim.obs$depths[ind]
 df = sim.obs$depths[ind+1]
@@ -49,9 +49,9 @@ t0 = sim.obs$times[ind]
 tf = sim.obs$times[ind+1]
 
 dsdive.impute.sample_n(
-  n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  n.bins = nrow(depth.bins), max.tx = 100)
 
 
 #
@@ -70,16 +70,32 @@ t0 = sim.obs$times[ind]
 tf = sim.obs$times[ind+1]
 
 # sample number of depth bin transitions before stage 1->2 transition
-n0 = dsdive.impute.sample_n(
-  n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+n = dsdive.impute.sample_n(
+  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  n.bins = nrow(depth.bins), max.tx = 100)
 
-# sample number of depth bin transitions after stage 1->2 transition
-n1 = dsdive.impute.sample_n(
-  n0 = n0, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+
+#
+# between-stage transition
+#
+
+ind = max(which(sim.obs$times < t.stages[2]))
+
+d0 = sim.obs$depths[1]
+df = sim.obs$depths[ind+1]
+
+s0 = sim.obs$stages[1]
+sf = sim.obs$stages[ind+1]
+
+t0 = sim.obs$times[1]
+tf = sim.obs$times[ind+1]
+
+# sample number of depth bin transitions before stage 1->2 transition
+n = dsdive.impute.sample_n(
+  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
   t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  ff.s0 = NULL, ff.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+  n.bins = nrow(depth.bins), max.tx = 100)
 
 detach(params)
 detach(dive.sim)

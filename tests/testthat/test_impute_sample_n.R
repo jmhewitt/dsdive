@@ -65,9 +65,9 @@ test_that("sample num. uniformized depth bin tx's. btwn within-stage obs", {
   # MC sample number of uniformized depth bin tx's. between observations
   n.samples = replicate(n = mcit, expr = {
     dsdive.impute.sample_n(
-      n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+      d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
       t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = NULL, bf.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100)
+      n.bins = nrow(depth.bins), max.tx = 100)
   })
   
   # theoretical probability distribution, for validation
@@ -174,19 +174,10 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
   
   # MC sample number of uniformized depth bin tx's. between observations
   n.samples = replicate(n = mcit, expr = {
-    n0 = dsdive.impute.sample_n(
-      n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+    dsdive.impute.sample_n(
+      d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
       t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = NULL, bf.sf = NULL, n.bins = nrow(depth.bins), max.tx = 100, 
-      filters.out = TRUE)
-    
-    n1 = dsdive.impute.sample_n(
-      n0 = n0$n, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-      t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-      ff.s0 = n0$ff.s0, bf.sf = n0$bf.sf, n.bins = nrow(depth.bins), 
-      max.tx = 100)
-    
-    c(n0$n, n1)
+      n.bins = nrow(depth.bins), max.tx = 100)
   })
   
   # # MC sample number of uniformized depth bin tx's. between observations
