@@ -7,7 +7,7 @@
 #' @param L likelihood matrix where each column is the probability distribution
 #'  for the state at each of the discrete transitions, and the initial location
 #' 
-#' @importFrom Matrix sparseVector
+#' @import Matrix
 #' 
 #' @example examples/ffbs.R
 #' 
