@@ -18,7 +18,7 @@ dsdive.obs.sample.offsets(
 )
 }
 \description{
-We assume the prior distributions for the stage transition times are Gamma 
+We assume the prior distributions for the stage transition times are Gamma
 distributions with shape/rate parameterization.
 }
 \examples{
