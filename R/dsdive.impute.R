@@ -54,8 +54,8 @@
 #' @example examples/dsdive.impute.R
 #' @export
 #'
-dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, P.tx, 
-                         n.bins, max.tx) {
+dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, 
+                         P.tx, n.bins, max.tx) {
   
   # number of observations
   nt = length(depths)
@@ -78,69 +78,36 @@ dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, P.tx,
     t0 = times[i]
     tf = times[i+1]
     
-    if(s0==sf) {
-      
-      # number of transitions to impute
-      n = dsdive.impute.sample_n(
-        n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-        ff.s0 = NULL, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
-        filters.out = TRUE)
-      
-      # assemble single-step transition matrices
-      if(n$n > 0) { 
-        B = lapply(1:n$n, function(j) P.tx[[s0]])
-      } else {
-        B = list()
-      }
-      
-      # assemble likelihood for transitions
-      L = matrix(0, nrow = n.bins, ncol = n$n + 1)
-      L[d0,1] = 1                    # initial location is fixed
-      L[df,ncol(L)] = 1              # final location is fixed
-      L[,-c(1,ncol(L))] = 1/n.bins   # all other transitions are free
-
-      # impute via backward sampling
-      depths.raw[[i]] = bs(a = n$ff.s0, B = B, L = L)
-      
-      # uniformly sample transition times
-      times.raw[[i]] = t0 + c(0, sort((tf-t0) * runif(n = n$n)))
-      
-    } else {
-      
-      # number of stage s0 transitions to impute
-      n0 = dsdive.impute.sample_n(
-        n0 = NULL, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-        ff.s0 = NULL, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
-        filters.out = TRUE)
-      
-      # number of stage sf transitions to impute
-      n1 = dsdive.impute.sample_n(
-        n0 = n0$n, d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-        t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-        ff.s0 = n0$ff.s0, bf.sf = NULL, n.bins = n.bins, max.tx = max.tx, 
-        filters.out = FALSE)
-      
-      # assemble single-step transition matrices
-      B = list()
-      if(n0$n > 0) { B = c(B, lapply(1:n0$n, function(j) P.tx[[s0]])) }
-      if(n1 > 0) { B = c(B, lapply(1:n1, function(j) P.tx[[sf]])) }
-      
-      # assemble likelihood for transitions
-      L = matrix(0, nrow = n.bins, ncol = n0$n + n1 + 1)
-      L[d0,1] = 1                    # initial location is fixed
-      L[df,ncol(L)] = 1              # final location is fixed
-      L[,-c(1,ncol(L))] = 1/n.bins   # all other transitions are free
-      
-      # impute via backward sampling
-      depths.raw[[i]] = ffbs(B = B, L = L)
-      
-      # uniformly sample transition times
-      times.raw[[i]] = t0 + c(0, sort((tf-t0) * runif(n = n0$n + n1)))
-      
-    }
+    # number of transitions to impute
+    n = dsdive.impute.sample_n(
+      d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
+      t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
+      n.bins = n.bins, max.tx = max.tx)
     
+    
+    # assemble single-step transition matrices
+    s.range = s0:sf
+    B = do.call(c, lapply(1:length(s.range), function(i) {
+      s = s.range[i]
+      if(n[i] > 0) {
+        lapply(1:n[i], function(j) P.tx[[s]])
+      } else {
+        list()
+      }
+    }))
+    
+    # assemble likelihood for transitions
+    L = matrix(0, nrow = n.bins, ncol = sum(n) + 1)
+    L[d0,1] = 1                    # initial location is fixed
+    L[df,ncol(L)] = 1              # final location is fixed
+    L[,-c(1,ncol(L))] = 1/n.bins   # all other transitions are free
+    
+    # impute via backward sampling
+    depths.raw[[i]] = ffbs(B = B, L = L)
+    
+    # uniformly sample transition times
+    times.raw[[i]] = t0 + c(0, sort((tf-t0) * runif(n = sum(n))))
+  
   }
   
   # assemble uniformized dive
