@@ -36,35 +36,42 @@ T2.prior.params = c(15, 1/60)
 # extract true stage transition times
 s12.inds = which(sim$stages<3)
 t.stages.truth = sim$times[c(FALSE, diff(sim$stages)==1)]
-t.stages = t.stages.truth
+t.stages = c(20,40)*60#t.stages.truth
+
+# extract times at which we observe depth bin transitions
+depth.bin.tx = sim.obs$times[c(FALSE, diff(sim.obs$depths) != 0)]
+
+# build probability matrices for observations
+tstep = diff(sim.obs$times[1:2])
+P.raw = lapply(1:3, function(s) {
+  dsdive.obstx.matrix(depth.bins = depth.bins, beta = params$beta, 
+                      lambda = params$lambda, s0 = s, tstep = tstep, 
+                      include.raw = TRUE)
+})
 
 # sample stage transition times from full conditional posteriors
-res = dsdive.sample.stages(depths = sim$depths, times = sim$times, 
-                           t.stages = t.stages, beta = beta, lambda = lambda, 
-                           depth.bins = depth.bins, 
-                           T1.prior.params = T1.prior.params, 
-                           T2.prior.params = T2.prior.params, max.width = 100, 
-                           debug = TRUE)
-
+res = dsdive.obs.sample.stages(
+  depths = sim.obs$depths, times = sim.obs$times, t.stages = t.stages, 
+  P.raw = P.raw, T.range = range(sim$times), depth.bins = depth.bins, 
+  T1.prior.params = T1.prior.params, T2.prior.params = T2.prior.params, 
+  max.width = 100, debug = TRUE)
+  
 rbind(original = t.stages, new = res$t.stages)
-
 
 par(mar = c(5, 5, 4, 2) + .1)
 xmin = sim$times[1]/60
 xmax = t.stages[2]/60
 # plot un-normalized full conditional posterior for T^(1) | T^(2), \cdot
-curve((res$debug$lp(x = x*60, stage.ind = 1, t.stages = t.stages)), 
-      from = xmin, to = xmax, n = 1e3,
+curve(res$debug$lp(x = x*60, stage.ind = 1, t.stages = t.stages), 
+      from = xmin, to = xmax, n = 1e3, col = 'grey60',
       xlab = expression(T^(1)), ylab = expression(ln~f(T^(1)~'|'~T^(2), ...)))
+# overlay observed depth bin transition times
+abline(v = depth.bin.tx/60, lty = 3)
 # overlay sampling envelope
 curve(res$debug$q1$e.log(x = x*60), from = xmin, to = xmax, 
       add = TRUE, col = 2, n = 1e3)
-# overlay likelhiood at points
-points(sim$times[s12.inds]/60, 
-       res$debug$lp(x = sim$times[s12.inds], stage.ind = 1, 
-                    t.stages = t.stages))
 # overlay true stage 1->2 transition time
-abline(v = t.stages.truth[1]/60, lty = 3)
+abline(v = t.stages.truth[1]/60, lty = 2)
 
 
 par(mar = c(5, 5, 4, 2) + .1)

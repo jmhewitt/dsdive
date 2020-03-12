@@ -5,7 +5,7 @@
 #' 
 #' @param max.width for numerical stability of the sampling envelopes
 #' 
-#' @example examples/dsdive.sample.stages.R
+#' @example examples/dsdive.obs.sample.stages.R
 #' 
 #' @export
 #' 
