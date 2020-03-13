@@ -4,8 +4,23 @@
 \alias{dsdive.suffstat}
 \title{Compute sufficient statistics for posterior distributions of complete dives}
 \usage{
-dsdive.suffstat(depths, durations, stages, depth.bins)
+dsdive.suffstat(depths, times, t.stages, depth.bins)
 }
 \description{
 Compute sufficient statistics for posterior distributions of complete dives
+}
+\examples{
+data('dive.sim')
+attach(dive.sim)
+attach(dive.sim$params)
+
+# get true stage transition times
+t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
+
+document()
+dsdive.suffstat(depths = sim$depths, times = sim$times, t.stages = t.stages, 
+                depth.bins = depth.bins)
+
+detach(dive.sim$params)
+detach(dive.sim)
 }
