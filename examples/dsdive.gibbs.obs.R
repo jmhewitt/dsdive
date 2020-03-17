@@ -30,7 +30,8 @@ fit = dsdive.gibbs.obs(
   lambda1.prior = lambda.priors[[1]], lambda2.prior = lambda.priors[[2]], 
   lambda3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins, 
   T1.prior.params = T1.prior.params, T2.prior.params = T2.prior.params, 
-  max.width = 100, max.width.offset = 30, t0.prior.params = c(1,1))
+  max.width = 100, max.width.offset = 30, t0.prior.params = c(1,1), 
+  tf.prior.params = c(1,1))
 
 
 detach(dive.sim$params)

@@ -33,7 +33,7 @@ dsdive.gibbs.obs = function(
   checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
   lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
-  t0.prior.params) {
+  t0.prior.params, tf.prior.params) {
 
   
   n = length(dsobs.list)
@@ -51,10 +51,12 @@ dsdive.gibbs.obs = function(
   
   theta = list(beta = beta.init, lambda = lambda.init)
   offsets = numeric(n)
+  offsets.tf = numeric(n)
   
   trace = matrix(NA, nrow = maxit, ncol = 5)
   trace.t.stages = vector('list', length = maxit)
   trace.offsets = matrix(0, nrow = maxit, ncol = n)
+  trace.offsets.tf = matrix(0, nrow = maxit, ncol = n)
   colnames(trace) = c('pi1', 'pi2', 'lambda1', 'lambda2', 'lambda3')
   
   tick.checkpoint = proc.time()[3]
@@ -64,7 +66,6 @@ dsdive.gibbs.obs = function(
                         lambda = lambda.init, s0 = s, tstep = tstep, 
                         include.raw = TRUE)
   })
-  
   
   
   #
@@ -138,16 +139,30 @@ dsdive.gibbs.obs = function(
         T2.prior.params = T2.prior.params, max.width = max.width, 
         debug = FALSE)$t.stages
       
-      # sample new offsets
+      # sample dive start offset
       if(!is.null(t0.prior.params)) {
         d0 = dsdive.obs.sample.offsets(
           dsobs.aligned = d, dsobs.unaligned = dsobs.list[[i]], 
-          offset = offsets[i], t.stages = t.stages.list[[i]], P.raw = P.raw, 
+          offset = offsets[i], offset.tf = offsets.tf[i], 
+          t.stages = t.stages.list[[i]], P.raw = P.raw, 
           depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
-          t0.prior.params = t0.prior.params)
-        # extract new offsets
+          prior.params = t0.prior.params, sample.start = TRUE)
+        # extract new offset
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets[i] = d0$offset
+      }
+      
+      # sample dive end offset
+      if(!is.null(tf.prior.params)) {
+        d0 = dsdive.obs.sample.offsets(
+          dsobs.aligned = d, dsobs.unaligned = dsobs.list[[i]], 
+          offset = offsets[i], offset.tf = offsets.tf[i], 
+          t.stages = t.stages.list[[i]], P.raw = P.raw, 
+          depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
+          prior.params = tf.prior.params, sample.start = FALSE)
+        # extract new offset
+        dsobs.aligned[[i]] = d0$dsobs.aligned
+        offsets.tf[i] = d0$offset
       }
       
     }
@@ -160,6 +175,7 @@ dsdive.gibbs.obs = function(
     trace[it,1:5] = unlist(theta[1:2])
     trace.t.stages[[it]] = t.stages.list
     trace.offsets[it,] = offsets
+    trace.offsets.tf[it,] = offsets.tf
     
     tock = proc.time()[3]
     
@@ -179,7 +195,8 @@ dsdive.gibbs.obs = function(
       }
       checkpoint.fn(list(theta = trace[1:it,], 
                          trace.t.stages = trace.t.stages[1:it], 
-                         trace.offsets = trace.offsets[1:it,]))
+                         trace.offsets = trace.offsets[1:it,],
+                         trace.offsets.tf = trace.offsets.tf[1:it,]))
       tick.checkpoint = proc.time()[3]
     }
     
@@ -188,6 +205,7 @@ dsdive.gibbs.obs = function(
   list(
     theta = trace,
     trace.t.stages = trace.t.stages,
-    trace.offsets = trace.offsets
+    trace.offsets = trace.offsets,
+    trace.offsets.tf = trace.offsets.tf
   )
 }
