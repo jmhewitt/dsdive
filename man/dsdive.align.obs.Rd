@@ -4,7 +4,7 @@
 \alias{dsdive.align.obs}
 \title{Extract a segment of a fully observed dive trajectory between timepoints}
 \usage{
-dsdive.align.obs(depths, times, t.stages, offset)
+dsdive.align.obs(depths, times, t.stages, offset, offset.tf)
 }
 \arguments{
 \item{depths}{Complete record of depth bin indices visited}
@@ -30,7 +30,8 @@ attach(params)
 t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
   
 dsdive.align.obs(depths = sim.obs$depths, times = sim.obs$times, 
-                 t.stages = t.stages, offset = 401)
+                 t.stages = t.stages, offset = -300, 
+                 offset.tf = -300)
 
 detach(params)
 detach(dive.sim)
