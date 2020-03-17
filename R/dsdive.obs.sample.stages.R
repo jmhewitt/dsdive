@@ -104,10 +104,10 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   # identify timepoints where there are jump-discontinuities in log posterior
   inds.jumps = which(times >= t.stages[1])
   
-  # can't allow stage 2->3 transition at surface
+  # can't allow stage 2->3 transition at surface return
   surface.inds = inds.jumps[depths[inds.jumps]==1]
   if(length(surface.inds) > 0) {
-    tmax = min(T.range[2], max(times[surface.inds]))
+    tmax = min(T.range[2], min(times[surface.inds]))
   } else {
     tmax = T.range[2]
   }
@@ -122,7 +122,7 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
   # evaluate log-posterior at anchor points
   anchors.extra = c(anchors, breaks[length(breaks)-1])
   lp.eval = lp(x = anchors.extra, stage.ind = 2, t.stages = t.stages)
-
+  
   # build envelope
   q2 = envelope.logquad(
     breaks = breaks, logf = lp.eval[1:length(anchors)],
