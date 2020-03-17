@@ -132,22 +132,18 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
 
   # accept/reject
   if(log(runif(1)) <= lR) {
-    offset = prop
     
-    # set offsets depending on whether start or end of dive is being sampled
     if(sample.start) {
-      eps.t0 = eps
-      eps.tf = offset.tf
+      offset = prop
     } else {
-      eps.t0 = offset
-      eps.tf = eps
+      offset.tf = prop
     }
     
     # construct dsobs object with realigned observation times
     dsobs.aligned = dsdive.align.obs(depths = dsobs.unaligned$depths,
                                      times = dsobs.unaligned$times,
-                                     t.stages = t.stages, offset = eps.t0,
-                                     offset.tf = eps.tf)
+                                     t.stages = t.stages, offset = offset,
+                                     offset.tf = offset.tf)
   }
 
 
@@ -155,7 +151,8 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
   # Package results
   #
 
-  res = list(offset = offset, dsobs.aligned = dsobs.aligned)
+  res = list(offset = ifelse(sample.start, offset, offset.tf), 
+             dsobs.aligned = dsobs.aligned)
 
   if(debug == TRUE) {
     res$debug = list(lp = lp, q1 = q1)
