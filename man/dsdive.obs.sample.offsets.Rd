@@ -8,12 +8,14 @@ dsdive.obs.sample.offsets(
   dsobs.aligned,
   dsobs.unaligned,
   offset,
+  offset.tf,
   t.stages,
   P.raw,
   depth.bins,
   tstep,
   max.width,
-  t0.prior.params,
+  prior.params,
+  sample.start,
   debug = FALSE
 )
 }
@@ -41,7 +43,8 @@ P.raw = lapply(1:3, function(s) {
 res = dsdive.obs.sample.offsets(
   dsobs.aligned = sim.obs, dsobs.unaligned = sim.obs, offset = 0, 
   t.stages = t.stages, P.raw = P.raw, depth.bins = depth.bins, tstep = tstep,
-  t0.prior.params = c(10,10), max.width = 30, debug = TRUE)
+  prior.params = c(10,10), max.width = 30, debug = TRUE, sample.start = TRUE, 
+  offset.tf = 0)
 
 
 par(mar = c(5, 5, 4, 2) + .1)
@@ -54,7 +57,6 @@ curve(exp(res$debug$lp(eps = x)),
 # overlay sampling envelope
 curve(exp(res$debug$q1$e.log(x = x)), from = xmin, to = xmax, 
       add = TRUE, col = 2, n = 1e3)
-
 
 detach(dive.sim$params)
 detach(dive.sim)

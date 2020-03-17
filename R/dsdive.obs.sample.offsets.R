@@ -7,9 +7,9 @@
 #'
 #'
 dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
-                                     t.stages, P.raw, depth.bins, tstep,
-                                     max.width, t0.prior.params,
-                                     debug = FALSE) {
+                                     offset.tf, t.stages, P.raw, depth.bins, 
+                                     tstep, max.width, prior.params,
+                                     sample.start, debug = FALSE) {
 
   tstep2 = 2*tstep
 
@@ -22,11 +22,21 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
     #
     # Parameters:
     #  eps - offset
-
+    
+    # set offsets depending on whether start or end of dive is being sampled
+    if(sample.start) {
+      eps.t0 = eps
+      eps.tf = offset.tf
+    } else {
+      eps.t0 = offset
+      eps.tf = eps
+    }
+    
     # construct dsobs object with realigned observation times
     aligned = dsdive.align.obs(depths = dsobs.unaligned$depths,
                                times = dsobs.unaligned$times,
-                               t.stages = t.stages, offset = eps)
+                               t.stages = t.stages, offset = eps.t0, 
+                               offset.tf = eps.tf)
 
     # log density associated with dive offset
     ld = dsdive.obsld(dsobs.list = aligned, t.stages.list = t.stages,
@@ -34,10 +44,9 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
 
     # return log-posterior (ignoring jacobian)
     ld + dbeta(x = (eps + tstep)/tstep2,
-               shape1 = t0.prior.params[1], shape2 = t0.prior.params[2],
+               shape1 = prior.params[1], shape2 = prior.params[2],
                log = TRUE)
   })}
-
 
   #
   # sample dive offset
@@ -124,9 +133,21 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
   # accept/reject
   if(log(runif(1)) <= lR) {
     offset = prop
+    
+    # set offsets depending on whether start or end of dive is being sampled
+    if(sample.start) {
+      eps.t0 = eps
+      eps.tf = offset.tf
+    } else {
+      eps.t0 = offset
+      eps.tf = eps
+    }
+    
+    # construct dsobs object with realigned observation times
     dsobs.aligned = dsdive.align.obs(depths = dsobs.unaligned$depths,
                                      times = dsobs.unaligned$times,
-                                     t.stages = t.stages, offset = offset)
+                                     t.stages = t.stages, offset = eps.t0,
+                                     offset.tf = eps.tf)
   }
 
 
