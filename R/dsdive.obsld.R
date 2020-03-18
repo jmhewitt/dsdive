@@ -111,6 +111,14 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
           }
         }
         
+        # correct for numerical stability
+        if(any(u0 < 0)) {
+          # zap small negative values
+          u0[(u0 < 0) & (u0 > -1e-10)] = 0
+          # renormalize probability distribution
+          u0 = u0 / sum(u0)
+        }
+        
         # add likelihood contribution
         ld = ld + log(u0[df])
       }
