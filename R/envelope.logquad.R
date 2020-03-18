@@ -32,9 +32,9 @@ envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
     # account for mass when log-fn is -Inf
     if(is.infinite(c)) {
       if(c<0) {
-        if(all(Re(a) < Inf, b < Inf)) {
+        # if(all(Re(a) < Inf, b < Inf)) {
           0
-        }
+        # }
       } else {
         NaN
       }
