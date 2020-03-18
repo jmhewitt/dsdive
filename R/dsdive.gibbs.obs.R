@@ -92,9 +92,10 @@ dsdive.gibbs.obs = function(
       beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 1 tx matrix 
-    P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
-                                     lambda = lambda.init, s0 = 1, 
+    P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
+                                     lambda = theta$lambda, s0 = 1, 
                                      tstep = tstep, include.raw = TRUE)
+    
     # update stage 2 parameters
     theta = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
@@ -103,8 +104,8 @@ dsdive.gibbs.obs = function(
       beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 2 tx matrix 
-    P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
-                                     lambda = lambda.init, s0 = 2, 
+    P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
+                                     lambda = theta$lambda, s0 = 2, 
                                      tstep = tstep, include.raw = TRUE)
     
     # update stage 3 parameters
@@ -115,8 +116,8 @@ dsdive.gibbs.obs = function(
       beta.priors.list = beta.priors.list, tstep = tstep)
     
     # update stage 3 tx matrix 
-    P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
-                                     lambda = lambda.init, s0 = 3, 
+    P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
+                                     lambda = theta$lambda, s0 = 3, 
                                      tstep = tstep, include.raw = TRUE)
     
     if(verbose) {
