@@ -38,7 +38,8 @@
 #'   method used to determine stage transition probability curves
 #'   
 #'
-#' @importFrom Matrix sparseVector
+#' @importFrom Matrix sparseVector expm
+#' @importFrom expm expAtv
 #' 
 #' @example examples/dsdive.obsld.R
 #' 
@@ -96,18 +97,18 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
         if(dt.stages[1] == P.raw[[s0.step]]$obstx.tstep) {
           u0 = P.raw[[s0.step]]$obstx.mat[d0,]
         } else {
-          u0 = (P.raw[[s0.step]]$evecs[d0,] * 
-                  exp(P.raw[[s0.step]]$evals * dt.stages[1])) %*%
-                P.raw[[s0.step]]$evecs.inv
+          u0 = Matrix::expm(P.raw[[s0.step]]$A *  dt.stages[1])[d0,]
         }
         
         # diffuse transition distribution through other stages
         if(sf.step != s0.step) {
           for(s.ind in 2:length(s.step)) {
             s = s.step[s.ind]
-            u0 = (u0 %*% P.raw[[s]]$evecs * 
-                    exp(P.raw[[s]]$evals * dt.stages[s.ind])) %*% 
-                 P.raw[[s]]$evecs.inv
+            u0 = t(expm::expAtv(
+              A = as.matrix(t(P.raw[[s]]$A)), 
+              t = dt.stages[s.ind],
+              v = as.numeric(u0)
+            ))[[1]]
           }
         }
         

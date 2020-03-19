@@ -41,6 +41,8 @@
 #'   
 #' @example examples/dsdive.obstx.matrix.R
 #' 
+#' @importFrom Matrix expm
+#' 
 #' @export
 #' 
 #' 
@@ -52,32 +54,15 @@ dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep,
   A = dsdive.generator.matrix.uniformized(
     depth.bins = depth.bins, beta = beta, lambda = lambda, s0 = s0, 
     rate.uniformized = rate.unif)
-    
-  # compute components of matrix exponential
-  A.e = eigen(A)
-  evals = A.e$values
-  if(length(unique(evals)) == nrow(A)) {
-    # inverting evecs is only possible with nrow(A) distinct evals
-    evecs = A.e$vectors
-    evecs.inv = solve(evecs)
-  } else {
-    # t(A) may be more numerically stable than A
-    At.e = eigen(t(A))
-    evals = At.e$values
-    evecs.inv = t(At.e$vectors)
-    evecs = solve(evecs.inv)
-  }
   
   # compute matrix exponential
-  obstx.mat = evecs %*% diag(exp(tstep * evals)) %*% evecs.inv
+  obstx.mat = Matrix::expm(A * tstep)
 
   if(include.raw) {
     list(
       obstx.mat = obstx.mat,
       obstx.tstep = tstep,
-      evals = evals,
-      evecs = evecs,
-      evecs.inv = evecs.inv
+      A = A
     )
   } else {
     obstx.mat
