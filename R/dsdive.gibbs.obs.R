@@ -33,7 +33,7 @@ dsdive.gibbs.obs = function(
   checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
   lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
-  t0.prior.params, tf.prior.params) {
+  t0.prior.params, tf.prior.params, offsets, offsets.tf) {
 
   
   n = length(dsobs.list)
@@ -50,9 +50,7 @@ dsdive.gibbs.obs = function(
   #
   
   theta = list(beta = beta.init, lambda = lambda.init)
-  offsets = numeric(n)
-  offsets.tf = numeric(n)
-  
+
   trace = matrix(NA, nrow = maxit, ncol = 5)
   trace.t.stages = vector('list', length = maxit)
   trace.offsets = matrix(0, nrow = maxit, ncol = n)
