@@ -54,7 +54,7 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
 
   # determine intervals and midpoints for log-quadratic sampling envelope
   breaks = refine.partition(
-    breaks = c(-tstep, tstep),
+    breaks = c(-tstep, 0, tstep),
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
 
@@ -103,9 +103,10 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
     }
     # assume lp is finite in entire interval
     else {
-      b = (U-L)/(U.x-L.x)
+      b = (M-L)/(M.x-L.x)
       x = U.x - M.x
-      a = (U - M - b * x)/x^2
+      # a = (U - M - b * x)/x^2
+      a = 0
       c(2*a, b, M)
     }
   })
