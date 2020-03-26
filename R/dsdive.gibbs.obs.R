@@ -33,8 +33,7 @@ dsdive.gibbs.obs = function(
   checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
   lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
-  t0.prior.params, tf.prior.params, offsets, offsets.tf) {
-
+  t0.prior.params, tf.prior.params, offsets, offsets.tf, cl = NULL) {
   
   n = length(dsobs.list)
   
@@ -126,6 +125,15 @@ dsdive.gibbs.obs = function(
     #
     # update stage transition time parameters and dive offsets
     #
+    
+    # specify function to use to update dive-level random effects
+    if(is.null(cl)) {
+      applyfn = lapply
+    } else {
+      applyfn = function(X, FUN, ...) {
+        clusterApply(cl = cl, x = X, fun = FUN, ...)
+      }
+    }
     
     for(i in 1:n) {
       

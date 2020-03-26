@@ -55,7 +55,6 @@
 #' @import dplyr
 #' @importFrom extraDistr rtnorm
 #' 
-#' @export
 #'
 crawl.impute = function(depth.bins, depths, times, N, 
                         depths.impute = 'uniform', tstep, sd.scale = 1) {

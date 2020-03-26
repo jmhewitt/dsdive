@@ -1,28 +1,3 @@
-checkForRemoteErrors = function (val, crash.fn) {
-  count <- 0
-  firstmsg <- NULL
-  nodes = c()
-  for(i in 1:length(val)) {
-    v = val[[i]]
-    if (inherits(v, c("try-error", 'character'))) {
-      nodes = c(nodes, i)
-      count <- count + 1
-      if (count == 1)
-        firstmsg <- v
-    }
-  }
-  if(count > 0 ) {
-    print(firstmsg)
-    crash.fn(nodes, firstmsg)
-  }
-  if (count == 1)
-    stop("one node produced an error: ", firstmsg)
-  else if (count > 1)
-    stop(count, " nodes produced errors; first error: ",
-         firstmsg)
-  val
-}
-
 #' Likelihood for completely observed dive trajectories
 #'
 #' @param depths Depth bin indices in which the trajectory was observed
@@ -49,120 +24,32 @@ checkForRemoteErrors = function (val, crash.fn) {
 #' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
 #'   method used to determine stage transition probability curves
 #' 
-#' @example examples/ld.R
+#' @example examples/dsdive.gibbs.R
 #' 
-#' @importFrom snow checkCluster sendCall recvResult
+#' @export
 #' 
-#' 
-dsdive.gibbs = function(
-  dives.obs, cl, impute.init, impute.gibbs, init, verbose = FALSE, maxit, 
-  checkpoint.fn, checkpoint.interval, T1.prior.params, T2.prior.params, 
-  pi1.prior, pi2.prior, lambda1.prior, lambda2.prior, lambda3.prior, crash.fn,
-  max.width) {
+dsdive.gibbs.obs = function(
+  dives.list, t.stages.list, beta.init, lambda.init, verbose = FALSE, maxit, 
+  checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
+  lambda1.prior, lambda2.prior, lambda3.prior, depth.bins, 
+  T1.prior.params, T2.prior.params, max.width) {
   
-  #
-  # initialize cluster
-  #
   
-  if(verbose) {
-    message('Initializing cluster')
-  }
+  n = length(dives.list)
   
-  # validate cluster
-  checkCluster(cl)
+  lambda.priors.list = list(lambda1.prior, lambda2.prior, lambda3.prior)
+  beta.priors.list = list(pi1.prior, pi2.prior)
   
-  # set up basic load-balancing scheme to partition data across cluster
-  batch.size = floor(length(dives.obs) / length(cl))
-  remainder = length(dives.obs) - batch.size * length(cl)
   
-  # initialize cluster
-  nodes.used = NULL
-  start = 1
-  for(i in seq(along = cl)) {
-    
-    # determine which dives go to node i
-    end = start + batch.size + ifelse(i <= remainder, 1, 0) - 1
-    
-    # initialize node i
-    if(end >= start) {
-      
-      inds = start:end
-      nodes.used = c(nodes.used, i)
-      
-      if(verbose) {
-        message(paste('    Initializing node', i, sep = ' '))
-      }
-      
-      local({
-        env <- as.environment(1) ## .GlobalEnv
-        gets <- function(n, v) { assign(n, v, envir = env); NULL }
-        sendCall(con = cl[[i]], fun = function(pkg, assign.fn, impute.init, 
-                                               theta) {
-          
-          # ensure node has loaded tools
-          require(dsdive)
-          
-          # impute initial trajectories
-          imputed.local = lapply(pkg$dives.obs, function(d) {
-            
-            # initialize stage duration
-            t.stages = seq(from = d$dive$times[1], 
-                           to = d$dive$times[length(d$dive$times)],
-                           length.out = 4)[2:3]
-            
-            # impute trajectory
-            r = impute.init(depth.bins = d$depth.bins, depths = d$dive$depths,
-                           times = d$dive$times, beta = theta$beta,
-                           lambda = theta$lambda, t.stages = t.stages)
-            
-            r$t.stages = t.stages
-            r
-          })
-
-          # save data to node
-          assign.fn('impute.gibbs', pkg$impute.gibbs)
-          assign.fn('T1.prior.params', pkg$T1.prior.params)
-          assign.fn('T2.prior.params', pkg$T2.prior.params)
-          assign.fn('max.width', pkg$max.width)
-          assign.fn('obs.local', pkg$dives.obs)
-          assign.fn('imputed.local', imputed.local)
-          assign.fn('assign.fn', assign.fn)
-          
-          # return imputed trajectories
-          list(imputed.local)
-          
-        }, args = list(pkg = list(dives.obs = dives.obs[inds], 
-                                  T1.prior.params = T1.prior.params, 
-                                  T2.prior.params = T2.prior.params, 
-                                  impute.gibbs = impute.gibbs, 
-                                  max.width = max.width), 
-                       assign.fn = gets, impute.init = impute.init, 
-                       theta = init))
-      })
-      
-    }
-    start = end + 1
-  }
-  
-  # collect initial trajectory imputations
-  dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult), 
-                                       crash.fn)
-  dives.imputed = do.call(c, dives.imputed)
-  
-  if(verbose) {
-    message('Cluster initialized')
-  }
-  
-
   #
   # initialize sampler state and output
   #
   
-  theta = init
+  theta = list(beta = beta.init, lambda = lambda.init)
   
   trace = matrix(NA, nrow = maxit, ncol = 5)
+  trace.t.stages = vector('list', length = maxit)
   colnames(trace) = c('pi1', 'pi2', 'lambda1', 'lambda2', 'lambda3')
-  imputed.trace = vector('list', maxit)
   
   tick.checkpoint = proc.time()[3]
   
@@ -180,95 +67,45 @@ dsdive.gibbs = function(
     
     
     #
-    # impute trajectories
-    #
-    
-    for(i in nodes.used) {
-      local({
-        env <- as.environment(1) ## .GlobalEnv
-        gets <- function(n, v) { assign(n, v, envir = env); NULL }
-        sendCall(con = cl[[i]], fun = function(theta) {
-          for(j in 1:length(imputed.local)) {
-            
-            d = obs.local[[j]]
-            r = imputed.local[[j]]
-            t.stages = r$t.stages
-            
-            # impute trajectory
-            r = impute.gibbs(depth.bins = d$depth.bins, depths = d$dive$depths, 
-                             times = d$dive$times, beta = theta$beta, 
-                             lambda = theta$lambda, imputed.cond = r)
-            
-            # sample stage transition times and updated stage vector
-            dive.new = dsdive.sample.stages(
-              depths = r$depths, times = r$times, t.stages = t.stages, 
-              beta = theta$beta, lambda = theta$lambda, 
-              depth.bins = d$depth.bins, T1.prior.params = T1.prior.params, 
-              T2.prior.params = T2.prior.params, max.width = max.width, 
-              debug = FALSE, T.range = d$dive$times[c(1, length(d$dive$times))])
-            
-            # explicitly copy information out of the resampled dive stages
-            r$depths = dive.new$depths
-            r$durations = dive.new$durations
-            r$stages = dive.new$stages
-            r$times = dive.new$times
-            r$t.stages = dive.new$t.stages
-            
-            r$suffstat = dsdive.suffstat(depths = r$depths, 
-                                         durations = r$durations, 
-                                         stages = r$stages, 
-                                         depth.bins = d$depth.bins)
-            
-            imputed.local[[j]] = r
-          }
-          
-          # update imputed dives on node
-          assign.fn('imputed.local', imputed.local)
-          
-          # return imputed trajectories
-          imputed.local
-          
-        }, args = list(theta = theta))
-      })
-    }
-    
-    # collect trajectory imputations
-    dives.imputed = checkForRemoteErrors(sapply(cl[nodes.used], recvResult), 
-                                         crash.fn)
-    dives.imputed = do.call(c, dives.imputed)
-    
-    #
     # sample model parameters from full conditional posterior densities
     #
     
-    dat.all = sapply(dives.imputed, function(r) {
-      unlist(r$suffstat)
-    })
+    # aggregate sufficient statistics
     
-    suffstats.all = rowSums(dat.all)
+    # update stage 1 parameters
+    theta = dsdive.sampleparams(
+      dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
+      s0 = 1, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
+      lambda.priors.list = lambda.priors.list, 
+      beta.priors.list = beta.priors.list, tstep = tstep)
     
-    theta$beta = c(
-      rbeta(n = 1, 
-            shape1 = pi1.prior[1] + suffstats.all['n.down1'], 
-            shape2 = pi1.prior[2] + suffstats.all['n.beta1'] - 
-              suffstats.all['n.down1']),
-      rbeta(n = 1, 
-            shape1 = pi2.prior[1] + suffstats.all['n.down2'], 
-            shape2 = pi2.prior[2] + suffstats.all['n.beta2'] - 
-              suffstats.all['n.down2'])
-    )
+    # update stage 1 tx matrix 
+    P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
+                                     lambda = lambda.init, s0 = 1, 
+                                     tstep = tstep, include.raw = TRUE)
+    # update stage 2 parameters
+    theta = dsdive.obs.sampleparams(
+      dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
+      s0 = 2, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
+      lambda.priors.list = lambda.priors.list, 
+      beta.priors.list = beta.priors.list, tstep = tstep)
     
-    theta$lambda = c(
-      rgamma(n = 1, 
-             shape = lambda1.prior[1] + suffstats.all['n.lambda1'], 
-             rate = lambda1.prior[2] + suffstats.all['d.lambda1']),
-      rgamma(n = 1, 
-             shape = lambda2.prior[1] + suffstats.all['n.lambda2'], 
-             rate = lambda2.prior[2] + suffstats.all['d.lambda2']),
-      rgamma(n = 1, 
-             shape = lambda3.prior[1] + suffstats.all['n.lambda3'], 
-             rate = lambda3.prior[2] + suffstats.all['d.lambda3'])
-    )
+    # update stage 2 tx matrix 
+    P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
+                                     lambda = lambda.init, s0 = 2, 
+                                     tstep = tstep, include.raw = TRUE)
+    
+    # update stage 3 parameters
+    theta = dsdive.obs.sampleparams(
+      dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
+      s0 = 3, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
+      lambda.priors.list = lambda.priors.list, 
+      beta.priors.list = beta.priors.list, tstep = tstep)
+    
+    # update stage 3 tx matrix 
+    P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
+                                     lambda = lambda.init, s0 = 3, 
+                                     tstep = tstep, include.raw = TRUE)
     
     if(verbose) {
       print(theta)
@@ -276,12 +113,42 @@ dsdive.gibbs = function(
     
     
     #
+    # update stage transition time parameters and dive offsets
+    #
+    
+    for(i in 1:n) {
+      
+      # sample dive stage transition times
+      d = dsobs.aligned[[i]]
+      t.stages.list[[i]] = dsdive.obs.sample.stages(
+        depths = d$depths, times = d$times, t.stages = t.stages.list[[i]], 
+        P.raw = P.raw, T.range = c(d$times[1], d$times[length(d$times)]), 
+        depth.bins = depth.bins, T1.prior.params = T1.prior.params, 
+        T2.prior.params = T2.prior.params, max.width = max.width, 
+        debug = FALSE)$t.stages
+      
+      # sample new offsets
+      if(!is.null(t0.prior.params)) {
+        d0 = dsdive.obs.sample.offsets(
+          dsobs.aligned = d, dsobs.unaligned = dsobs.list[[i]], 
+          offset = offsets[i], t.stages = t.stages.list[[i]], P.raw = P.raw, 
+          depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
+          t0.prior.params = t0.prior.params)
+        # extract new offsets
+        dsobs.aligned[[i]] = d0$dsobs.aligned
+        offsets[i] = d0$offset
+      }
+      
+    }
+    
+    
+    #
     # save trace
     #
     
-    # save trace 
     trace[it,1:5] = unlist(theta[1:2])
-    imputed.trace[[it]] = dives.imputed
+    trace.t.stages[[it]] = t.stages.list
+    trace.offsets[it,] = offsets
     
     tock = proc.time()[3]
     
@@ -299,7 +166,9 @@ dsdive.gibbs = function(
       if(verbose) {
         message('--- Checkpoint ---')
       }
-      checkpoint.fn(trace = trace[1:it,], imputed.trace = imputed.trace[1:it])
+      checkpoint.fn(list(theta = trace[1:it,], 
+                         trace.t.stages = trace.t.stages[1:it], 
+                         trace.offsets = trace.offsets[1:it,]))
       tick.checkpoint = proc.time()[3]
     }
     
@@ -307,6 +176,7 @@ dsdive.gibbs = function(
   
   list(
     theta = trace,
-    dives = imputed.trace
+    trace.t.stages = trace.t.stages,
+    trace.offsets = trace.offsets
   )
 }

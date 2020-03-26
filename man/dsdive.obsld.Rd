@@ -59,6 +59,7 @@ breakspoints are conditionally independent from the model parameters given
 the dive depth bins and durations.
 }
 \examples{
+library(dsdive)
 data('dive.sim')
 attach(dive.sim)
 attach(dive.sim$params)
@@ -75,11 +76,19 @@ obstx.mat = lapply(1:3, function(s) {
                       s0 = s, tstep = tstep, include.raw = TRUE)
 })
 
+library(parallel)
+
+cl = makeCluster(4, 'SOCK')
+
+clusterEvalQ(cl, library(dsdive))
+
 # compute likelihood of observations, given model parameters
-ld = dsdive.obsld(dsobs.list = list(sim.obs),
-                  t.stages.list = list(t.stages), 
+ld = dsdive.obsld(dsobs.list = list(sim.obs,sim.obs),
+                  t.stages.list = list(t.stages,t.stages), 
                   P.raw = obstx.mat, s0 = 1, sf = 3)
 
 detach(dive.sim$params)
 detach(dive.sim)
+
+stopCluster(cl)
 }
