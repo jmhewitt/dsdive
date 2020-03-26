@@ -8,7 +8,7 @@
 #' @param stages Stages at which each of the \code{depths} was visited
 #' @param t.obs Times at which the trajectory should be observed
 #' 
-#' @example examples/observe.R
+#' @example examples/dsdive.observe.R
 #' 
 #' @export
 #' 

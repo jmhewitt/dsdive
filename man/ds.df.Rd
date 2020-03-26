@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.df.R
 \name{ds.df}
 \alias{ds.df}
-\title{Builds a tidy data frame for dive objects}
+\title{Build a tidy data frame for dive objects}
 \usage{
 ds.df(
   depths,

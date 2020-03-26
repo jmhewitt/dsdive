@@ -69,3 +69,4 @@ q4 = bound.quad(breaks = breaks,
 curve(sin(x) + 1, from = xmin, to = xmax)
 curve(q3$e(x), from = xmin, to = xmax, add = TRUE, col = 4, n = 1e3)
 curve(q4$e(x), from = xmin, to = xmax, add = TRUE, col = 2, n = 1e3)
+

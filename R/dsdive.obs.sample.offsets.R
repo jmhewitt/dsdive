@@ -1,10 +1,38 @@
-#' Sample stage transition times from full conditional posterior
+#' Sample t0 and tf offsets from full conditional posteriors
 #'
-#' We assume the prior distributions for the stage transition times are Gamma
-#' distributions with shape/rate parameterization.
+#' Sampler uses a piecewise quadratic polynomial approximation to the log of the 
+#' full conditional posterior.  Note that this sampler will only sample one 
+#' offset at a time.
 #'
-#' @example examples/dsdive.obs.sample.offsets.R
-#'
+#' @param dsobs.aligned \code{dsobs} object that has been adjusted to account 
+#'   for the t0 and tf offsets.  Note that this should be based on the current 
+#'   value of the offsets, and that this function will update these parameters.
+#' @param dsobs.unaligned \code{dsobs} object with the raw observations of a 
+#'   dive object
+#' @param offset value of current t0 offset
+#' @param offset.tf value of current tf offset
+#' @param t.stages stage transition times for the dive
+#' @param P.raw list of continuous time probability transition matrices, and 
+#'  components.
+#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
+#'   column defines the depth at the center of each depth bin, and the second 
+#'   column defines the half-width of each bin.
+#' @param tstep Time between observations in \code{dsobs.unaligned}
+#' @param max.width The t0 and tf offsets are updated with a piecewise 
+#'   proposal distribution.  This parameter controls the maximum width 
+#'   of the intervals for the proposal distribution.  This is a tuning parameter 
+#'   that controls the numerical stability of the proposal distribution, which 
+#'   is sampled via inverse CDF techniques.
+#' @param prior.params \code{shape1} and \code{shape2} parameters for the 
+#'   scaled and shifted Beta prior distribution for the offset being sampled.
+#' @param sample.start \code{TRUE} to sample t0 offset; 
+#'   \code{FALSE} to sample tf offset.
+#' @param debug \code{TRUE} to return debugging objects, such as the proposal 
+#'   density and log posterior
+#'   
+#' # @example examples/dsdive.obs.sample.offsets.R
+#' 
+#' @importFrom stats dbeta runif
 #'
 dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                                      offset.tf, t.stages, P.raw, depth.bins, 

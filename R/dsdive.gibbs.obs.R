@@ -1,30 +1,60 @@
-#' Likelihood for completely observed dive trajectories
+#' Gibbs sampler for parameters of a model for dives across discrete depth bins
 #'
-#' @param depths Depth bin indices in which the trajectory was observed
-#' @param durations Amount of time spent in each depth bin
-#' @param times Times at which each depth bin was entered
-#' @param stages Record of dive stages at each depth bin
-#' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
-#'  preference and directional persistence parameters for the DIVING, SUBMERGED, 
-#'  and SURFACING dive stages.
-#' @param lambda length 3 vector that specifies the transition rate, 
-#'   respectively in the DIVING, SUBMERGED, and SURFACING stages.
-#' @param sub.tx length 2 vector that specifies the first depth bin at which 
-#'   transitions to the SUBMERGED stage can occur and the probability that such 
-#'   a transition occurs at the next depth transition
-#' @param surf.tx parameter that specifies the probability the trajectory will 
-#'   transition to the SURFACING stage at the next depth transition
+#' @param dsobs.list list of \code{dsobs} objects, which describe the 
+#'   observation times and depths of a collection of dives
+#' @param t.stages.list list of initial stage transition times for dives 
+#'   observed in \code{dsobs.list}
+#' @param beta.init Initial values for directional preference model parameters.  
+#'   See \code{dsdive.tx.params} for more details.
+#' @param lambda.init Initial values for diving rate model parameters.  See 
+#'   \code{dsdive.tx.params} for more details.
+#' @param verbose \code{TRUE} to output sampler status while running
+#' @param maxit number of Gibbs iterations to run
+#' @param checkpoint.fn User-defined function to run during a checkpoint step;
+#'   gives the user an opportunity to save partial output from the sampler
+#' @param checkpoint.interval Number of seconds between calls to  
+#'   \code{checkpoint.fn}
+#' @param pi1.prior \code{shape1} and \code{shape2} parameters for Beta prior 
+#'  distribution on the dive-stage model parameter \eqn{\pi^{(1)}}
+#' @param pi2.prior \code{shape1} and \code{shape2} parameters for Beta prior 
+#'  distribution on the ascent-stage model parameter \eqn{\pi^{(3)}}.  The 
+#'  notation is a little odd because this is the SECOND preference parameter the 
+#'  model estimates.
+#' @param lambda1.prior \code{shape} and \code{rate} parameters for Gamma prior 
+#'   distribution on the descent-stage diving rate \eqn{\lambda^{(1)}}.
+#' @param lambda2.prior \code{shape} and \code{rate} parameters for Gamma prior 
+#'   distribution on the bottom-stage diving rate \eqn{\lambda^{(2)}}.
+#' @param lambda3.prior \code{shape} and \code{rate} parameters for Gamma prior 
+#'   distribution on the ascent-stage diving rate \eqn{\lambda^{(3)}}.
+#' @param tstep Time between observations in \code{dsobs.list}
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param t0.dive Time at which dive started
-#' @param d0.last If the depth bin that proceeded the first depth bin in 
-#'   \code{depths}.  If the trajectory to be analyzed was started at the 
-#'   surface, then set \code{c0.last=NULL}.
-#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
-#'   method used to determine stage transition probability curves
-#' 
+#' @param T1.prior.params \code{shape} and \code{rate} parameters for Gamma 
+#'   prior on the descent-stage duration.
+#' @param T2.prior.params \code{shape} and \code{rate} parameters for Gamma 
+#'   prior on the bottom-stage duration.
+#' @param max.width The stage transition times are updated with a piecewise 
+#'   proposal distribution.  \code{max.width} controls the maximum width of the 
+#'   intervals for the proposal distribution.  This is a tuning parameter that 
+#'   controls the numerical stability of the proposal distribution, which is 
+#'   sampled via inverse CDF techniques.
+#' @param max.width.offset The t0 and tf offsets are updated with a piecewise 
+#'   proposal distribution.  \code{max.width.offset} controls the maximum width 
+#'   of the intervals for the proposal distribution.  This is a tuning parameter 
+#'   that controls the numerical stability of the proposal distribution, which 
+#'   is sampled via inverse CDF techniques.
+#' @param t0.prior.params \code{shape1} and \code{shape2} parameters for the 
+#'   scaled and shifted Beta prior distribution for the t0 offset.
+#' @param tf.prior.params \code{shape1} and \code{shape2} parameters for the 
+#'   scaled and shifted Beta prior distribution for the tf offset.
+#' @param offsets vector with initial values for t0 offsets.
+#' @param offsets.tf vector with initial values for tf offsets.
+#' @param cl cluster to be used to distribute some computations
+#'   
 #' @example examples/dsdive.gibbs.obs.R
+#' 
+#' @importFrom parallel clusterApply
 #' 
 #' @export
 #' 

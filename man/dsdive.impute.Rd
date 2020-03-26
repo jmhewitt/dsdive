@@ -2,79 +2,46 @@
 % Please edit documentation in R/dsdive.impute.R
 \name{dsdive.impute}
 \alias{dsdive.impute}
-\title{Use bridged sampling to impute a complete dive trajectory consistent with observations}
+\title{Impute a complete dive trajectory from partial observations}
 \usage{
-dsdive.impute(depths, times, t.stages, rate.unif, P.raw, P.tx, n.bins, max.tx)
+dsdive.impute(
+  depths,
+  times,
+  t.stages,
+  rate.unif,
+  P.raw,
+  P.tx,
+  n.bins = nrow(depths),
+  max.tx
+)
 }
 \arguments{
-\item{depths}{record of depth bins the trajectory should visit}
+\item{depths}{Depth bin indices visited}
 
-\item{times}{times at which the depth bins should be visited}
+\item{times}{Times at which each of \code{depths} was visited}
 
-\item{t.stages}{the times at which stage transitions occur}
+\item{t.stages}{Stage transition times for the dive; will be used to compute
+the dive stage for each observation}
 
-\item{M}{the number of trajectories to sample}
+\item{rate.unif}{uniformization rate, for standardizing transition
+rates between states}
 
-\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
-column defines the depth at the center of each depth bin, and the second 
-column defines the half-width of each bin.}
+\item{P.raw}{list of continuous time probability transition matrices, and 
+components.}
 
-\item{s0}{dive stage at which the trajectory should be started from}
+\item{P.tx}{list of discrete time probability transition matrices}
 
-\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
-preference and directional persistence parameters for the DIVING, SUBMERGED, 
-and SURFACING dive stages.}
+\item{n.bins}{number of rows in the \code{depths} matrix}
 
-\item{lambda}{length 3 vector that specifies the transition rate, 
-respectively in the DIVING, SUBMERGED, and SURFACING stages.}
-
-\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
-a transition occurs at the next depth transition}
-
-\item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
-
-\item{inflation.factor.lambda}{In order to facilitate bridged transitions, 
-the transition rate of the overall process must be inflated to allow the 
-possibility of self-transitions.  Self-transitions allow bridged paths to 
-dynamically modify the total number of transitions between observed values
-so that a valid path between observations is always possible.  The 
-\code{inflation.factor.lambda} parameter implicitly controls the number of 
-self-transitions that will occur.  Larger values will create more 
-self-transitions.}
-
-\item{verbose}{If \code{TRUE}, then the sampler's progress will be printed 
-during sampling.}
-
-\item{precompute.bridges}{If \code{TRUE}, then the bridged transition 
-matrices will be precomputed.  Enabling this option will increase the 
-memory overhead of the method, but will reduce its runtime.}
-
-\item{t0.dive}{Time at which dive started}
-
-\item{resample}{Resample particles at each step if \code{TRUE}.}
-
-\item{trajectory.conditional}{If not \code{NULL}, then 
-\code{trajectory.conditional} must be the dive information for a 
-completely observed \code{dsdive} object.  The first entries in the 
-initialization vectors \code{d0}, \code{d0.last}, \code{s0} must be 
-associated with the trajectory observed in \code{trajectory.conditional}.
-Providing a non \code{NULL} value for \code{trajectory.conditional} will 
-cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
-the value of \code{trajectory.conditional} will be returned.  The 
-importance of this function argument is that \code{dsdive.fastbridge}
-will evaluate the proposal density for \code{trajectory.conditional}.}
-
-\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
-method used to determine stage transition probability curves}
-
-\item{ld.compute}{\code{TRUE} to compute likelihood values as well.  This 
-is required if resampling or conditional trajectory imputation is used.}
+\item{max.tx}{maximum number of transitions between observations that will 
+be allowed during imputation}
 }
 \description{
-The sampling method is designed to sample many trajectories simultaneously, 
-so has an extra level of approximation in the proposal distributions.
+Uses properties of homogeneous Continuous time Markov Chains (CTMCs) to 
+impute trajectory segments between observations.  The sampler begins by 
+sampling the number of transitions between observations \eqn{N}, then 
+samples a length \code{N} path that connects the trajectory segment at its 
+start and end states.
 }
 \examples{
 data('dive.sim')

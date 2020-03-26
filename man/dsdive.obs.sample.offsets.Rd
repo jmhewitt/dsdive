@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsdive.obs.sample.offsets.R
 \name{dsdive.obs.sample.offsets}
 \alias{dsdive.obs.sample.offsets}
-\title{Sample stage transition times from full conditional posterior}
+\title{Sample t0 and tf offsets from full conditional posteriors}
 \usage{
 dsdive.obs.sample.offsets(
   dsobs.aligned,
@@ -19,45 +19,48 @@ dsdive.obs.sample.offsets(
   debug = FALSE
 )
 }
-\description{
-We assume the prior distributions for the stage transition times are Gamma
-distributions with shape/rate parameterization.
+\arguments{
+\item{dsobs.aligned}{\code{dsobs} object that has been adjusted to account 
+for the t0 and tf offsets.  Note that this should be based on the current 
+value of the offsets, and that this function will update these parameters.}
+
+\item{dsobs.unaligned}{\code{dsobs} object with the raw observations of a 
+dive object}
+
+\item{offset}{value of current t0 offset}
+
+\item{offset.tf}{value of current tf offset}
+
+\item{t.stages}{stage transition times for the dive}
+
+\item{P.raw}{list of continuous time probability transition matrices, and 
+components.}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
+
+\item{tstep}{Time between observations in \code{dsobs.unaligned}}
+
+\item{max.width}{The t0 and tf offsets are updated with a piecewise 
+proposal distribution.  This parameter controls the maximum width 
+of the intervals for the proposal distribution.  This is a tuning parameter 
+that controls the numerical stability of the proposal distribution, which 
+is sampled via inverse CDF techniques.}
+
+\item{prior.params}{\code{shape1} and \code{shape2} parameters for the 
+scaled and shifted Beta prior distribution for the offset being sampled.}
+
+\item{sample.start}{\code{TRUE} to sample t0 offset; 
+\code{FALSE} to sample tf offset.}
+
+\item{debug}{\code{TRUE} to return debugging objects, such as the proposal 
+  density and log posterior
+  
+# @example examples/dsdive.obs.sample.offsets.R}
 }
-\examples{
-data('dive.sim')
-attach(dive.sim)
-attach(dive.sim$params)
-
-# extract true stage transition times
-t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
-
-# build probability matrices for observations
-tstep = diff(sim.obs$times[1:2])
-P.raw = lapply(1:3, function(s) {
-  dsdive.obstx.matrix(depth.bins = depth.bins, beta = params$beta, 
-                      lambda = params$lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
-})
-
-# sample new offsets
-res = dsdive.obs.sample.offsets(
-  dsobs.aligned = sim.obs, dsobs.unaligned = sim.obs, offset = 0, 
-  t.stages = t.stages, P.raw = P.raw, depth.bins = depth.bins, tstep = tstep,
-  prior.params = c(10,10), max.width = 30, debug = TRUE, sample.start = TRUE, 
-  offset.tf = 0)
-
-
-par(mar = c(5, 5, 4, 2) + .1)
-xmin = -tstep
-xmax = tstep
-# plot un-normalized full conditional posterior for offset
-curve(exp(res$debug$lp(eps = x)), 
-      from = xmin, to = xmax, n = 1e3, col = 'grey60',
-      xlab = expression(epsilon), ylab = expression(f(epsilon~'|'~...)))
-# overlay sampling envelope
-curve(exp(res$debug$q1$e.log(x = x)), from = xmin, to = xmax, 
-      add = TRUE, col = 2, n = 1e3)
-
-detach(dive.sim$params)
-detach(dive.sim)
+\description{
+Sampler uses a piecewise quadratic polynomial approximation to the log of the 
+full conditional posterior.  Note that this sampler will only sample one 
+offset at a time.
 }

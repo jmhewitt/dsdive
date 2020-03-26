@@ -1,61 +1,32 @@
-#' Use bridged sampling to impute a complete dive trajectory consistent with observations
-#'
-#' The sampling method is designed to sample many trajectories simultaneously, 
-#' so has an extra level of approximation in the proposal distributions.
+#' Impute a complete dive trajectory from partial observations
 #' 
-#' @param M the number of trajectories to sample
-#' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
-#'   column defines the depth at the center of each depth bin, and the second 
-#'   column defines the half-width of each bin.
-#' @param depths record of depth bins the trajectory should visit
-#' @param times times at which the depth bins should be visited
-#' @param s0 dive stage at which the trajectory should be started from
-#' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
-#'  preference and directional persistence parameters for the DIVING, SUBMERGED, 
-#'  and SURFACING dive stages.
-#' @param lambda length 3 vector that specifies the transition rate, 
-#'   respectively in the DIVING, SUBMERGED, and SURFACING stages.
-#' @param sub.tx length 2 vector that specifies the first depth bin at which 
-#'   transitions to the SUBMERGED stage can occur and the probability that such 
-#'   a transition occurs at the next depth transition
-#' @param surf.tx parameter that specifies the probability the trajectory will 
-#'   transition to the SURFACING stage at the next depth transition
-#' @param inflation.factor.lambda In order to facilitate bridged transitions, 
-#'   the transition rate of the overall process must be inflated to allow the 
-#'   possibility of self-transitions.  Self-transitions allow bridged paths to 
-#'   dynamically modify the total number of transitions between observed values
-#'   so that a valid path between observations is always possible.  The 
-#'   \code{inflation.factor.lambda} parameter implicitly controls the number of 
-#'   self-transitions that will occur.  Larger values will create more 
-#'   self-transitions.
-#' @param verbose If \code{TRUE}, then the sampler's progress will be printed 
-#'   during sampling.
-#' @param precompute.bridges If \code{TRUE}, then the bridged transition 
-#'   matrices will be precomputed.  Enabling this option will increase the 
-#'   memory overhead of the method, but will reduce its runtime.
-#' @param t0.dive Time at which dive started
-#' @param resample Resample particles at each step if \code{TRUE}.
-#' @param trajectory.conditional If not \code{NULL}, then 
-#'   \code{trajectory.conditional} must be the dive information for a 
-#'   completely observed \code{dsdive} object.  The first entries in the 
-#'   initialization vectors \code{d0}, \code{d0.last}, \code{s0} must be 
-#'   associated with the trajectory observed in \code{trajectory.conditional}.
-#'   Providing a non \code{NULL} value for \code{trajectory.conditional} will 
-#'   cause \code{dsdive.fastbridge} to simulate one fewer trajectories, as 
-#'   the value of \code{trajectory.conditional} will be returned.  The 
-#'   importance of this function argument is that \code{dsdive.fastbridge}
-#'   will evaluate the proposal density for \code{trajectory.conditional}.
-#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
-#'   method used to determine stage transition probability curves
-#' @param ld.compute \code{TRUE} to compute likelihood values as well.  This 
-#'   is required if resampling or conditional trajectory imputation is used.
-#' @param t.stages the times at which stage transitions occur
+#' Uses properties of homogeneous Continuous time Markov Chains (CTMCs) to 
+#' impute trajectory segments between observations.  The sampler begins by 
+#' sampling the number of transitions between observations \eqn{N}, then 
+#' samples a length \code{N} path that connects the trajectory segment at its 
+#' start and end states.
+#' 
+#' @param depths Depth bin indices visited
+#' @param times Times at which each of \code{depths} was visited
+#' @param t.stages Stage transition times for the dive; will be used to compute
+#'   the dive stage for each observation
+#' @param rate.unif uniformization rate, for standardizing transition
+#'   rates between states
+#' @param P.raw list of continuous time probability transition matrices, and 
+#'  components.
+#' @param P.tx list of discrete time probability transition matrices
+#' @param n.bins number of rows in the \code{depths} matrix
+#' @param max.tx maximum number of transitions between observations that will 
+#'   be allowed during imputation
 #' 
 #' @example examples/dsdive.impute.R
+#' 
+#' @importFrom stats runif
+#' 
 #' @export
 #'
 dsdive.impute = function(depths, times, t.stages, rate.unif, P.raw, 
-                         P.tx, n.bins, max.tx) {
+                         P.tx, n.bins = nrow(depths), max.tx) {
   
   # number of observations
   nt = length(depths)

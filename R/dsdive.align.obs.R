@@ -1,11 +1,21 @@
-#' Extract a segment of a fully observed dive trajectory between timepoints
+#' Realign observations of a dive to the time scale of the dive
 #' 
-#' @param depths Complete record of depth bin indices visited
-#' @param times Times at which each of \code{depths} was visited
-#' @param stages Stages at which each of the \code{depths} was visited
-#' @param durations the amount of time spent in each depth bin
-#' @param t0 the time to mark the beginning of the segment to extract
-#' @param tf the time to mark the end of the segment to extract
+#' Satellite tag observations of a dive record depths at regular intervals, 
+#' irrespective of whether or not an animal is diving.  Given initial and final 
+#' offsets \code{offset} and \code{offset.tf}, respectively, this function will 
+#' shift the satellite-tag observation \code{times} so that they are referenced 
+#' with respect to the start of the dive (i.e., t=0).  Observations in 
+#' \code{depths} will be trimmed from the output if they exceed the times 
+#' implied by the offsets.
+#' 
+#' @param depths Indices of observed depth bins
+#' @param times Times at which each of \code{depths} was observed
+#' @param t.stages Stage transition times for the dive; will be used to compute
+#'   the dive stage for each observation
+#' @param offset Amount of time by which \code{times} over or under reports the 
+#'   true time within the dive of each \code{depths} observation
+#' @param offset.tf Amount of time by which the last \code{time} over or under 
+#'   reports the true duration of the dive.
 #' 
 #' @example examples/dsdive.align.obs.R
 #' 

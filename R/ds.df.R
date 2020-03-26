@@ -1,4 +1,4 @@
-#' Builds a tidy data frame for dive objects
+#' Build a tidy data frame for dive objects
 #' 
 #' Converts raw dive information to a tidy dataframe that
 #' is suitable for plotting with \code{ggplot2}.  Most importantly, the function

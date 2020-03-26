@@ -2,61 +2,28 @@
 % Please edit documentation in R/dsdive.obsld.R
 \name{dsdive.obsld}
 \alias{dsdive.obsld}
-\title{Full conditional distribution for dive stages given data and parameters}
+\title{Likelihood for collection of partially observed dives}
 \usage{
 dsdive.obsld(dsobs.list, t.stages.list, P.raw, s0, sf)
 }
 \arguments{
-\item{breaks}{the two indices where a new dive stage is entered}
+\item{dsobs.list}{list of \code{dsobs} objects, which describe the 
+observation times and depths of a collection of dives}
 
-\item{fixed.ind}{which of the stage break points in \code{breaks} should be 
-held fixed}
+\item{t.stages.list}{list of stage transition times for dives 
+observed in \code{dsobs.list}}
 
-\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
-preference and directional persistence parameters for the DIVING, SUBMERGED, 
-and SURFACING dive stages.}
+\item{P.raw}{list of continuous time probability transition matrices, and 
+components.}
 
-\item{lambda}{length 3 vector that specifies the transition rate, 
-respectively in the DIVING, SUBMERGED, and SURFACING stages.}
+\item{s0}{likelihood should include contributions for stages greater or 
+equal to \code{s0}}
 
-\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
-a transition occurs at the next depth transition}
-
-\item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
-
-\item{depths}{record of depth bins the trajectory should visit}
-
-\item{durations}{record of amount of time spent in each depth bin}
-
-\item{times}{times at which the depth bins should be visited}
-
-\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
-column defines the depth at the center of each depth bin, and the second 
-column defines the half-width of each bin.}
-
-\item{t0.dive}{Time at which dive started}
-
-\item{t.stage2}{time at which second stage was entered}
-
-\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
-method used to determine stage transition probability curves}
+\item{sf}{likelihood should include contributions for stages less than or 
+equal to \code{sf}}
 }
 \description{
-The 3 stage dive model has two breakpoints where the dive stage changes.  
-Given data and model parameters, this function computes the conditional 
-density of one of the breakpoints given the other.  The function is useful 
-for constructing a Gibbs sampler that can sample over unknown stages of a 
-dive when the dive depth bins and durations are known.  For example, this 
-is helpful when using the \code{crawl}-based computational strategy to 
-explore the posterior distribution for model parameters.
-}
-\details{
-Furthermore, this full conditional distribution serves as the full 
-conditional posterior distribution for stage breakpoints because the stage 
-breakspoints are conditionally independent from the model parameters given 
-the dive depth bins and durations.
+Likelihood for collection of partially observed dives
 }
 \examples{
 library(dsdive)

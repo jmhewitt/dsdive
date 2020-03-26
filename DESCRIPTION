@@ -2,14 +2,14 @@ Package: dsdive
 Type: Package
 Title: Discrete Space Models for Dive Trajectories of Animals
 Version: 1.0.0
-Date: 2019-12-03
+Date: 2020-03-26
 Author: Joshua Hewitt
 Maintainer: Joshua Hewitt <joshua.hewitt@duke.edu>
-Description: Animal movement modelin.
+Description: Animal movement modeling.
 License: GPL-3
 RoxygenNote: 7.0.2
-Suggests: testthat
+Suggests: testthat, mvtnorm, truncdist, ggpubr
 Depends: R (>= 3.5.0)
-Imports: Matrix, bisque, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr, snow, pracma
+Imports: Matrix, bisque, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr, pracma, expm
 Encoding: UTF-8
 LazyData: true

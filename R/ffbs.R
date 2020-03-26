@@ -1,11 +1,16 @@
-#' Use bridged sampling to impute a complete dive trajectory consistent with observations
+#' Forward-filtering backward-sampling algorithm for hidden markov models
 #'
-#' The sampling method is designed to sample many trajectories simultaneously, 
-#' so has an extra level of approximation in the proposal distributions.
+#' Implementation of forward-filtering backward-sampling algorithm described in 
+#' Appendix A of Rao and Teh (2013).
+#' 
+#' @references Rao, Vinayak, and Yee Whye Teh. "Fast MCMC sampling for Markov 
+#'   jump processes and extensions." The Journal of Machine Learning Research 
+#'   14.1 (2013): 3295-3320.
 #' 
 #' @param B single-step transition matrix, after uniformization
 #' @param L likelihood matrix where each column is the probability distribution
 #'  for the state at each of the discrete transitions
+#' @param a0 initial distribution of state vector
 #' 
 #' @importFrom Matrix sparseVector
 #' 

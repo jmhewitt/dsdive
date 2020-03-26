@@ -1,41 +1,30 @@
-#' Simulate dive trajectories across discrete depth bins
+#' Simulate a dive trajectory within a single stage
 #'
 #' The method will simulate dive trajectories from initial conditions until the 
 #' trajectory is observable at \code{tf}, or a maximum number of transitions 
-#' has been exceeded.  The dive simulation is bridged, so the trajectory will
-#' also stop diving after returning to the surface.
+#' has been exceeded.  The dive segment will only be simulated using parameters 
+#' for a single dive stage \code{s0}.
 #' 
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param d0 the depth bin at which transition parameters should be computed
-#' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
-#'  preference and directional persistence parameters for the DIVING, SUBMERGED, 
-#'  and SURFACING dive stages.
-#' @param lambda length 3 vector that specifies the transition rate, 
-#'   respectively in the DIVING, SUBMERGED, and SURFACING stages.
-#' @param sub.tx length 2 vector that specifies the first depth bin at which 
-#'   transitions to the SUBMERGED stage can occur and the probability that such 
-#'   a transition occurs at the next depth transition
-#' @param surf.tx parameter that specifies the probability the trajectory will 
-#'   transition to the SURFACING stage at the next depth transition
-#' @param t0 time at which transition parameters should be computed
-#' @param tf time at which sampling should end after
+#' @param d0 the depth bin index at which the dive segment begins
+#' @param beta Directional preference model parameters.  See 
+#'   \code{dsdive.tx.params} for more details.
+#' @param lambda Diving rate model parameters.  See 
+#'   \code{dsdive.tx.params} for more details.
+#' @param t0 Initial time for the dive segment
+#' @param tf Final time for the dive segment
 #' @param steps.max maximum number of transitions to sample before stopping, 
 #'   regardless of whether \code{tf} is reached.
 #' @param dur0 time spent at location \code{d0}.  If \code{NULL}, then a 
-#'   duration in state \code{d0} will be sampled, otherwise a new state will 
-#'   be sampled first, then sampling will continue from the new state at time 
-#'   \code{t0 + dur0}.
+#'   duration in state \code{d0} will be sampled first, otherwise a new state 
+#'   will  be sampled first, then sampling will continue from the new state at  
+#'   time \code{t0 + dur0}.
 #' @param nsteps if \code{nsteps} is not \code{NULL}, then the sampler will
 #'   be reconfigured to sample exactly \code{nsteps} transitions instead of 
 #'   attempting to sample until the trajectory is observable at time \code{tf}.
 #' @param s0 dive stage in which forward simulation begins
-#' @param t0.dive Time at which dive started
-#' @param shift.params Optional arguments to bias sampling toward a specific 
-#'   node.  See documentation for \code{dsdive.tx.params} for more detail.
-#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
-#'   method used to determine stage transition probability curves
 #' 
 #' @return A \code{dsdive} object, which is a \code{list} with the following 
 #'   vectors:
@@ -50,10 +39,8 @@
 #' 
 #' @example examples/dsdive.fwdsample.fixedstage.R
 #' 
-#' 
 #' @export
 #' 
-#'
 dsdive.fwdsample.fixedstage = function(depth.bins, d0, beta, lambda, t0, tf, 
                                        steps.max, dur0 = NULL, nsteps = NULL, 
                                        s0) {

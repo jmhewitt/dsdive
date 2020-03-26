@@ -7,7 +7,7 @@
 #' @param t0 the time to mark the beginning of the segment to extract
 #' @param tf the time to mark the end of the segment to extract
 #' 
-#' #@example examples/dsdive.extract.R
+#' # @example examples/dsdive.extract.R
 #' 
 dsdive.extract = function(depths, times, stages, durations, t0, tf) {
   

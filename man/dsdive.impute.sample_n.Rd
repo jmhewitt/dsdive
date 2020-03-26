@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsdive.impute.sample_n.R
 \name{dsdive.impute.sample_n}
 \alias{dsdive.impute.sample_n}
-\title{Compute transition matrix for Markov chain representation of dive model}
+\title{Sample number of transitions between observations for a CTMC}
 \usage{
 dsdive.impute.sample_n(
   d0,
@@ -20,170 +20,34 @@ dsdive.impute.sample_n(
 )
 }
 \arguments{
-\item{t0}{time at which transition parameters should be computed}
+\item{d0}{index of depth bin in which the CTMC segment starts}
+
+\item{df}{index of depth bin in which the CTMC segment ends}
+
+\item{s0}{dive stage in which the CTMC begins}
+
+\item{sf}{dive estage in which the CTMC ends}
+
+\item{t0}{time at which \code{d0} is observed}
+
+\item{tf}{time at which \code{df} is observed}
+
+\item{t.stages}{stage transition times for the dive}
+
+\item{rate.unif}{uniformization rate, for standardizing transition
+rates between states}
 
 \item{P.raw}{list of continuous time probability transition matrices, and 
 components.}
 
 \item{P.tx}{list of discrete time probability transition matrices}
 
-\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
-column defines the depth at the center of each depth bin, and the second 
-column defines the half-width of each bin.}
+\item{n.bins}{number of rows in the \code{depths} matrix}
 
-\item{beta}{\eqn{2 x 3} matrix in which each column contains the diving 
-preference and directional persistence parameters for the DIVING, SUBMERGED, 
-and SURFACING dive stages.}
-
-\item{lambda}{length 3 vector that specifies the transition rate, 
-respectively in the DIVING, SUBMERGED, and SURFACING stages.}
-
-\item{sub.tx}{length 2 vector that specifies the first depth bin at which 
-transitions to the SUBMERGED stage can occur and the probability that such 
-a transition occurs at the next depth transition}
-
-\item{surf.tx}{parameter that specifies the probability the trajectory will 
-transition to the SURFACING stage at the next depth transition}
-
-\item{inflation.factor.lambda}{In order to facilitate bridged transitions, 
-the transition rate of the overall process must be inflated to allow the 
-possibility of self-transitions.  Self-transitions allow bridged paths to 
-dynamically modify the total number of transitions between observed values
-so that a valid path between observations is always possible.  The 
-\code{inflation.factor.lambda} parameter implicitly controls the number of 
-self-transitions that will occur.  Larger values will create more 
-self-transitions.}
-
-\item{min.depth}{As a computational efficiency option, only compute 
-transition parameters for depth bins at and above \code{min.depth}.}
-
-\item{max.depth}{As a computational efficiency option, only compute 
-transition parameters for depth bins at and below \code{max.depth}.}
-
-\item{t0.dive}{Time at which dive started}
-
-\item{lambda.max}{Arrival rate for the parent Poisson process that will
-be thinned.  \code{lambda.max} will be scaled by}
-
-\item{t.stage2}{time at which second stage was entered}
-
-\item{model}{Either \code{"conditional"} or \code{"logit"} depending on the 
-method used to determine stage transition probability curves}
-
-\item{n0}{number of transitions during initial stage; if NULL, then this will 
-be the number returned.  Otherwise, nf, the number of transitions during 
-final stage will be returned instead.}
-
-\item{ff.s0}{list of n-step forward distributions when a DTMC is started at 
-node d0.}
+\item{max.tx}{maximum number of transitions between observations that will 
+be allowed during imputation}
 }
 \description{
-Given model parameters and transition times, the 3 stage dive model can be 
-represented as a Markov chain over a state space where each state records
-the last depth bin, current depth bin, and current dive stage.  This 
-function computes the complete transition matrix for the state space, given 
-model parameters and time at which the transition will take place.
-}
-\examples{
-data('dive.sim')
-attach(dive.sim)
-attach(params)
-
-#
-# extract details about data
-#
-
-# time between observations
-tstep = diff(sim.obs$times[1:2])
-
-# stage transition indices
-t.inds = which(c(FALSE, diff(sim$stages)==1))
-
-# stage transition times
-t.stages = sim$times[t.inds]
-
-# uniformized transition rate
-rate.unif = max(outer(lambda, 2 * depth.bins[,2], '/'))
-
-# probability transition matrix for observations
-P.raw = lapply(1:3, function(s) {
-  dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
-                      lambda = lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
-})
-
-# probability transition matrix for uniformized DTMC
-P.tx = lapply(1:3, function(s) {
-  dsdive.tx.matrix.uniformized(depth.bins = depth.bins, beta = beta, 
-                               lambda = lambda, s0 = s, 
-                               rate.uniformized = rate.unif)
-})
-
-
-#
-# within-stage transition
-#
-
-ind = 1
-
-d0 = sim.obs$depths[ind]
-df = sim.obs$depths[ind+1]
-
-s0 = sim.obs$stages[ind]
-sf = sim.obs$stages[ind+1]
-
-t0 = sim.obs$times[ind]
-tf = sim.obs$times[ind+1]
-
-dsdive.impute.sample_n(
-  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-  t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  n.bins = nrow(depth.bins), max.tx = 100)
-
-
-#
-# between-stage transition
-#
-
-ind = max(which(sim.obs$times < t.stages[1]))
-
-d0 = sim.obs$depths[ind]
-df = sim.obs$depths[ind+1]
-
-s0 = sim.obs$stages[ind]
-sf = sim.obs$stages[ind+1]
-
-t0 = sim.obs$times[ind]
-tf = sim.obs$times[ind+1]
-
-# sample number of depth bin transitions before stage 1->2 transition
-n = dsdive.impute.sample_n(
-  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-  t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  n.bins = nrow(depth.bins), max.tx = 100)
-
-
-#
-# between-stage transition
-#
-
-ind = max(which(sim.obs$times < t.stages[2]))
-
-d0 = sim.obs$depths[1]
-df = sim.obs$depths[ind+1]
-
-s0 = sim.obs$stages[1]
-sf = sim.obs$stages[ind+1]
-
-t0 = sim.obs$times[1]
-tf = sim.obs$times[ind+1]
-
-# sample number of depth bin transitions before stage 1->2 transition
-n = dsdive.impute.sample_n(
-  d0 = d0, df = df, s0 = s0, sf = sf, t0 = t0, tf = tf, 
-  t.stages = t.stages, rate.unif = rate.unif, P.raw = P.raw, P.tx = P.tx, 
-  n.bins = nrow(depth.bins), max.tx = 100)
-
-detach(params)
-detach(dive.sim)
+Uses properties of homogeneous Continuous time Markov Chains (CTMCs) to 
+sample the number of transitions between known endpoints and times.
 }

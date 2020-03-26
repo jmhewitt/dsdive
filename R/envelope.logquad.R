@@ -2,13 +2,16 @@
 #' 
 #' @param breaks Breakpoints that define the start and end points of each 
 #'   interval over which a piecewise-quadratic function will be defined.
-#' @param f Value of f at the breakpoints.
-#' @param df Derivative of f evaluated at the start of each interval.
-#' @param ddf.sup Supremum of second derivative of f over each interval
+#' @param logf Value of log(f) at the anchors.
+#' @param d.logf Derivative of log(f) evaluated at the anchors.
+#' @param dd.logf.sup Supremum of second derivative of log(f) over each interval
+#' @param anchors Locations within the intervals (defined by \code{breaks}) at 
+#'   which the polynomial approximation will be centered
 #' 
 #' @importFrom pracma erfi
+#' @importFrom stats uniroot runif
 #' 
-#' @example examples/envelope.logquad.R
+# @example examples/envelope.logquad.R
 #' 
 envelope.logquad = function(breaks, logf, d.logf, dd.logf.sup,
                             anchors = breaks[1:(length(breaks)-1)]) {

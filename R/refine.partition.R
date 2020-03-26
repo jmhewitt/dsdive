@@ -4,7 +4,10 @@
 #' add evenly spaced points between \code{breaks} such that the maximum 
 #' difference between any two points in the output is \code{max.width}.
 #' 
-#' @example examples/refine.partition.R
+#' @param breaks Initial partition of an interval on the real line
+#' @param max.width Maximum width of intervals in output partition
+#' 
+#' # @example examples/refine.partition.R
 #' 
 refine.partition = function(breaks, max.width) {
   

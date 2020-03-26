@@ -2,11 +2,15 @@
 #' 
 #' @param breaks Breakpoints that define the start and end points of each 
 #'   interval over which a piecewise-quadratic function will be defined.
-#' @param f Value of f at the breakpoints.
-#' @param df Derivative of f evaluated at the start of each interval.
+#' @param f Value of f at the anchors.
+#' @param df Derivative of f evaluated at the anchors.
 #' @param ddf.sup Supremum of second derivative of f over each interval
+#' @param anchors Locations within the intervals (defined by \code{breaks}) at 
+#'   which the polynomial approximation will be centered
 #' 
-#' @example examples/envelope.quad.R
+#' @importFrom stats uniroot runif
+#' 
+# @example examples/envelope.quad.R
 #' 
 envelope.quad = function(breaks, f, df, ddf.sup, 
                          anchors = breaks[1:(length(breaks)-1)]) {

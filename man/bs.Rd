@@ -2,19 +2,21 @@
 % Please edit documentation in R/bs.R
 \name{bs}
 \alias{bs}
-\title{Use bridged sampling to impute a complete dive trajectory consistent with observations}
+\title{Backwards sampling algorithm for Hidden Markov Models}
 \usage{
 bs(a, B, L)
 }
 \arguments{
-\item{B}{single-step transition matrix, after uniformization}
+\item{a}{collection of forward filtering distributions}
+
+\item{B}{collection of uniformized single-step transition matrices}
 
 \item{L}{likelihood matrix where each column is the probability distribution
 for the state at each of the discrete transitions}
 }
 \description{
-The sampling method is designed to sample many trajectories simultaneously, 
-so has an extra level of approximation in the proposal distributions.
+Implementation of backwards sampling algorithm described in Appendix A of 
+Rao and Teh (2013).
 }
 \examples{
 data('dive.sim')
@@ -66,4 +68,9 @@ identical(x,y)
 
 detach(dive.sim$params)
 detach(dive.sim)
+}
+\references{
+Rao, Vinayak, and Yee Whye Teh. "Fast MCMC sampling for Markov 
+  jump processes and extensions." The Journal of Machine Learning Research 
+  14.1 (2013): 3295-3320.
 }

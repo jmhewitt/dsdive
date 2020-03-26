@@ -2,11 +2,10 @@
 #' 
 #' f(x) = a_n * x^n + a_{n-1} * x^{n-1} + ... + a_0
 #' 
-#' @param coef polynomial coefficients in decreasing order
+#' @param coefs polynomial coefficients in decreasing order
 #' @param x vector of values of x at which to evaluate polynomial
 #' 
-#' @example examples/polyval.R
-#' 
+#' # @example examples/polyval.R
 #' 
 polyval = function(coefs, x) {
   

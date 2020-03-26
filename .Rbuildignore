@@ -1,5 +1,6 @@
 ^\.travis\.yml$
 README.md
+NEWS.md
 examples/
 data_gen/
 cran-comments.md

@@ -5,8 +5,10 @@
 #' @param f Value of f at the breakpoints.
 #' @param df Derivative of f evaluated at the start of each interval.
 #' @param ddf.sup Supremum of second derivative of f over each interval
+#' @param anchors Locations within the intervals (defined by \code{breaks}) at 
+#'   which the polynomial approximation will be centered
 #' 
-#' @example examples/bound.quad.R
+# @example examples/bound.quad.R
 #' 
 bound.quad = function(breaks, f, df, ddf.sup, 
                       anchors = breaks[1:(length(breaks)-1)]) {

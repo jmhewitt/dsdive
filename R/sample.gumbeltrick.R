@@ -5,7 +5,7 @@
 #' 
 #' @references https://timvieira.github.io/blog/post/2014/07/31/gumbel-max-trick/  
 #' 
-#' @export
+#' @importFrom stats runif
 #' 
 sample.gumbeltrick = function(log.p) {
   # sample gumbel variates

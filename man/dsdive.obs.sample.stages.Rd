@@ -18,11 +18,42 @@ dsdive.obs.sample.stages(
 )
 }
 \arguments{
-\item{max.width}{for numerical stability of the sampling envelopes}
+\item{depths}{Indices of observed depth bins}
+
+\item{times}{Times at which each of \code{depths} was observed}
+
+\item{t.stages}{Stage transition times for the dive; will be used to compute
+the dive stage for each observation}
+
+\item{P.raw}{list of continuous time probability transition matrices, and 
+components.}
+
+\item{T.range}{start and end times for the dive; used to control the support 
+of the stage transition time distributions}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
+
+\item{T1.prior.params}{\code{shape} and \code{rate} parameters for Gamma 
+prior on the descent-stage duration.}
+
+\item{T2.prior.params}{\code{shape} and \code{rate} parameters for Gamma 
+prior on the bottom-stage duration.}
+
+\item{max.width}{The stage transition times are updated with a piecewise 
+proposal distribution.  \code{max.width} controls the maximum width of the 
+intervals for the proposal distribution.  This is a tuning parameter that 
+controls the numerical stability of the proposal distribution, which is 
+sampled via inverse CDF techniques.}
+
+\item{debug}{\code{TRUE} to return debugging objects, such as the proposal 
+density and log posterior}
 }
 \description{
-We assume the prior distributions for the stage transition times are Gamma 
-distributions with shape/rate parameterization.
+Sampler uses a piecewise quadratic polynomial approximation to the log of the 
+full conditional posterior.  Note that this sampler will sample both stage 
+transition times at the same time.
 }
 \examples{
 data('dive.sim')

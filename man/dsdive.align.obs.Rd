@@ -2,25 +2,32 @@
 % Please edit documentation in R/dsdive.align.obs.R
 \name{dsdive.align.obs}
 \alias{dsdive.align.obs}
-\title{Extract a segment of a fully observed dive trajectory between timepoints}
+\title{Realign observations of a dive to the time scale of the dive}
 \usage{
 dsdive.align.obs(depths, times, t.stages, offset, offset.tf)
 }
 \arguments{
-\item{depths}{Complete record of depth bin indices visited}
+\item{depths}{Indices of observed depth bins}
 
-\item{times}{Times at which each of \code{depths} was visited}
+\item{times}{Times at which each of \code{depths} was observed}
 
-\item{stages}{Stages at which each of the \code{depths} was visited}
+\item{t.stages}{Stage transition times for the dive; will be used to compute
+the dive stage for each observation}
 
-\item{durations}{the amount of time spent in each depth bin}
+\item{offset}{Amount of time by which \code{times} over or under reports the 
+true time within the dive of each \code{depths} observation}
 
-\item{t0}{the time to mark the beginning of the segment to extract}
-
-\item{tf}{the time to mark the end of the segment to extract}
+\item{offset.tf}{Amount of time by which the last \code{time} over or under 
+reports the true duration of the dive.}
 }
 \description{
-Extract a segment of a fully observed dive trajectory between timepoints
+Satellite tag observations of a dive record depths at regular intervals, 
+irrespective of whether or not an animal is diving.  Given initial and final 
+offsets \code{offset} and \code{offset.tf}, respectively, this function will 
+shift the satellite-tag observation \code{times} so that they are referenced 
+with respect to the start of the dive (i.e., t=0).  Observations in 
+\code{depths} will be trimmed from the output if they exceed the times 
+implied by the offsets.
 }
 \examples{
 data('dive.sim')

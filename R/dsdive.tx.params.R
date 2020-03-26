@@ -1,46 +1,20 @@
-#' Compute transition parameters for dive trajectories across discrete depths
+#' Compute transition parameters for a given depth bin
 #'
 #' Computes elements of a transition matrix when given model parameters and 
-#' time/space locations for a dive model that has 3 stages, PRIMARY DESCENT 
-#' (PD), INTERMEDIATE BEHAVIORS (IB), and PRIMARY ASCENT (PA).
+#' time/space locations for a dive model that has 3 stages, descent, 
+#' bottom/foraging, and ascent.
 #'   
-#' @param t0 time at which transition parameters should be computed
 #' @param depth.bins \eqn{n x 2} Matrix that defines the depth bins.  The first 
 #'   column defines the depth at the center of each depth bin, and the second 
 #'   column defines the half-width of each bin.
-#' @param d0 the depth bin at which transition parameters should be computed
-#' @param d0.last the previous depth bin in which the trajectory was.  If 
-#'   \code{NULL}, then the autoregressive component will be skipped.
-#' @param s0 the dive stage (PRIMARY DESCENT==1, INTERMEDIATE BEHAVIORS==2, 
-#'   PRIMARY ASCENT==3) for which transition parameters should be computed.  
-#' @param beta \eqn{2 x 3} matrix in which each column contains the diving 
-#'  preference and directional persistence parameters for the PRIMARY DESCENT 
-#'  (PD), INTERMEDIATE BEHAVIORS (IB), and PRIMARY ASCENT (PA) dive stages.
-#' @param lambda length 3 vector that specifies the transition rate, 
-#'   respectively in the PD, IB, and PA stages.
-#' @param sub.tx length 2 vector that specifies the first depth bin at which 
-#'   transitions to the IB stage can occur and the probability that such 
-#'   a transition occurs at the next depth transition
-#' @param surf.tx parameter that specifies the probability the trajectory will 
-#'   transition to the PA stage at the next depth transition
-#' @param t0.dive Time at which dive started
-#' @param shift.params If not \code{NULL}, then will apply a directional bias 
-#'   to depth bin transition probabilities.  \code{shift.params} should be a
-#'   vector \code{c(df, p.bias, tf, lambda.bias)}. The first element is the 
-#'   target depth bin to travel to.
-#'   The second element controls the strength of the bias.  The second element 
-#'   should be a positive value, with 1.125 being the recommended value.  Using 
-#'   \code{shift.params[2] = 1.125} will reinforce natural movement in good 
-#'   directions of travel, and replace "poor" directions of travel with bias in 
-#'   "good" directions of travel.  Setting \code{shift.params[2] = 1} will 
-#'   replace "poor" directions of travel with random walk proposals.  Values 
-#'   less than 1 will push poor directions of travel closer toward random walks
-#'   from their natural tendencies.
-#' @param t.stage2 time at which second stage was entered.
-#' @param model Either \code{"conditional"} or \code{"logit"} depending on the 
-#'   method used to determine stage transition probability curves
-#'   
-#' @example examples/txparams.R
+#' @param d0 index of depth bin for which to compute transition parameters
+#' @param s0 stage for which to compute parameters
+#' @param beta vector with directional preference parameters for descent and  
+#'   ascent stages.
+#' @param lambda vector with dive rate parameters for the descent, bottom, and 
+#'   ascent stages.
+#' 
+#' @example examples/dsdive.tx.params.R
 #' 
 #' @importFrom stats plogis
 #' 

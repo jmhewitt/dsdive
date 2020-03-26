@@ -2,7 +2,7 @@
 % Please edit documentation in R/dsdive.obs.sampleparams.R
 \name{dsdive.obs.sampleparams}
 \alias{dsdive.obs.sampleparams}
-\title{Full conditional distribution for dive stages given data and parameters}
+\title{Sample pi and lambda parameters for a single dive stage}
 \usage{
 dsdive.obs.sampleparams(
   dsobs.list,
@@ -18,16 +18,40 @@ dsdive.obs.sampleparams(
 )
 }
 \arguments{
-\item{P.raw}{current collection of transition probability matrices}
+\item{dsobs.list}{list of \code{dsobs} objects, which describe the 
+observation times and depths of a collection of dives}
 
-\item{s0}{the stage for which updated parameters should be sampled}
+\item{t.stages.list}{list of initial stage transition times for dives 
+observed in \code{dsobs.list}}
 
-\item{beta}{the current depth bin transition model parameters}
+\item{P.raw}{list of continuous time probability transition matrices, and 
+components.}
 
-\item{lambda}{the current depth bin transition rate model parameters}
+\item{s0}{stage for which model parameters should be sampled}
+
+\item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
+column defines the depth at the center of each depth bin, and the second 
+column defines the half-width of each bin.}
+
+\item{beta}{directional preference model parameters.
+See \code{dsdive.tx.params} for more details.}
+
+\item{lambda}{diving rate model parameters.  See 
+\code{dsdive.tx.params} for more details.}
+
+\item{lambda.priors.list}{list of parameters for the prior distributions for 
+the diving rate parameters.  See \code{dsdive.gibbs.obs} for more 
+information.}
+
+\item{beta.priors.list}{list of parameters for the prior distributions for 
+the directional preference parameters.  See \code{dsdive.gibbs.obs} for  
+more information.  Note that these priors are specified as "pi" priors vs. 
+priors for "beta".}
+
+\item{tstep}{Time between observations in \code{dsobs.unaligned}}
 }
 \description{
-Full conditional distribution for dive stages given data and parameters
+Sampler uses a Gaussian approximation to the full conditional posterior.
 }
 \examples{
 data('dive.sim')

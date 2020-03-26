@@ -19,7 +19,7 @@ dsdive.extract(depths, times, stages, durations, t0, tf)
 
 \item{tf}{the time to mark the end of the segment to extract
 
-#@example examples/dsdive.extract.R}
+# @example examples/dsdive.extract.R}
 }
 \description{
 Extract a segment of a fully observed dive trajectory between timepoints
