@@ -119,33 +119,6 @@ curve(res$debug$q2$e(x = x*60), from = xmin, to = xmax,
 # overlay true stage 2->3 transition time
 abline(v = t.stages.truth[2]/60, lty = 3)
 
-
-#
-# make comparison plots
-#
-
-dive.orig = dsdive.augment.trajectory(depths = sim$depths, times = sim$times, 
-                                     t.stages = t.stages)
-dive.orig = dsdive.simplify.trajectory(depths = dive.orig$depths, 
-                                      times = dive.orig$times, 
-                                      stages = dive.orig$stages)
-
-dive.new = dsdive.augment.trajectory(depths = sim$depths, times = sim$times, 
-                                     t.stages = res$t.stages)
-dive.new = dsdive.simplify.trajectory(depths = dive.new$depths, 
-                                      times = dive.new$times, 
-                                      stages = dive.new$stages)
-
-# examine original dive
-pl1 = plot(x = dive.orig, depth.bins = depth.bins)
-# compare with resampled stage transition times
-pl2 = plot(x = dive.new, depth.bins = depth.bins)
-# compare with truth
-pl3 = plot(x = sim, depth.bins = depth.bins)
-
-ggpubr::ggarrange(pl1, pl2, pl3, nrow = 3, ncol = 1, 
-                  labels = c('Original:', 'Resampled:', 'Truth:'))
-
 detach(dive.sim$params)
 detach(dive.sim)
 }

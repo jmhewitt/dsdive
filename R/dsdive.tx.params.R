@@ -53,7 +53,6 @@ dsdive.tx.params = function(depth.bins, d0, s0, beta, lambda) {
   } else {
     
     nbrs = d0 + c(-1, 1)
-    
     probs.down = ifelse(s0==1, beta[1], ifelse(s0==2, .5, beta[2]))
     probs = c(1-probs.down, probs.down)
     

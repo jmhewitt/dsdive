@@ -24,7 +24,8 @@ x = dsdive.obs.sampleparams(dsobs.list = list(sim.obs),
                             t.stages.list = list(t.stages), P.raw = obstx.mat, 
                             s0 = 1, depth.bins = depth.bins, beta = beta, 
                             lambda = lambda, lambda.priors.list = lambda.priors, 
-                            beta.priors.list = beta.priors)
+                            beta.priors.list = beta.priors, 
+                            tstep = diff(sim.obs$times[1:2]))
 
 detach(dive.sim$params)
 detach(dive.sim)

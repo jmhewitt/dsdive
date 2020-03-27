@@ -21,6 +21,7 @@
 #' 
 #' @importFrom Matrix sparseVector Diagonal
 #' @importFrom stats runif dpois
+#' @importFrom expm expAtv
 #' 
 # @example examples/dsdive.impute.sample_n.R
 #' 
@@ -54,10 +55,9 @@ dsdive.impute.sample_n = function(d0, df, s0, sf, t0, tf, t.stages, rate.unif,
         if(dt.stages[j] == P.raw[[s2]]$obstx.tstep) {
           uf = P.raw[[s2]]$obstx.mat %*% uf
         } else {
-          uf = P.raw[[s2]]$evecs %*% 
-            Diagonal(x = exp(P.raw[[s2]]$evals * dt.stages[j]), 
-                     n = n.bins) %*%
-            P.raw[[s2]]$evecs.inv %*% uf
+          uf = expAtv(A = as.matrix(P.raw[[s2]]$A), 
+                      t = dt.stages[j],
+                      v = as.numeric(uf))[[1]]
         }
       }
     }
@@ -69,9 +69,9 @@ dsdive.impute.sample_n = function(d0, df, s0, sf, t0, tf, t.stages, rate.unif,
     if(dt.stages[i] == P.raw[[s]]$obstx.tstep) {
       utx = P.raw[[s]]$obstx.mat %*% uf
     } else {
-      utx = P.raw[[s]]$evecs %*% 
-        Diagonal(x = exp(P.raw[[s]]$evals * dt.stages[i]), n = n.bins) %*%
-        P.raw[[s]]$evecs.inv %*% uf
+      utx = expAtv(A = as.matrix(P.raw[[s]]$A), 
+                   t = dt.stages[i],
+                   v = as.numeric(uf))[[1]]
     }
     
     C = as.numeric(u0 %*% utx)

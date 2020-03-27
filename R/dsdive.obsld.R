@@ -77,7 +77,7 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
         if(sf.step != s0.step) {
           for(s.ind in 2:length(s.step)) {
             s = s.step[s.ind]
-            u0 = t(expm::expAtv(
+            u0 = t(expAtv(
               A = as.matrix(t(P.raw[[s]]$A)), 
               t = dt.stages[s.ind],
               v = as.numeric(u0)
