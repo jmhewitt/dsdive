@@ -15,12 +15,6 @@ obstx.mat = lapply(1:3, function(s) {
                       s0 = s, tstep = tstep, include.raw = TRUE)
 })
 
-library(parallel)
-
-cl = makeCluster(4, 'SOCK')
-
-clusterEvalQ(cl, library(dsdive))
-
 # compute likelihood of observations, given model parameters
 ld = dsdive.obsld(dsobs.list = list(sim.obs,sim.obs),
                   t.stages.list = list(t.stages,t.stages), 

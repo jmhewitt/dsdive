@@ -8,7 +8,7 @@ Maintainer: Joshua Hewitt <joshua.hewitt@duke.edu>
 Description: Animal movement modeling.
 License: GPL-3
 RoxygenNote: 7.0.2
-Suggests: testthat, mvtnorm, truncdist, ggpubr
+Suggests: testthat, mvtnorm, truncdist
 Depends: R (>= 3.5.0)
 Imports: Matrix, bisque, dplyr, ggplot2, ggthemes, MHadaptive, bmk, crawl, extraDistr, pracma, expm
 Encoding: UTF-8
