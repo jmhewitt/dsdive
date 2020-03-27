@@ -29,6 +29,11 @@
 #'   \code{FALSE} to sample tf offset.
 #' @param debug \code{TRUE} to return debugging objects, such as the proposal 
 #'   density and log posterior
+#' @param lpapprox (Optional) Object containing the piecewise-quadratic
+#'   approximation to the log-posterior used to propose model parameters.  
+#'   If \code{NULL}, then an approximation will be computed.
+#' @param output.lpapprox \code{TRUE} to return the approximation used 
+#'   to propose model parameters.
 #'   
 #' # @example examples/dsdive.obs.sample.offsets.R
 #' 
@@ -37,7 +42,8 @@
 dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                                      offset.tf, t.stages, P.raw, depth.bins, 
                                      tstep, max.width, prior.params,
-                                     sample.start, debug = FALSE) {
+                                     sample.start, debug = FALSE, 
+                                     lpapprox = NULL, output.lpapprox = FALSE) {
 
   tstep2 = 2*tstep
 
@@ -76,82 +82,95 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                log = TRUE)
   })}
 
+  
+  #
+  # build or extract proposal distribution
+  #
+  
+  if(!is.null(lpapprox)) {
+    
+    q1 = lpapprox
+    
+  } else {
+    
+    # determine intervals and midpoints for log-quadratic sampling envelope
+    breaks = refine.partition(
+      breaks = c(-tstep, 0, tstep),
+      max.width = max.width)
+    anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
+    
+    # eval log-posterior at all points; account for Beta prior boundary issues
+    tol.boundary = .Machine$double.eps * tstep2
+    end.inds = c(1,length(breaks))
+    lp.breaks = lp(eps = c(breaks[1] + tol.boundary,
+                           breaks[-end.inds],
+                           breaks[length(breaks)] - tol.boundary))
+    lp.anchors = lp(eps = anchors)
+    
+    # determine slope and curvature for each polynomial segment of envelope
+    envelope = sapply(1:length(anchors), function(i) {
+      # extract time-coordinates for interval
+      L.x = breaks[i]
+      M.x = anchors[i]
+      U.x = breaks[i+1]
+      # extract log-posterior for interval
+      L = lp.breaks[i]
+      M = lp.anchors[i]
+      U = lp.breaks[i+1]
+      # the in/finiteness of the points determines processing
+      L.undef = !is.finite(L)
+      M.undef = !is.finite(M)
+      U.undef = !is.finite(U)
+      
+      # assume lp = -Inf throughout entire interval
+      if(L.undef & M.undef & U.undef) {
+        c(0, 0, -Inf)
+      }
+      # assume lp = -Inf at start and midpoint, but ends finite
+      else if(L.undef & M.undef) {
+        c(0, 0, U)
+      }
+      # assume lp is only -Inf at start point
+      else if(L.undef) {
+        c(0, (U-M)/(U.x-M.x), M)
+      }
+      # assume lp is -Inf at end and midpoint, but starts finite
+      else if(U.undef & M.undef) {
+        c(0, 0, L)
+      }
+      # assume lp is only -Inf at end point
+      else if(U.undef) {
+        c(0, (L-M)/(L.x-M.x), M)
+      }
+      # assume lp is finite in entire interval
+      else {
+        b = (M-L)/(M.x-L.x)
+        x = U.x - M.x
+        # a = (U - M - b * x)/x^2
+        a = 0
+        c(2*a, b, M)
+      }
+    })
+    
+    # extract slopes and curvatures from envelope
+    d.logf = envelope[2,]
+    dd.logf.sup = envelope[1,]
+    
+    # zero-out small curvatures, which are numerically unstable in logquad fn.
+    dd.logf.sup[abs(dd.logf.sup)<1e-4] = 0
+    
+    # use local polynomial approximations to build envelope
+    q1 = envelope.logquad(breaks = breaks, logf = envelope[3,],
+                          d.logf = d.logf,
+                          dd.logf.sup = dd.logf.sup,
+                          anchors = anchors)
+  }
+  
+
   #
   # sample dive offset
   #
-
-  # determine intervals and midpoints for log-quadratic sampling envelope
-  breaks = refine.partition(
-    breaks = c(-tstep, 0, tstep),
-    max.width = max.width)
-  anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
-
-  # evaluate log-posterior at all points; account for Beta prior boundary issues
-  tol.boundary = .Machine$double.eps * tstep2
-  end.inds = c(1,length(breaks))
-  lp.breaks = lp(eps = c(breaks[1] + tol.boundary,
-                         breaks[-end.inds],
-                         breaks[length(breaks)] - tol.boundary))
-  lp.anchors = lp(eps = anchors)
-
-  # determine slope and curvature for each polynomial segment of envelope
-  envelope = sapply(1:length(anchors), function(i) {
-    # extract time-coordinates for interval
-    L.x = breaks[i]
-    M.x = anchors[i]
-    U.x = breaks[i+1]
-    # extract log-posterior for interval
-    L = lp.breaks[i]
-    M = lp.anchors[i]
-    U = lp.breaks[i+1]
-    # the in/finiteness of the points determines processing
-    L.undef = !is.finite(L)
-    M.undef = !is.finite(M)
-    U.undef = !is.finite(U)
-
-    # assume lp = -Inf throughout entire interval
-    if(L.undef & M.undef & U.undef) {
-      c(0, 0, -Inf)
-    }
-    # assume lp = -Inf at start and midpoint, but ends finite
-    else if(L.undef & M.undef) {
-      c(0, 0, U)
-    }
-    # assume lp is only -Inf at start point
-    else if(L.undef) {
-      c(0, (U-M)/(U.x-M.x), M)
-    }
-    # assume lp is -Inf at end and midpoint, but starts finite
-    else if(U.undef & M.undef) {
-      c(0, 0, L)
-    }
-    # assume lp is only -Inf at end point
-    else if(U.undef) {
-      c(0, (L-M)/(L.x-M.x), M)
-    }
-    # assume lp is finite in entire interval
-    else {
-      b = (M-L)/(M.x-L.x)
-      x = U.x - M.x
-      # a = (U - M - b * x)/x^2
-      a = 0
-      c(2*a, b, M)
-    }
-  })
-
-  # extract slopes and curvatures from envelope
-  d.logf = envelope[2,]
-  dd.logf.sup = envelope[1,]
-
-  # zero-out small curvatures, which are numerically unstable in logquad fn.
-  dd.logf.sup[abs(dd.logf.sup)<1e-4] = 0
-
-  # use local polynomial approximations to build envelope
-  q1 = envelope.logquad(breaks = breaks, logf = envelope[3,],
-                        d.logf = d.logf,
-                        dd.logf.sup = dd.logf.sup,
-                        anchors = anchors)
-
+  
   # draw proposal
   prop = q1$rquad(n = 1)
 
@@ -185,6 +204,10 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
 
   if(debug == TRUE) {
     res$debug = list(lp = lp, q1 = q1)
+  }
+  
+  if(output.lpapprox) { 
+    res$q1 = q1
   }
 
   res

@@ -58,6 +58,8 @@ gaussapprox = function(logf, init, method = 'BFGS',
   
   res = list(rgaussapprox = rgaussapprox, dgaussapprox = dgaussapprox)
   
+  class(res) = 'gaussapprox'
+  
   if(optim.output) { 
     res$optim.output = o
   }

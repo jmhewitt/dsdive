@@ -50,6 +50,8 @@
 #'   scaled and shifted Beta prior distribution for the tf offset.
 #' @param offsets vector with initial values for t0 offsets.
 #' @param offsets.tf vector with initial values for tf offsets.
+#' @param warmup number of iterations during which the proposal distributions 
+#'   will be updated at each step
 #' @param cl cluster to be used to distribute some computations
 #'   
 #' @example examples/dsdive.gibbs.obs.R
@@ -63,7 +65,8 @@ dsdive.gibbs.obs = function(
   checkpoint.fn, checkpoint.interval = 3600, pi1.prior, pi2.prior, 
   lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
-  t0.prior.params, tf.prior.params, offsets, offsets.tf, cl = NULL) {
+  t0.prior.params, tf.prior.params, offsets, offsets.tf, warmup = Inf, 
+  cl = NULL) {
   
   n = length(dsobs.list)
   
@@ -94,6 +97,11 @@ dsdive.gibbs.obs = function(
                         include.raw = TRUE)
   })
   
+  # caches for proposal distributions
+  proposaldists.theta = vector('list', 3)
+  proposaldists.offsets = vector('list', n)
+  proposaldists.offsets.tf = vector('list', n)
+  
   
   #
   # gibbs sample
@@ -112,40 +120,65 @@ dsdive.gibbs.obs = function(
     #
     
     # update stage 1 parameters
-    theta = dsdive.obs.sampleparams(
+    theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 1, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list, tstep = tstep)
+      beta.priors.list = beta.priors.list, tstep = tstep, 
+      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[1]] }),
+      output.gapprox = TRUE)
+    
+    theta = theta.raw$theta
+    proposaldists.theta[[1]] = theta.raw$g
     
     # update stage 1 tx matrix 
-    P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
-                                     lambda = theta$lambda, s0 = 1, 
-                                     tstep = tstep, include.raw = TRUE)
+    if(theta.raw$accepted) {
+      P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+                                       beta = theta$beta, 
+                                       lambda = theta$lambda, s0 = 1, 
+                                       tstep = tstep, include.raw = TRUE)
+    }
     
     # update stage 2 parameters
-    theta = dsdive.obs.sampleparams(
+    theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 2, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list, tstep = tstep)
+      beta.priors.list = beta.priors.list, tstep = tstep,
+      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[2]] }),
+      output.gapprox = TRUE)
+    
+    theta = theta.raw$theta
+    proposaldists.theta[[2]] = theta.raw$g
     
     # update stage 2 tx matrix 
-    P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
-                                     lambda = theta$lambda, s0 = 2, 
-                                     tstep = tstep, include.raw = TRUE)
+    if(theta.raw$accepted) {
+      P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+                                       beta = theta$beta, 
+                                       lambda = theta$lambda, s0 = 2, 
+                                       tstep = tstep, include.raw = TRUE)
+    }
+    
     
     # update stage 3 parameters
-    theta = dsdive.obs.sampleparams(
+    theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 3, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
-      beta.priors.list = beta.priors.list, tstep = tstep)
+      beta.priors.list = beta.priors.list, tstep = tstep,
+      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[3]] }),
+      output.gapprox = TRUE)
+    
+    theta = theta.raw$theta
+    proposaldists.theta[[3]] = theta.raw$g
     
     # update stage 3 tx matrix 
-    P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, beta = theta$beta, 
-                                     lambda = theta$lambda, s0 = 3, 
-                                     tstep = tstep, include.raw = TRUE)
+    if(theta.raw$accepted) {
+      P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+                                       beta = theta$beta, 
+                                       lambda = theta$lambda, s0 = 3, 
+                                       tstep = tstep, include.raw = TRUE)
+    }
     
     if(verbose) {
       print(theta)
@@ -156,14 +189,14 @@ dsdive.gibbs.obs = function(
     # update stage transition time parameters and dive offsets
     #
     
-    # specify function to use to update dive-level random effects
-    if(is.null(cl)) {
-      applyfn = lapply
-    } else {
-      applyfn = function(X, FUN, ...) {
-        clusterApply(cl = cl, x = X, fun = FUN, ...)
-      }
-    }
+    # # specify function to use to update dive-level random effects
+    # if(is.null(cl)) {
+    #   applyfn = lapply
+    # } else {
+    #   applyfn = function(X, FUN, ...) {
+    #     clusterApply(cl = cl, x = X, fun = FUN, ...)
+    #   }
+    # }
     
     for(i in 1:n) {
       
@@ -183,10 +216,14 @@ dsdive.gibbs.obs = function(
           offset = offsets[i], offset.tf = offsets.tf[i], 
           t.stages = t.stages.list[[i]], P.raw = P.raw, 
           depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
-          prior.params = t0.prior.params, sample.start = TRUE)
+          prior.params = t0.prior.params, sample.start = TRUE, 
+          lpapprox = (
+            if(it <= warmup) { NULL } else { proposaldists.offsets[[i]] }
+          ), output.lpapprox = TRUE)
         # extract new offset
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets[i] = d0$offset
+        proposaldists.offsets[[i]] = d0$q1
       }
       
       # sample dive end offset
@@ -196,10 +233,14 @@ dsdive.gibbs.obs = function(
           offset = offsets[i], offset.tf = offsets.tf[i], 
           t.stages = t.stages.list[[i]], P.raw = P.raw, 
           depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
-          prior.params = tf.prior.params, sample.start = FALSE)
+          prior.params = tf.prior.params, sample.start = FALSE,
+          lpapprox = (
+            if(it <= warmup) { NULL } else { proposaldists.offsets.tf[[i]] }
+          ), output.lpapprox = TRUE)
         # extract new offset
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets.tf[i] = d0$offset
+        proposaldists.offsets.tf[[i]] = d0$q1
       }
       
     }

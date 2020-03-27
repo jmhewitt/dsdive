@@ -14,7 +14,9 @@ dsdive.obs.sampleparams(
   lambda,
   lambda.priors.list,
   beta.priors.list,
-  tstep
+  tstep,
+  gapprox = NULL,
+  output.gapprox = FALSE
 )
 }
 \arguments{
@@ -49,6 +51,13 @@ more information.  Note that these priors are specified as "pi" priors vs.
 priors for "beta".}
 
 \item{tstep}{Time between observations in \code{dsobs.unaligned}}
+
+\item{gapprox}{(Optional) \code{gaussapprox} object containing the Gaussian 
+approximation used to propose model parameters.  If \code{NULL}, then a 
+Gaussian approximation will be computed.}
+
+\item{output.gapprox}{\code{TRUE} to return the Gaussian approximation used 
+to propose model parameters.}
 }
 \description{
 Sampler uses a Gaussian approximation to the full conditional posterior.

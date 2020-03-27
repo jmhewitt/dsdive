@@ -16,7 +16,9 @@ dsdive.obs.sample.offsets(
   max.width,
   prior.params,
   sample.start,
-  debug = FALSE
+  debug = FALSE,
+  lpapprox = NULL,
+  output.lpapprox = FALSE
 )
 }
 \arguments{
@@ -55,7 +57,14 @@ scaled and shifted Beta prior distribution for the offset being sampled.}
 \code{FALSE} to sample tf offset.}
 
 \item{debug}{\code{TRUE} to return debugging objects, such as the proposal 
-  density and log posterior
+density and log posterior}
+
+\item{lpapprox}{(Optional) Object containing the piecewise-quadratic
+approximation to the log-posterior used to propose model parameters.  
+If \code{NULL}, then an approximation will be computed.}
+
+\item{output.lpapprox}{\code{TRUE} to return the approximation used 
+  to propose model parameters.
   
 # @example examples/dsdive.obs.sample.offsets.R}
 }

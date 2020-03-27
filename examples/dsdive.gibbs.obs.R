@@ -31,7 +31,7 @@ fit = dsdive.gibbs.obs(
   lambda3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins, 
   T1.prior.params = T1.prior.params, T2.prior.params = T2.prior.params, 
   max.width = 100, max.width.offset = 30, t0.prior.params = c(1,1), 
-  tf.prior.params = c(1,1), offsets = 0, offsets.tf = 0)
+  tf.prior.params = c(1,1), offsets = 0, offsets.tf = 0, warmup = 1)
 
 
 detach(dive.sim$params)

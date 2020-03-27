@@ -28,6 +28,11 @@
 #'   more information.  Note that these priors are specified as "pi" priors vs. 
 #'   priors for "beta".
 #' @param tstep Time between observations in \code{dsobs.unaligned}
+#' @param gapprox (Optional) \code{gaussapprox} object containing the Gaussian 
+#'   approximation used to propose model parameters.  If \code{NULL}, then a 
+#'   Gaussian approximation will be computed.
+#' @param output.gapprox \code{TRUE} to return the Gaussian approximation used 
+#'   to propose model parameters.
 #'
 #' @example examples/dsdive.obs.sampleparams.R
 #' 
@@ -38,7 +43,8 @@
 #'
 dsdive.obs.sampleparams = function(
   dsobs.list, t.stages.list, P.raw, s0, depth.bins, beta, lambda,
-  lambda.priors.list, beta.priors.list, tstep) {
+  lambda.priors.list, beta.priors.list, tstep, gapprox = NULL,
+  output.gapprox = FALSE) {
 
   #
   # components for evaluating log-posteriors
@@ -114,7 +120,7 @@ dsdive.obs.sampleparams = function(
   
   
   #
-  # compute gaussian approximations to the posterior
+  # compute or extract gaussian approximations to the posterior
   #
   
   if(s0==1) {
@@ -125,7 +131,11 @@ dsdive.obs.sampleparams = function(
     x0 = c(log(lambda[3]), qlogis(beta[2]))
   }
   
-  g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead')
+  if(is.null(gapprox)) {
+    g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead')
+  } else {
+    g = gapprox
+  }
   
   
   #
@@ -140,12 +150,29 @@ dsdive.obs.sampleparams = function(
     g$dgaussapprox(x = x, log = TRUE)
   
   # accept/reject
-  if(log(runif(1)) <= lR) {
+  accept = log(runif(1)) <= lR
+  if(accept) {
     res = x
   } else {
     res = x0
   }
   
-  # back-transform, and return
-  build.params(theta = x)[c('beta','lambda')]
+  # back-transform parameters
+  theta = build.params(theta = x)[c('beta','lambda')]
+  
+  
+  #
+  # package results
+  #
+  
+  res = list(
+    theta = theta, 
+    accepted = accept
+  )
+  
+  if(output.gapprox) {
+    res$g = g
+  } 
+  
+  res
 }
