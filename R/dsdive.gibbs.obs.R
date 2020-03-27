@@ -219,8 +219,6 @@ dsdive.gibbs.obs = function(
       proposaldists.theta[[3]] = theta.raw$g
     }
     
-    browser()
-    
     if(verbose) {
       print(theta)
     }
