@@ -22,5 +22,3 @@ ld = dsdive.obsld(dsobs.list = list(sim.obs,sim.obs),
 
 detach(dive.sim$params)
 detach(dive.sim)
-
-stopCluster(cl)
