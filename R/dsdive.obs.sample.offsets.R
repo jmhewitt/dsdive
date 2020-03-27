@@ -179,7 +179,8 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
        (lp(eps = offset) - q1$dquad(x = offset, log = TRUE))
 
   # accept/reject
-  if(log(runif(1)) <= lR) {
+  accept = log(runif(1)) <= lR
+  if(accept) {
     
     if(sample.start) {
       offset = prop
@@ -200,7 +201,7 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
   #
 
   res = list(offset = ifelse(sample.start, offset, offset.tf), 
-             dsobs.aligned = dsobs.aligned)
+             dsobs.aligned = dsobs.aligned, accepted = accept)
 
   if(debug == TRUE) {
     res$debug = list(lp = lp, q1 = q1)

@@ -125,12 +125,10 @@ dsdive.gibbs.obs = function(
       s0 = 1, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
       beta.priors.list = beta.priors.list, tstep = tstep, 
-      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[1]] }),
-      output.gapprox = TRUE)
+      gapprox = proposaldists.theta[[1]], output.gapprox = TRUE)
     
     theta = theta.raw$theta
-    proposaldists.theta[[1]] = theta.raw$g
-    
+
     # update stage 1 tx matrix 
     if(theta.raw$accepted) {
       P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
@@ -139,17 +137,30 @@ dsdive.gibbs.obs = function(
                                        tstep = tstep, include.raw = TRUE)
     }
     
+    # adapt stage 1 proposal distribution during warmup
+    if(it < warmup) {
+      # only keep the proposal distribution if it generated an acceptance
+      if(theta.raw$accepted) {
+        proposaldists.theta[[1]] = theta.raw$g 
+      } else {
+        proposaldists.theta[[1]] = NULL
+      }
+    }
+    
+    # lock in the final proposal distribution
+    if(it == warmup) {
+      proposaldists.theta[[1]] = theta.raw$g
+    }
+    
     # update stage 2 parameters
     theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 2, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
       beta.priors.list = beta.priors.list, tstep = tstep,
-      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[2]] }),
-      output.gapprox = TRUE)
+      gapprox = proposaldists.theta[[2]], output.gapprox = TRUE)
     
     theta = theta.raw$theta
-    proposaldists.theta[[2]] = theta.raw$g
     
     # update stage 2 tx matrix 
     if(theta.raw$accepted) {
@@ -159,6 +170,21 @@ dsdive.gibbs.obs = function(
                                        tstep = tstep, include.raw = TRUE)
     }
     
+    # adapt stage 2 proposal distribution during warmup
+    if(it < warmup) {
+      # only keep the proposal distribution if it generated an acceptance
+      if(theta.raw$accepted) {
+        proposaldists.theta[[2]] = theta.raw$g 
+      } else {
+        proposaldists.theta[[2]] = NULL
+      }
+    }
+    
+    # lock in the final proposal distribution
+    if(it == warmup) {
+      proposaldists.theta[[2]] = theta.raw$g
+    }
+    
     
     # update stage 3 parameters
     theta.raw = dsdive.obs.sampleparams(
@@ -166,11 +192,9 @@ dsdive.gibbs.obs = function(
       s0 = 3, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
       beta.priors.list = beta.priors.list, tstep = tstep,
-      gapprox = (if(it <= warmup) { NULL } else { proposaldists.theta[[3]] }),
-      output.gapprox = TRUE)
+      gapprox = proposaldists.theta[[3]], output.gapprox = TRUE)
     
     theta = theta.raw$theta
-    proposaldists.theta[[3]] = theta.raw$g
     
     # update stage 3 tx matrix 
     if(theta.raw$accepted) {
@@ -178,6 +202,21 @@ dsdive.gibbs.obs = function(
                                        beta = theta$beta, 
                                        lambda = theta$lambda, s0 = 3, 
                                        tstep = tstep, include.raw = TRUE)
+    }
+    
+    # adapt stage 3 proposal distribution during warmup
+    if(it < warmup) {
+      # only keep the proposal distribution if it generated an acceptance
+      if(theta.raw$accepted) {
+        proposaldists.theta[[3]] = theta.raw$g 
+      } else {
+        proposaldists.theta[[3]] = NULL
+      }
+    }
+    
+    # lock in the final proposal distribution
+    if(it == warmup) {
+      proposaldists.theta[[3]] = theta.raw$g
     }
     
     if(verbose) {
@@ -211,36 +250,66 @@ dsdive.gibbs.obs = function(
       
       # sample dive start offset
       if(!is.null(t0.prior.params)) {
+        
         d0 = dsdive.obs.sample.offsets(
           dsobs.aligned = d, dsobs.unaligned = dsobs.list[[i]], 
           offset = offsets[i], offset.tf = offsets.tf[i], 
           t.stages = t.stages.list[[i]], P.raw = P.raw, 
           depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
           prior.params = t0.prior.params, sample.start = TRUE, 
-          lpapprox = (
-            if(it <= warmup) { NULL } else { proposaldists.offsets[[i]] }
-          ), output.lpapprox = TRUE)
+          lpapprox = proposaldists.offsets[[i]], output.lpapprox = TRUE)
+        
         # extract new offset
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets[i] = d0$offset
-        proposaldists.offsets[[i]] = d0$q1
+        
+        # adapt proposal distribution during warmup
+        if(it < warmup) {
+          # only keep the proposal distribution if it generated an acceptance
+          if(d0$accepted) {
+            proposaldists.offsets[[i]] = d0$q1
+          } else {
+            proposaldists.offsets[[i]] = NULL
+          }
+        }
+        
+        # lock in the final proposal distribution
+        if(it == warmup) {
+          proposaldists.offsets[[i]] = d0$q1
+        }
+        
       }
       
       # sample dive end offset
       if(!is.null(tf.prior.params)) {
+        
         d0 = dsdive.obs.sample.offsets(
           dsobs.aligned = d, dsobs.unaligned = dsobs.list[[i]], 
           offset = offsets[i], offset.tf = offsets.tf[i], 
           t.stages = t.stages.list[[i]], P.raw = P.raw, 
           depth.bins = depth.bins, tstep = tstep, max.width = max.width.offset, 
           prior.params = tf.prior.params, sample.start = FALSE,
-          lpapprox = (
-            if(it <= warmup) { NULL } else { proposaldists.offsets.tf[[i]] }
-          ), output.lpapprox = TRUE)
+          lpapprox = proposaldists.offsets.tf[[i]], output.lpapprox = TRUE)
+        
         # extract new offset
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets.tf[i] = d0$offset
-        proposaldists.offsets.tf[[i]] = d0$q1
+        
+        # adapt proposal distribution during warmup
+        if(it < warmup) {
+          # only keep the proposal distribution if it generated an acceptance
+          if(d0$accepted) {
+            proposaldists.offsets.tf[[i]] = d0$q1
+          } else {
+            proposaldists.offsets.tf[[i]] = NULL
+          }
+        }
+        
+        # lock in the final proposal distribution
+        if(it == warmup) {
+          proposaldists.offsets.tf[[i]] = d0$q1
+        }
+        
       }
       
     }
