@@ -143,7 +143,7 @@ dsdive.gibbs.obs = function(
       if(theta.raw$accepted) {
         proposaldists.theta[[1]] = theta.raw$g 
       } else {
-        proposaldists.theta[[1]] = NULL
+        proposaldists.theta[1] = list(NULL)
       }
     }
     
@@ -176,7 +176,7 @@ dsdive.gibbs.obs = function(
       if(theta.raw$accepted) {
         proposaldists.theta[[2]] = theta.raw$g 
       } else {
-        proposaldists.theta[[2]] = NULL
+        proposaldists.theta[2] = list(NULL)
       }
     }
     
@@ -210,7 +210,7 @@ dsdive.gibbs.obs = function(
       if(theta.raw$accepted) {
         proposaldists.theta[[3]] = theta.raw$g 
       } else {
-        proposaldists.theta[[3]] = NULL
+        proposaldists.theta[3] = list(NULL)
       }
     }
     
@@ -218,6 +218,8 @@ dsdive.gibbs.obs = function(
     if(it == warmup) {
       proposaldists.theta[[3]] = theta.raw$g
     }
+    
+    browser()
     
     if(verbose) {
       print(theta)
@@ -269,7 +271,7 @@ dsdive.gibbs.obs = function(
           if(d0$accepted) {
             proposaldists.offsets[[i]] = d0$q1
           } else {
-            proposaldists.offsets[[i]] = NULL
+            proposaldists.offsets[i] = list(NULL)
           }
         }
         
@@ -301,7 +303,7 @@ dsdive.gibbs.obs = function(
           if(d0$accepted) {
             proposaldists.offsets.tf[[i]] = d0$q1
           } else {
-            proposaldists.offsets.tf[[i]] = NULL
+            proposaldists.offsets.tf[i] = list(NULL)
           }
         }
         
