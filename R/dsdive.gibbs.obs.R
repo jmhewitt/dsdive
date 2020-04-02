@@ -137,20 +137,20 @@ dsdive.gibbs.obs = function(
                                        tstep = tstep, include.raw = TRUE)
     }
     
-    # adapt stage 1 proposal distribution during warmup
-    if(it < warmup) {
-      # only keep the proposal distribution if it generated an acceptance
-      if(theta.raw$accepted) {
-        proposaldists.theta[[1]] = theta.raw$g 
-      } else {
-        proposaldists.theta[1] = list(NULL)
-      }
-    }
-    
-    # lock in the final proposal distribution
-    if(it == warmup) {
-      proposaldists.theta[[1]] = theta.raw$g
-    }
+    # # adapt stage 1 proposal distribution during warmup
+    # if(it < warmup) {
+    #   # only keep the proposal distribution if it generated an acceptance
+    #   if(theta.raw$accepted) {
+    #     proposaldists.theta[[1]] = theta.raw$g 
+    #   } else {
+    #     proposaldists.theta[1] = list(NULL)
+    #   }
+    # }
+    # 
+    # # lock in the final proposal distribution
+    # if(it == warmup) {
+    #   proposaldists.theta[[1]] = theta.raw$g
+    # }
     
     # update stage 2 parameters
     theta.raw = dsdive.obs.sampleparams(
@@ -170,20 +170,20 @@ dsdive.gibbs.obs = function(
                                        tstep = tstep, include.raw = TRUE)
     }
     
-    # adapt stage 2 proposal distribution during warmup
-    if(it < warmup) {
-      # only keep the proposal distribution if it generated an acceptance
-      if(theta.raw$accepted) {
-        proposaldists.theta[[2]] = theta.raw$g 
-      } else {
-        proposaldists.theta[2] = list(NULL)
-      }
-    }
-    
-    # lock in the final proposal distribution
-    if(it == warmup) {
-      proposaldists.theta[[2]] = theta.raw$g
-    }
+    # # adapt stage 2 proposal distribution during warmup
+    # if(it < warmup) {
+    #   # only keep the proposal distribution if it generated an acceptance
+    #   if(theta.raw$accepted) {
+    #     proposaldists.theta[[2]] = theta.raw$g 
+    #   } else {
+    #     proposaldists.theta[2] = list(NULL)
+    #   }
+    # }
+    # 
+    # # lock in the final proposal distribution
+    # if(it == warmup) {
+    #   proposaldists.theta[[2]] = theta.raw$g
+    # }
     
     
     # update stage 3 parameters
@@ -204,20 +204,20 @@ dsdive.gibbs.obs = function(
                                        tstep = tstep, include.raw = TRUE)
     }
     
-    # adapt stage 3 proposal distribution during warmup
-    if(it < warmup) {
-      # only keep the proposal distribution if it generated an acceptance
-      if(theta.raw$accepted) {
-        proposaldists.theta[[3]] = theta.raw$g 
-      } else {
-        proposaldists.theta[3] = list(NULL)
-      }
-    }
-    
-    # lock in the final proposal distribution
-    if(it == warmup) {
-      proposaldists.theta[[3]] = theta.raw$g
-    }
+    # # adapt stage 3 proposal distribution during warmup
+    # if(it < warmup) {
+    #   # only keep the proposal distribution if it generated an acceptance
+    #   if(theta.raw$accepted) {
+    #     proposaldists.theta[[3]] = theta.raw$g 
+    #   } else {
+    #     proposaldists.theta[3] = list(NULL)
+    #   }
+    # }
+    # 
+    # # lock in the final proposal distribution
+    # if(it == warmup) {
+    #   proposaldists.theta[[3]] = theta.raw$g
+    # }
     
     if(verbose) {
       print(theta)
@@ -263,20 +263,20 @@ dsdive.gibbs.obs = function(
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets[i] = d0$offset
         
-        # adapt proposal distribution during warmup
-        if(it < warmup) {
-          # only keep the proposal distribution if it generated an acceptance
-          if(d0$accepted) {
-            proposaldists.offsets[[i]] = d0$q1
-          } else {
-            proposaldists.offsets[i] = list(NULL)
-          }
-        }
-        
-        # lock in the final proposal distribution
-        if(it == warmup) {
-          proposaldists.offsets[[i]] = d0$q1
-        }
+        # # adapt proposal distribution during warmup
+        # if(it < warmup) {
+        #   # only keep the proposal distribution if it generated an acceptance
+        #   if(d0$accepted) {
+        #     proposaldists.offsets[[i]] = d0$q1
+        #   } else {
+        #     proposaldists.offsets[i] = list(NULL)
+        #   }
+        # }
+        # 
+        # # lock in the final proposal distribution
+        # if(it == warmup) {
+        #   proposaldists.offsets[[i]] = d0$q1
+        # }
         
       }
       
@@ -295,20 +295,20 @@ dsdive.gibbs.obs = function(
         dsobs.aligned[[i]] = d0$dsobs.aligned
         offsets.tf[i] = d0$offset
         
-        # adapt proposal distribution during warmup
-        if(it < warmup) {
-          # only keep the proposal distribution if it generated an acceptance
-          if(d0$accepted) {
-            proposaldists.offsets.tf[[i]] = d0$q1
-          } else {
-            proposaldists.offsets.tf[i] = list(NULL)
-          }
-        }
-        
-        # lock in the final proposal distribution
-        if(it == warmup) {
-          proposaldists.offsets.tf[[i]] = d0$q1
-        }
+        # # adapt proposal distribution during warmup
+        # if(it < warmup) {
+        #   # only keep the proposal distribution if it generated an acceptance
+        #   if(d0$accepted) {
+        #     proposaldists.offsets.tf[[i]] = d0$q1
+        #   } else {
+        #     proposaldists.offsets.tf[i] = list(NULL)
+        #   }
+        # }
+        # 
+        # # lock in the final proposal distribution
+        # if(it == warmup) {
+        #   proposaldists.offsets.tf[[i]] = d0$q1
+        # }
         
       }
       
