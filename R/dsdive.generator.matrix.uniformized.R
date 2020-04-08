@@ -18,25 +18,30 @@
 #' @param s0 dive stage for which matrix should be computed
 #' @param rate.uniformized uniformization rate, for standardizing transition
 #'   rates between states
+#' @param A intended to be used to pass in pre-allocated, shared-memory storage 
+#'   for the infinitesimal generator matrix.  Shared memory is managed by the 
+#'   \code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
+#'   be initialized and returned instead.
 #'   
 #' @example examples/dsdive.generator.matrix.uniformized.R
 #' 
 #' @importFrom Matrix diag rowSums
+#' @import bigmemory
 #' 
 #' @export
 #' 
 dsdive.generator.matrix.uniformized = function(depth.bins, beta, lambda, s0,
-                                               rate.uniformized) {
+                                               rate.uniformized, A = NULL) {
   
   # start by building uniformized transition matrix
   A = dsdive.tx.matrix.uniformized(
     depth.bins = depth.bins, beta = beta, lambda = lambda, s0 = s0, 
-    rate.uniformized = rate.uniformized)
+    rate.uniformized = rate.uniformized, A = A)
   
   
   # rescale matrix and diagonal entries
-  A = A * rate.uniformized
-  diag(A) = diag(A) - rate.uniformized
+  A[] = A[] * rate.uniformized
+  diag(A[]) = diag(A[]) - rate.uniformized
   
   A
 }

@@ -17,25 +17,39 @@
 #' @param include.raw \code{TRUE} to include raw components of the probability
 #'   transition matrix so that the matrix can be computed for arbitrary 
 #'   timesteps
+#' @param A intended to be used to pass in pre-allocated, shared-memory storage 
+#'   for the uniformized transition matrix.  Shared memory is managed by the 
+#'   \code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
+#'   be initialized and returned instead.
+#' @param obstx.mat intended to be used to pass in pre-allocated, shared-memory 
+#'   storage for the probability transition matrix.  Shared memory is managed 
+#'   by the \code{bigmemory} package.  If \code{obstx.mat=NULL}, then a 
+#'   standard R matrix will be initialized and returned instead.
 #'   
 #' @example examples/dsdive.obstx.matrix.R
 #' 
 #' @importFrom Matrix expm
+#' @import bigmemory
 #' 
 #' @export
 #' 
 dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep, 
-                               include.raw = FALSE) {
+                               include.raw = FALSE, A = NULL, 
+                               obstx.mat = NULL) {
   
   # build uniformized generator matrix
   rate.unif = max(lambda[s0] / (2*depth.bins[,2]))
   A = dsdive.generator.matrix.uniformized(
     depth.bins = depth.bins, beta = beta, lambda = lambda, s0 = s0, 
-    rate.uniformized = rate.unif)
+    rate.uniformized = rate.unif, A = A)
   
   # compute matrix exponential
-  obstx.mat = Matrix::expm(A * tstep)
-
+  if(is.null(obstx.mat)) {
+    obstx.mat = Matrix::expm(A[] * tstep)
+  } else {
+    obstx.mat[] = Matrix::expm(A[] * tstep)
+  }
+  
   if(include.raw) {
     list(
       obstx.mat = obstx.mat,

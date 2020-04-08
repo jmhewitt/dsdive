@@ -4,7 +4,16 @@
 \alias{dsdive.obstx.matrix}
 \title{Compute probability transition matrix for partially observed CTMC}
 \usage{
-dsdive.obstx.matrix(depth.bins, beta, lambda, s0, tstep, include.raw = FALSE)
+dsdive.obstx.matrix(
+  depth.bins,
+  beta,
+  lambda,
+  s0,
+  tstep,
+  include.raw = FALSE,
+  A = NULL,
+  obstx.mat = NULL
+)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -22,6 +31,16 @@ column defines the half-width of each bin.}
 \item{include.raw}{\code{TRUE} to include raw components of the probability
 transition matrix so that the matrix can be computed for arbitrary 
 timesteps}
+
+\item{A}{intended to be used to pass in pre-allocated, shared-memory storage 
+for the uniformized transition matrix.  Shared memory is managed by the 
+\code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
+be initialized and returned instead.}
+
+\item{obstx.mat}{intended to be used to pass in pre-allocated, shared-memory 
+storage for the probability transition matrix.  Shared memory is managed 
+by the \code{bigmemory} package.  If \code{obstx.mat=NULL}, then a 
+standard R matrix will be initialized and returned instead.}
 }
 \description{
 Given model parameters, this function will compute the probability transition 

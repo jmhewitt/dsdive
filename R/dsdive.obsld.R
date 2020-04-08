@@ -70,7 +70,7 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
         if(dt.stages[1] == P.raw[[s0.step]]$obstx.tstep) {
           u0 = P.raw[[s0.step]]$obstx.mat[d0,]
         } else {
-          u0 = Matrix::expm(P.raw[[s0.step]]$A *  dt.stages[1])[d0,]
+          u0 = Matrix::expm(P.raw[[s0.step]]$A[] *  dt.stages[1])[d0,]
         }
         
         # diffuse transition distribution through other stages
@@ -78,7 +78,7 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
           for(s.ind in 2:length(s.step)) {
             s = s.step[s.ind]
             u0 = t(expAtv(
-              A = as.matrix(t(P.raw[[s]]$A)), 
+              A = as.matrix(t(P.raw[[s]]$A[])), 
               t = dt.stages[s.ind],
               v = as.numeric(u0)
             ))[[1]]
