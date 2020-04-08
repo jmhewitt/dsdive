@@ -45,6 +45,9 @@ dsdive.tx.matrix.uniformized = function(depth.bins, beta, lambda, s0,
     im = numeric(length = nd)
     jm = numeric(length = nd)
     next.entry = 1
+  } else {
+    # populate a blank, zeroed-out matrix
+    A[] = 0
   }
   
   # loop over depth bins
