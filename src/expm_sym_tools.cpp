@@ -75,39 +75,6 @@ Rcpp::List expm_cpp(Eigen::MatrixXd A, double delta = 1e-15,
   F77_CALL(dsteqr)(&compz, &N, diag.data(), E.data(), evecs.data(), &N,
                    work.data(), &info);
 
-  // // LAPACK internals
-  // char jobz = 'V';
-  // char range = 'A';
-  // double dzero  = 0.0;
-  // int izero = 0;
-  // double abstol = tol;
-  // VectorXi isuppz(2 * N);
-  // double work_query;
-  // int info = 0, lwork = -1, liwork = -1, iwork_query;
-  // int M = N;
-  //
-  // // output
-  // VectorXd evals(N);
-  // MatrixXd evecs(N,N);
-  //
-  // // workspace query
-  // F77_CALL(dstevr)(&jobz, &range, &N, diag.data(), E.data(), &dzero, &dzero,
-  //                  &izero, &izero, &abstol, &N, evals.data(), evecs.data(), &N,
-  //                  isuppz.data(), &work_query, &lwork, &iwork_query, &liwork,
-  //                  &info);
-  //
-  // lwork = (int) work_query;
-  // liwork = (int) iwork_query;
-  // VectorXd work(lwork);
-  // VectorXi iwork(liwork);
-  //
-  // // eigen decomposition
-  // F77_CALL(dstevr)(&jobz, &range, &N, diag.data(), E.data(), &dzero, &dzero,
-  //                  &izero, &izero, &abstol, &M, evals.data(), evecs.data(), &N,
-  //                  isuppz.data(), work.data(), &lwork, iwork.data(), &liwork,
-  //                  &info);
-  //
-
    // build similarity transform
    VectorXd d(N), dInv(N);
    d(0) = 1.0;
