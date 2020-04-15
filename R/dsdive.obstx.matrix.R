@@ -31,6 +31,8 @@
 #' @importFrom Matrix expm
 #' @import bigmemory
 #' 
+#' @useDynLib dsdive, .registration = TRUE
+#' 
 #' @export
 #' 
 dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep, 
@@ -44,17 +46,24 @@ dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep,
     rate.uniformized = rate.unif, A = A)
   
   # compute matrix exponential
+  res = expm_cpp(A = as.matrix(A[]), delta = 1e-10, t = tstep)
   if(is.null(obstx.mat)) {
-    obstx.mat = Matrix::expm(A[] * tstep)
+    # obstx.mat = Matrix::expm(A[] * tstep)
+    obstx.mat = res$expm
   } else {
-    obstx.mat[] = Matrix::expm(A[] * tstep)
+    # obstx.mat[] = Matrix::expm(A[] * tstep)
+    obstx.mat[] = res$expm
   }
   
   if(include.raw) {
     list(
       obstx.mat = obstx.mat,
       obstx.tstep = tstep,
-      A = A
+      A = A,
+      vectors = res$vectors,
+      values = res$values,
+      d = res$d,
+      dInv = res$dInv
     )
   } else {
     obstx.mat
