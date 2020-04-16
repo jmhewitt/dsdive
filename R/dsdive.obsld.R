@@ -18,8 +18,10 @@
 #' 
 #' @export
 #'
-dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf, 
-                        exact = FALSE) {
+dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf) {
+  
+  # check to see if P.raw includes components for fast approximations
+  approx = !is.null(P.raw[[1]]$vectors)
   
   # if a single dive is passed in, coerce it to list format
   if(inherits(dsobs.list, 'dsobs')) {
@@ -71,12 +73,7 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf,
         if(dt.stages[1] == P.raw[[s0.step]]$obstx.tstep) {
           u0 = P.raw[[s0.step]]$obstx.mat[d0,]
         } else {
-          if(exact) {
-            u0 = Matrix::expm(P.raw[[s0.step]]$A[] *  dt.stages[1])[d0,]
-          } else {
-            # u0 = (P.raw[[s0.step]]$d[d0] * P.raw[[s0.step]]$vectors[d0,] * 
-            #         exp(P.raw[[s0.step]]$values * dt.stages[1])) %*%
-            #   t(P.raw[[s0.step]]$vectors) * P.raw[[s0.step]]$dInv
+          if(approx) {
             v = numeric(n.bins)
             v[d0] = 1
             u0 = expmAtv_cpp(evecs = P.raw[[s0.step]]$vectors, 
@@ -84,6 +81,8 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf,
                              v = v, d = P.raw[[s0.step]]$d, 
                              dInv = P.raw[[s0.step]]$dInv, 
                              t =  dt.stages[1], preMultiply = TRUE)
+          } else {
+            u0 = Matrix::expm(P.raw[[s0.step]]$A[] *  dt.stages[1])[d0,]
           }
         }
         
@@ -91,42 +90,20 @@ dsdive.obsld = function(dsobs.list, t.stages.list, P.raw, s0, sf,
         if(sf.step != s0.step) {
           for(s.ind in 2:length(s.step)) {
             s = s.step[s.ind]
-            if(exact) {
-              u0 = t(expAtv(
-                A = as.matrix(t(P.raw[[s]]$A[])),
-                t = dt.stages[s.ind],
-                v = as.numeric(u0)
-              ))[[1]]
-            } else {
-              # u0 = t(expmAtv_cpp(
-              #   evecs = t(P.raw[[s]]$vectors),
-              #   evals = P.raw[[s]]$values,
-              #   v = as.numeric(u0),
-              #   d = P.raw[[s]]$dInv,
-              #   dInv = P.raw[[s]]$d,
-              #   t = dt.stages[s.ind]
-              # ))
+            if(approx) {
               u0 = expmAtv_cpp(evecs = P.raw[[s]]$vectors, 
                                evals = P.raw[[s]]$values,
                                v = as.numeric(u0), d = P.raw[[s]]$d, 
                                dInv = P.raw[[s]]$dInv, 
                                t =  dt.stages[s.ind], preMultiply = FALSE)
-              
-              
-              # u0 = ((u0 * P.raw[[s]]$d) %*% P.raw[[s]]$vectors * 
-              #   exp(P.raw[[s]]$values * dt.stages[s.ind])) %*% 
-              #   t(P.raw[[s]]$vectors) * P.raw[[s]]$dInv
+            } else {
+              u0 = t(expAtv(
+                A = as.matrix(t(P.raw[[s]]$A[])),
+                t = dt.stages[s.ind],
+                v = as.numeric(u0)
+              ))[[1]]
             }
           }
-        }
-        
-        # correct for numerical stability
-        if(any(u0 < 0)) {
-          # zap small negative values
-          # u0[(u0 < 0) & (u0 > -1e-10)] = 0
-          u0[u0 < 0] = 0
-          # renormalize probability distribution
-          u0 = u0 / sum(u0)
         }
         
         # add likelihood contribution
