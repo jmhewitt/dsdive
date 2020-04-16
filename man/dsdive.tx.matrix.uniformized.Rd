@@ -4,14 +4,7 @@
 \alias{dsdive.tx.matrix.uniformized}
 \title{Compute probability transition matrix for embedded DTMCs}
 \usage{
-dsdive.tx.matrix.uniformized(
-  depth.bins,
-  beta,
-  lambda,
-  s0,
-  rate.uniformized,
-  A = NULL
-)
+dsdive.tx.matrix.uniformized(depth.bins, beta, lambda, s0, rate.uniformized)
 }
 \arguments{
 \item{depth.bins}{\eqn{n x 2} Matrix that defines the depth bins.  The first 
@@ -28,11 +21,6 @@ column defines the half-width of each bin.}
 
 \item{rate.uniformized}{uniformization rate, for standardizing transition
 rates between states}
-
-\item{A}{intended to be used to pass in pre-allocated, shared-memory storage 
-for the uniformized transition matrix.  Shared memory is managed by the 
-\code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
-be initialized and returned instead.}
 }
 \description{
 Computes the probability transition matrix for the Discrete time Markov 

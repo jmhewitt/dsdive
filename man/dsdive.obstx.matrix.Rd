@@ -11,8 +11,7 @@ dsdive.obstx.matrix(
   s0,
   tstep,
   include.raw = FALSE,
-  A = NULL,
-  obstx.mat = NULL
+  delta = 0
 )
 }
 \arguments{
@@ -32,15 +31,9 @@ column defines the half-width of each bin.}
 transition matrix so that the matrix can be computed for arbitrary 
 timesteps}
 
-\item{A}{intended to be used to pass in pre-allocated, shared-memory storage 
-for the uniformized transition matrix.  Shared memory is managed by the 
-\code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
-be initialized and returned instead.}
-
-\item{obstx.mat}{intended to be used to pass in pre-allocated, shared-memory 
-storage for the probability transition matrix.  Shared memory is managed 
-by the \code{bigmemory} package.  If \code{obstx.mat=NULL}, then a 
-standard R matrix will be initialized and returned instead.}
+\item{delta}{If \code{delta>0}, then the observation matrix and raw 
+components computed will be for a transition matrix whose generator is 
+perturbed to allow much faster computation.}
 }
 \description{
 Given model parameters, this function will compute the probability transition 

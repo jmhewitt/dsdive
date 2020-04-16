@@ -9,8 +9,7 @@ dsdive.generator.matrix.uniformized(
   beta,
   lambda,
   s0,
-  rate.uniformized,
-  A = NULL
+  rate.uniformized
 )
 }
 \arguments{
@@ -28,11 +27,6 @@ column defines the half-width of each bin.}
 
 \item{rate.uniformized}{uniformization rate, for standardizing transition
 rates between states}
-
-\item{A}{intended to be used to pass in pre-allocated, shared-memory storage 
-for the infinitesimal generator matrix.  Shared memory is managed by the 
-\code{bigmemory} package.  If \code{A=NULL}, then a standard R matrix will
-be initialized and returned instead.}
 }
 \description{
 Compute infinitesimal generator matrix for a uniformized Continuous time
