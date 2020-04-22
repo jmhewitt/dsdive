@@ -1,0 +1,149 @@
+#' Sample pi and lambda parameters for a single dive stage
+#'
+#' Sampler uses a Gaussian approximation to the full conditional posterior.
+#' Computations are carried out via shared-memory parallelization, and designed 
+#' for use with the dive-specific covariate model.
+#'   
+#' @param s0 the stage for which updated parameters should be sampled
+#' @param theta list containing current values of model parmaeters \code{beta1},
+#'   \code{beta2}, \code{alpha1}, \code{alpha2}, and \code{alpha3}.
+#' @param alpha.priors.list List of lists.  Each of the sublists specifies the 
+#'   prior distribution for the parameter vectors \code{alpha1}, \code{alpha2}, 
+#'   and \code{alpha3}.  See \code{dsdive.gibbs.obs.cov} for more details.
+#' @param beta.priors.list List of lists.  Each of the sublists specifies the 
+#'   prior distribution for the parameter vectors \code{beta1} and
+#'   \code{beta2}.  See \code{dsdive.gibbs.obs.cov} for more details.
+#' @param cl Shared-memory cluster to be used to distribute some computations.
+#'   The cluster must be fully initialized before running this function.
+#'   The cluster requires random seeds and \code{Rdsm}-initialization.
+#' @param shared.env environment containing shared-memory variable pointers.  
+#'   \code{shared.env} is expected to be the output from the 
+#'   initialization function \code{gibbs_init_shared}.
+#' @param gapprox (Optional) \code{gaussapprox} object containing the Gaussian 
+#'   approximation used to propose model parameters.  If \code{NULL}, then a 
+#'   Gaussian approximation will be computed.
+#' @param output.gapprox \code{TRUE} to return the Gaussian approximation used 
+#'   to propose model parameters.
+#'
+#' @example examples/dsdive.obs.sampleparams_shared.R
+#' 
+#' @importFrom stats dnorm runif
+#' 
+#' @export
+#'
+dsdive.obs.sampleparams_shared = function(
+  s0, theta, alpha.priors.list, beta.priors.list, cl, shared.env, 
+  gapprox = NULL, output.gapprox = FALSE) {
+  
+  # build index subset for directional preference coefficients
+  if(s0==1) {
+    beta.inds = 1:length(theta$beta1)
+  } else if(s0==2) {
+    beta.inds = NULL
+  } else if(s0==3) {
+    beta.inds = 1:length(theta$beta2)
+  }
+  
+  
+  #
+  # components for evaluating log-posteriors
+  #
+  
+  build.params = function(theta_vec) {
+
+    theta.eval = theta 
+    
+    # extract model parameters and compute prior
+    if(s0==1) {
+      theta.eval$beta1 = theta_vec[beta.inds]
+      theta.eval$alpha1 = theta_vec[-beta.inds]
+      P = sum(dnorm(x = theta.eval$beta1, mean = beta.priors.list[[1]]$mu, 
+                    sd = beta.priors.list[[1]]$sd, log = TRUE)) + 
+        sum(dnorm(x = theta.eval$alpha1, mean = alpha.priors.list[[1]]$mu, 
+                  sd = alpha.priors.list[[1]]$sd, log = TRUE))
+    } else if(s0==2) {
+      theta.eval$alpha2 = as.numeric(theta_vec)
+      P = sum(dnorm(x = theta.eval$alpha2, mean = alpha.priors.list[[2]]$mu, 
+                    sd = alpha.priors.list[[2]]$sd, log = TRUE))
+    } else if(s0==3) {
+      theta.eval$beta2 = theta_vec[beta.inds]
+      theta.eval$alpha3 = theta_vec[-beta.inds]
+      P = sum(dnorm(x = theta.eval$beta2, mean = beta.priors.list[[2]]$mu, 
+                    sd = beta.priors.list[[2]]$sd, log = TRUE)) + 
+        sum(dnorm(x = theta.eval$alpha3, mean = alpha.priors.list[[3]]$mu, 
+                  sd = alpha.priors.list[[3]]$sd, log = TRUE))
+    }
+
+    # package results
+    list(theta = theta.eval, P = P)
+  }
+  
+  
+  lp = function(theta_vec) {
+    # Evaluate log-posterior at value of theta_vec
+    
+    # extract parameters and related quantities
+    theta.build = build.params(theta = theta_vec)
+    
+    # log-posterior
+    dsdive.obsld_shared(theta = theta.build$theta, shared.env = shared.env, 
+                        cl = cl, s0 = s0, sf = s0) + 
+      theta.build$P
+  }
+  
+  #
+  # compute or extract gaussian approximations to the posterior
+  #
+  
+  if(s0==1) {
+    x0 = c(theta$beta1, theta$alpha1)
+  } else if(s0==2) {
+    x0 = theta$alpha2
+  } else if(s0==3) {
+    x0 = c(theta$beta2, theta$alpha3)
+  }
+  
+  if(is.null(gapprox)) {
+    g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead')
+  } else {
+    g = gapprox
+  }
+  
+  #
+  # propose and accept/reject
+  #
+  
+  # propose new model parameters
+  x = g$rgaussapprox(n = 1)
+  
+  # metropolis ratio
+  lR = lp(x) - lp(x0) + g$dgaussapprox(x = x0, log = TRUE) - 
+    g$dgaussapprox(x = x, log = TRUE)
+  
+  # accept/reject
+  accept = log(runif(1)) <= lR
+  if(accept) {
+    res = x
+  } else {
+    res = x0
+  }
+  
+  # back-transform parameters
+  theta = build.params(theta_vec = x)$theta
+  
+  
+  #
+  # package results
+  #
+  
+  res = list(
+    theta = theta, 
+    accepted = accept
+  )
+  
+  if(output.gapprox) {
+    res$g = g
+  } 
+  
+  res
+}

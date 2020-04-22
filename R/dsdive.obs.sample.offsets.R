@@ -38,6 +38,8 @@
 #' # @example examples/dsdive.obs.sample.offsets.R
 #' 
 #' @importFrom stats dbeta runif
+#' 
+#' @export
 #'
 dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
                                      offset.tf, t.stages, P.raw, depth.bins, 
