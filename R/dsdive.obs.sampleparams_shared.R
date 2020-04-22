@@ -24,7 +24,10 @@
 #'   Gaussian approximation will be computed.
 #' @param output.gapprox \code{TRUE} to return the Gaussian approximation used 
 #'   to propose model parameters.
-#'
+#' @param optim.maxit maximum number of steps to take during numerical 
+#'   optimization to compute Gaussian approximation to full conditional 
+#'   posteriors used to propose model parameters
+#'   
 #' @example examples/dsdive.obs.sampleparams_shared.R
 #' 
 #' @importFrom stats dnorm runif
@@ -33,7 +36,7 @@
 #'
 dsdive.obs.sampleparams_shared = function(
   s0, theta, alpha.priors.list, beta.priors.list, cl, shared.env, 
-  gapprox = NULL, output.gapprox = FALSE) {
+  gapprox = NULL, output.gapprox = FALSE, optim.maxit = 1e3) {
   
   # build index subset for directional preference coefficients
   if(s0==1) {
@@ -104,7 +107,8 @@ dsdive.obs.sampleparams_shared = function(
   }
   
   if(is.null(gapprox)) {
-    g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead')
+    g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
+                    control = list(fnscale =  -1, maxit = optim.maxit))
   } else {
     g = gapprox
   }

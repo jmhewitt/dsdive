@@ -148,7 +148,8 @@ theta = list(beta1 = shared.env$beta1[], beta2 = shared.env$beta2[],
 # update stage 1 parameters
 theta.raw = dsdive.obs.sampleparams_shared(
   s0 = 1, theta = theta, alpha.priors.list = alpha.priors.list,
-  beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+  beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
+  optim.maxit = 1)
 
 
 ##

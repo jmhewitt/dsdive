@@ -51,7 +51,7 @@ lambda.formula = ~x1:x2
 
 fit = dsdive.gibbs.obs.cov(
   dsobs.list = dsobs.list, t.stages.list = t.stages.list, 
-  beta.init = beta.init, alpha.init = alpha.init, verbose = TRUE, maxit = 20, 
+  beta.init = beta.init, alpha.init = alpha.init, verbose = TRUE, maxit = 1, 
   beta1.prior = beta.priors[[1]], beta2.prior = beta.priors[[2]], 
   alpha1.prior = lambda.priors[[1]], alpha2.prior = lambda.priors[[2]], 
   alpha3.prior = lambda.priors[[3]], tstep = tstep, depth.bins = depth.bins, 
@@ -59,7 +59,7 @@ fit = dsdive.gibbs.obs.cov(
   max.width = 100, max.width.offset = 30, t0.prior.params = c(1,1), 
   tf.prior.params = c(1,1), offsets = 0, offsets.tf = 0, warmup = 1, 
   covs = covs, pi.formula = pi.formula,  lambda.formula = lambda.formula, 
-  cl = cl)
+  cl = cl, optim.maxit = 1)
 
 
 detach(dive.sim$params)

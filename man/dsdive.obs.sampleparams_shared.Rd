@@ -12,7 +12,8 @@ dsdive.obs.sampleparams_shared(
   cl,
   shared.env,
   gapprox = NULL,
-  output.gapprox = FALSE
+  output.gapprox = FALSE,
+  optim.maxit = 1000
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ Gaussian approximation will be computed.}
 
 \item{output.gapprox}{\code{TRUE} to return the Gaussian approximation used 
 to propose model parameters.}
+
+\item{optim.maxit}{maximum number of steps to take during numerical 
+optimization to compute Gaussian approximation to full conditional 
+posteriors used to propose model parameters}
 }
 \description{
 Sampler uses a Gaussian approximation to the full conditional posterior.
@@ -169,7 +174,8 @@ theta = list(beta1 = shared.env$beta1[], beta2 = shared.env$beta2[],
 # update stage 1 parameters
 theta.raw = dsdive.obs.sampleparams_shared(
   s0 = 1, theta = theta, alpha.priors.list = alpha.priors.list,
-  beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+  beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
+  optim.maxit = 1)
 
 
 ##

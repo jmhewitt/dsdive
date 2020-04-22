@@ -86,6 +86,9 @@
 #' @param delta If \code{delta>0}, then the observation matrix and raw 
 #'   components computed will be for a transition matrix whose generator is 
 #'   perturbed to allow much faster computation.
+#' @param optim.maxit maximum number of steps to take during numerical 
+#'   optimization to compute Gaussian approximation to full conditional 
+#'   posteriors used to propose model parameters
 #'   
 #' @example examples/dsdive.gibbs.obs.cov.R
 #'
@@ -101,7 +104,7 @@ dsdive.gibbs.obs.cov = function(
   alpha1.prior, alpha2.prior, alpha3.prior, tstep, depth.bins,
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
   t0.prior.params, tf.prior.params, offsets, offsets.tf, cl,
-  pi.formula, lambda.formula, warmup = Inf, delta = 1e-10) {
+  pi.formula, lambda.formula, warmup = Inf, delta = 1e-10, optim.maxit = 1e3) {
 
 
   n = length(dsobs.list)
@@ -179,7 +182,8 @@ dsdive.gibbs.obs.cov = function(
     # update stage 1 parameters
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 1, theta = theta, alpha.priors.list = alpha.priors.list,
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
+      optim.maxit = optim.maxit)
 
     theta = theta.raw$theta
 
@@ -203,7 +207,8 @@ dsdive.gibbs.obs.cov = function(
     # update stage 2 parameters
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 2, theta = theta, alpha.priors.list = alpha.priors.list,
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
+      optim.maxit = optim.maxit)
 
     theta = theta.raw$theta
 
@@ -227,7 +232,8 @@ dsdive.gibbs.obs.cov = function(
     # update stage 3 parameters
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 3, theta = theta, alpha.priors.list = alpha.priors.list,
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
+      optim.maxit = optim.maxit)
 
     theta = theta.raw$theta
 
