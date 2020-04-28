@@ -110,61 +110,16 @@ dsdive.obs.sample.offsets = function(dsobs.aligned, dsobs.unaligned, offset,
     lp.anchors = lp(eps = anchors)
     
     # determine slope and curvature for each polynomial segment of envelope
-    envelope = sapply(1:length(anchors), function(i) {
-      # extract time-coordinates for interval
-      L.x = breaks[i]
-      M.x = anchors[i]
-      U.x = breaks[i+1]
-      # extract log-posterior for interval
-      L = lp.breaks[i]
-      M = lp.anchors[i]
-      U = lp.breaks[i+1]
-      # the in/finiteness of the points determines processing
-      L.undef = !is.finite(L)
-      M.undef = !is.finite(M)
-      U.undef = !is.finite(U)
-      
-      # assume lp = -Inf throughout entire interval
-      if(L.undef & M.undef & U.undef) {
-        c(0, 0, -Inf)
-      }
-      # assume lp = -Inf at start and midpoint, but ends finite
-      else if(L.undef & M.undef) {
-        c(0, 0, U)
-      }
-      # assume lp is only -Inf at start point
-      else if(L.undef) {
-        c(0, (U-M)/(U.x-M.x), M)
-      }
-      # assume lp is -Inf at end and midpoint, but starts finite
-      else if(U.undef & M.undef) {
-        c(0, 0, L)
-      }
-      # assume lp is only -Inf at end point
-      else if(U.undef) {
-        c(0, (L-M)/(L.x-M.x), M)
-      }
-      # assume lp is finite in entire interval
-      else {
-        b = (M-L)/(M.x-L.x)
-        x = U.x - M.x
-        # a = (U - M - b * x)/x^2
-        a = 0
-        c(2*a, b, M)
-      }
-    })
-    
-    # extract slopes and curvatures from envelope
-    d.logf = envelope[2,]
-    dd.logf.sup = envelope[1,]
+    envelope = envelope.approx(breaks = breaks, anchors = anchors, 
+                               lp.breaks =lp.breaks, lp.anchors = lp.anchors)
     
     # zero-out small curvatures, which are numerically unstable in logquad fn.
-    dd.logf.sup[abs(dd.logf.sup)<1e-4] = 0
+    envelope$dd.logf.sup[abs(envelope$dd.logf.sup)<1e-4] = 0
     
     # use local polynomial approximations to build envelope
-    q1 = envelope.logquad(breaks = breaks, logf = envelope[3,],
-                          d.logf = d.logf,
-                          dd.logf.sup = dd.logf.sup,
+    q1 = envelope.logquad(breaks = breaks, logf = envelope$logf,
+                          d.logf = envelope$d.logf,
+                          dd.logf.sup = envelope$dd.logf.sup,
                           anchors = anchors)
   }
   

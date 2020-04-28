@@ -96,14 +96,16 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
-  # evaluate log-posterior at anchor points
-  anchors.extra = c(anchors, breaks[length(breaks)])
-  lp.eval = lp(x = anchors.extra, stage.ind = 1, t.stages = t.stages)
+  # evaluate log-posterior at anchor and break points
+  lp.anchors = lp(x = anchors, stage.ind = 1, t.stages = t.stages)
+  lp.breaks = lp(x = breaks, stage.ind = 1, t.stages = t.stages)
   
   # build envelope
-  q1 = envelope.logquad(breaks = breaks, logf = lp.eval[1:length(anchors)], 
-                        d.logf = diff(lp.eval)/diff(anchors.extra), 
-                        dd.logf.sup = rep(0, length(anchors)), 
+  envelope = envelope.approx(breaks = breaks, anchors = anchors, 
+                             lp.breaks = lp.breaks, lp.anchors = lp.anchors)
+  q1 = envelope.logquad(breaks = breaks, logf = envelope$logf, 
+                        d.logf = envelope$d.logf, 
+                        dd.logf.sup = envelope$dd.logf.sup, 
                         anchors = anchors)
   
   # draw proposal
@@ -143,15 +145,18 @@ dsdive.obs.sample.stages = function(depths, times, t.stages, P.raw,
     max.width = max.width)
   anchors = breaks[1:(length(breaks)-1)] + diff(breaks)/2
   
-  # evaluate log-posterior at anchor points
-  anchors.extra = c(anchors, breaks[length(breaks)-1])
-  lp.eval = lp(x = anchors.extra, stage.ind = 2, t.stages = t.stages)
+  # evaluate log-posterior at anchor and break points
+  lp.anchors = lp(x = anchors, stage.ind = 2, t.stages = t.stages)
+  lp.breaks = lp(x = breaks, stage.ind = 2, t.stages = t.stages)
+  
   
   # build envelope
+  envelope = envelope.approx(breaks = breaks, anchors = anchors, 
+                             lp.breaks = lp.breaks, lp.anchors = lp.anchors)
   q2 = envelope.logquad(
-    breaks = breaks, logf = lp.eval[1:length(anchors)],
-    d.logf = diff(lp.eval)/diff(anchors.extra),
-    dd.logf.sup = rep(0, length(anchors)),
+    breaks = breaks, logf = envelope$logf,
+    d.logf = envelope$d.logf,
+    dd.logf.sup = envelope$dd.logf.sup,
     anchors = anchors)
 
   # draw proposal

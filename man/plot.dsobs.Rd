@@ -4,7 +4,7 @@
 \alias{plot.dsobs}
 \title{Plotting functions for observations of dive trajectories}
 \usage{
-\method{plot}{dsobs}(
+plot.dsobs(
   x,
   depth.bins,
   stages = NULL,
