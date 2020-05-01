@@ -179,11 +179,11 @@ dsdive.gibbs.obs.cov = function(
     # sample model parameters from full conditional posterior densities
     #
 
-    # update stage 1 parameters
+    # update stage 1 directional preference parameters
     theta.raw = dsdive.obs.sampleparams_shared(
-      s0 = 1, theta = theta, alpha.priors.list = alpha.priors.list,
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
-      optim.maxit = optim.maxit)
+      s0 = 1, sample.betas = TRUE, theta = theta, optim.maxit = optim.maxit,
+      alpha.priors.list = alpha.priors.list, 
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
 
     theta = theta.raw$theta
 
@@ -202,16 +202,39 @@ dsdive.gibbs.obs.cov = function(
         }
       })
     }
-
-
-    # update stage 2 parameters
+    
+    # update stage 1 speed parameters
+    theta.raw = dsdive.obs.sampleparams_shared(
+      s0 = 1, sample.betas = FALSE, theta = theta, optim.maxit = optim.maxit,
+      alpha.priors.list = alpha.priors.list, 
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+    
+    theta = theta.raw$theta
+    
+    # update stage 1 tx matrices on nodes
+    if(theta.raw$accepted) {
+      clusterEvalQ(cl, {
+        s = 1
+        for(local_ind in 1:local_n) {
+          id = local_ids[local_ind]
+          P.raw[[local_ind]][[s]] = dsdive.obstxmat.cov(
+            pi.designs = pi.designs, lambda.designs = lambda.designs,
+            beta1 = beta1[], beta2 = beta2[], alpha1 = alpha1[],
+            alpha2 = alpha2[], alpha3 = alpha3[], s0 = s,
+            ind = id, tstep = tstep, include.raw = TRUE,
+            depth.bins = depth.bins, delta = delta)
+        }
+      })
+    }
+    
+    # update stage 2 speed parameters
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 2, theta = theta, alpha.priors.list = alpha.priors.list,
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
-      optim.maxit = optim.maxit)
-
+      optim.maxit = optim.maxit, sample.betas = FALSE)
+    
     theta = theta.raw$theta
-
+    
     # update stage 2 tx matrices on nodes
     if(theta.raw$accepted) {
       clusterEvalQ(cl, {
@@ -228,15 +251,38 @@ dsdive.gibbs.obs.cov = function(
       })
     }
 
-
-    # update stage 3 parameters
+    # update stage 3 directional preference parameters
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 3, theta = theta, alpha.priors.list = alpha.priors.list,
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
-      optim.maxit = optim.maxit)
+      optim.maxit = optim.maxit, sample.betas = TRUE)
 
     theta = theta.raw$theta
 
+    # update stage 3 tx matrices on nodes
+    if(theta.raw$accepted) {
+      clusterEvalQ(cl, {
+        s = 3
+        for(local_ind in 1:local_n) {
+          id = local_ids[local_ind]
+          P.raw[[local_ind]][[s]] = dsdive.obstxmat.cov(
+            pi.designs = pi.designs, lambda.designs = lambda.designs,
+            beta1 = beta1[], beta2 = beta2[], alpha1 = alpha1[],
+            alpha2 = alpha2[], alpha3 = alpha3[], s0 = s,
+            ind = id, tstep = tstep, include.raw = TRUE,
+            depth.bins = depth.bins, delta = delta)
+        }
+      })
+    }
+    
+    # update stage 3 speed parameters
+    theta.raw = dsdive.obs.sampleparams_shared(
+      s0 = 3, theta = theta, alpha.priors.list = alpha.priors.list,
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
+      optim.maxit = optim.maxit, sample.betas = FALSE)
+    
+    theta = theta.raw$theta
+    
     # update stage 3 tx matrices on nodes
     if(theta.raw$accepted) {
       clusterEvalQ(cl, {

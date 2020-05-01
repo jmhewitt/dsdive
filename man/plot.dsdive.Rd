@@ -4,7 +4,7 @@
 \alias{plot.dsdive}
 \title{Plotting functions for completely observed dive trajectories}
 \usage{
-plot.dsdive(
+\method{plot}{dsdive}(
   x,
   depth.bins,
   imputed.alpha = 0.3,

@@ -6,6 +6,7 @@
 \usage{
 dsdive.obs.sampleparams_shared(
   s0,
+  sample.betas,
   theta,
   alpha.priors.list,
   beta.priors.list,
@@ -18,6 +19,9 @@ dsdive.obs.sampleparams_shared(
 }
 \arguments{
 \item{s0}{the stage for which updated parameters should be sampled}
+
+\item{sample.betas}{\code{TRUE} to sample the directional preference 
+coefficients, or \code{FALSE} to sample the speed coefficients.}
 
 \item{theta}{list containing current values of model parmaeters \code{beta1},
 \code{beta2}, \code{alpha1}, \code{alpha2}, and \code{alpha3}.}

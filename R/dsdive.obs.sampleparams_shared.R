@@ -27,6 +27,8 @@
 #' @param optim.maxit maximum number of steps to take during numerical 
 #'   optimization to compute Gaussian approximation to full conditional 
 #'   posteriors used to propose model parameters
+#' @param sample.betas \code{TRUE} to sample the directional preference 
+#'   coefficients, or \code{FALSE} to sample the speed coefficients.
 #'   
 #' @example examples/dsdive.obs.sampleparams_shared.R
 #' 
@@ -35,8 +37,8 @@
 #' @export
 #'
 dsdive.obs.sampleparams_shared = function(
-  s0, theta, alpha.priors.list, beta.priors.list, cl, shared.env, 
-  gapprox = NULL, output.gapprox = FALSE, optim.maxit = 1e3) {
+  s0, sample.betas, theta, alpha.priors.list, beta.priors.list, cl, 
+  shared.env, gapprox = NULL, output.gapprox = FALSE, optim.maxit = 1e3) {
   
   # build index subset for directional preference coefficients
   if(s0==1) {
@@ -58,23 +60,32 @@ dsdive.obs.sampleparams_shared = function(
     
     # extract model parameters and compute prior
     if(s0==1) {
-      theta.eval$beta1 = theta_vec[beta.inds]
-      theta.eval$alpha1 = theta_vec[-beta.inds]
-      P = sum(dnorm(x = theta.eval$beta1, mean = beta.priors.list[[1]]$mu, 
-                    sd = beta.priors.list[[1]]$sd, log = TRUE)) + 
-        sum(dnorm(x = theta.eval$alpha1, mean = alpha.priors.list[[1]]$mu, 
-                  sd = alpha.priors.list[[1]]$sd, log = TRUE))
+      if(sample.betas) {
+        theta.eval$beta1 = as.numeric(theta_vec)
+        P = sum(dnorm(x = theta.eval$beta1, mean = beta.priors.list[[1]]$mu, 
+                      sd = beta.priors.list[[1]]$sd, log = TRUE))
+      } else {
+        theta.eval$alpha1 = as.numeric(theta_vec)
+        P = sum(dnorm(x = theta.eval$alpha1, mean = alpha.priors.list[[1]]$mu, 
+                      sd = alpha.priors.list[[1]]$sd, log = TRUE))
+      }
     } else if(s0==2) {
+      if(sample.betas) {
+        stop('No beta coefficients to sample in stage 2!')
+      }
       theta.eval$alpha2 = as.numeric(theta_vec)
       P = sum(dnorm(x = theta.eval$alpha2, mean = alpha.priors.list[[2]]$mu, 
                     sd = alpha.priors.list[[2]]$sd, log = TRUE))
     } else if(s0==3) {
-      theta.eval$beta2 = theta_vec[beta.inds]
-      theta.eval$alpha3 = theta_vec[-beta.inds]
-      P = sum(dnorm(x = theta.eval$beta2, mean = beta.priors.list[[2]]$mu, 
-                    sd = beta.priors.list[[2]]$sd, log = TRUE)) + 
-        sum(dnorm(x = theta.eval$alpha3, mean = alpha.priors.list[[3]]$mu, 
-                  sd = alpha.priors.list[[3]]$sd, log = TRUE))
+      if(sample.betas) {
+        theta.eval$beta2 = as.numeric(theta_vec)
+        P = sum(dnorm(x = theta.eval$beta2, mean = beta.priors.list[[2]]$mu, 
+                      sd = beta.priors.list[[2]]$sd, log = TRUE))
+      } else {
+        theta.eval$alpha3 = as.numeric(theta_vec)
+        P = sum(dnorm(x = theta.eval$alpha3, mean = alpha.priors.list[[3]]$mu, 
+                      sd = alpha.priors.list[[3]]$sd, log = TRUE))
+      }
     }
 
     # package results
@@ -99,11 +110,19 @@ dsdive.obs.sampleparams_shared = function(
   #
   
   if(s0==1) {
-    x0 = c(theta$beta1, theta$alpha1)
+    if(sample.betas) {
+      x0 = theta$beta1
+    } else {
+      x0 = theta$alpha1
+    }
   } else if(s0==2) {
     x0 = theta$alpha2
   } else if(s0==3) {
-    x0 = c(theta$beta2, theta$alpha3)
+    if(sample.betas) {
+      x0 = theta$beta2
+    } else {
+      x0 = theta$alpha3
+    }
   }
   
   if(is.null(gapprox)) {
