@@ -152,7 +152,7 @@ dsdive.obs.sampleparams_shared = function(
   }
   
   # back-transform parameters
-  theta = build.params(theta_vec = x)$theta
+  theta = build.params(theta_vec = res)$theta
   
   
   #

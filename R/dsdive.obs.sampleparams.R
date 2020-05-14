@@ -158,7 +158,7 @@ dsdive.obs.sampleparams = function(
   }
   
   # back-transform parameters
-  theta = build.params(theta = x)[c('beta','lambda')]
+  theta = build.params(theta = res)[c('beta','lambda')]
   
   
   #
