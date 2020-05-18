@@ -11,7 +11,7 @@ dsdive.obstx.matrix(
   s0,
   tstep,
   include.raw = FALSE,
-  delta = 0
+  delta
 )
 }
 \arguments{

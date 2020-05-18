@@ -30,7 +30,7 @@
 #' @export
 #' 
 dsdive.obstx.matrix = function(depth.bins, beta, lambda, s0, tstep, 
-                               include.raw = FALSE, delta = 0) {
+                               include.raw = FALSE, delta) {
   
   # build uniformized generator matrix
   rate.unif = max(lambda[s0] / (2*depth.bins[,2]))
