@@ -29,7 +29,8 @@ dsdive.gibbs.obs(
   offsets,
   offsets.tf,
   warmup = Inf,
-  cl = NULL
+  cl = NULL,
+  delta
 )
 }
 \arguments{
@@ -110,6 +111,11 @@ scaled and shifted Beta prior distribution for the tf offset.}
 will be updated at each step}
 
 \item{cl}{cluster to be used to distribute some computations}
+
+\item{delta}{If \code{delta>0}, then the probability transition matrices
+computed will use a transition matrix whose generator is 
+perturbed to allow much faster computation.  See \code{dsdive.obstx.matrix}
+for more details.}
 }
 \description{
 Gibbs sampler for parameters of a model for dives across discrete depth bins

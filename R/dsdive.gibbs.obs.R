@@ -53,6 +53,10 @@
 #' @param warmup number of iterations during which the proposal distributions 
 #'   will be updated at each step
 #' @param cl cluster to be used to distribute some computations
+#' @param delta If \code{delta>0}, then the probability transition matrices
+#'   computed will use a transition matrix whose generator is 
+#'   perturbed to allow much faster computation.  See \code{dsdive.obstx.matrix}
+#'   for more details.
 #'   
 #' @example examples/dsdive.gibbs.obs.R
 #' 
@@ -66,7 +70,7 @@ dsdive.gibbs.obs = function(
   lambda1.prior, lambda2.prior, lambda3.prior, tstep, depth.bins, 
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
   t0.prior.params, tf.prior.params, offsets, offsets.tf, warmup = Inf, 
-  cl = NULL) {
+  cl = NULL, delta) {
   
   n = length(dsobs.list)
   
@@ -94,7 +98,7 @@ dsdive.gibbs.obs = function(
   P.raw = lapply(1:3, function(s) {
     dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta.init, 
                         lambda = lambda.init, s0 = s, tstep = tstep, 
-                        include.raw = TRUE)
+                        include.raw = TRUE, delta = delta)
   })
   
   # caches for proposal distributions
@@ -125,13 +129,13 @@ dsdive.gibbs.obs = function(
       s0 = 1, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
       lambda.priors.list = lambda.priors.list, 
       beta.priors.list = beta.priors.list, tstep = tstep, 
-      gapprox = proposaldists.theta[[1]], output.gapprox = TRUE)
+      gapprox = proposaldists.theta[[1]], output.gapprox = TRUE, delta = delta)
     
     theta = theta.raw$theta
 
     # update stage 1 tx matrix 
     if(theta.raw$accepted) {
-      P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+      P.raw[[1]] = dsdive.obstx.matrix(depth.bins = depth.bins, delta = delta,
                                        beta = theta$beta, 
                                        lambda = theta$lambda, s0 = 1, 
                                        tstep = tstep, include.raw = TRUE)
@@ -156,7 +160,7 @@ dsdive.gibbs.obs = function(
     theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 2, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
-      lambda.priors.list = lambda.priors.list, 
+      lambda.priors.list = lambda.priors.list, delta = delta,
       beta.priors.list = beta.priors.list, tstep = tstep,
       gapprox = proposaldists.theta[[2]], output.gapprox = TRUE)
     
@@ -164,7 +168,7 @@ dsdive.gibbs.obs = function(
     
     # update stage 2 tx matrix 
     if(theta.raw$accepted) {
-      P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+      P.raw[[2]] = dsdive.obstx.matrix(depth.bins = depth.bins, delta = delta,
                                        beta = theta$beta, 
                                        lambda = theta$lambda, s0 = 2, 
                                        tstep = tstep, include.raw = TRUE)
@@ -190,7 +194,7 @@ dsdive.gibbs.obs = function(
     theta.raw = dsdive.obs.sampleparams(
       dsobs.list = dsobs.aligned, t.stages.list = t.stages.list, P.raw = P.raw, 
       s0 = 3, depth.bins = depth.bins, beta = theta$beta, lambda = theta$lambda, 
-      lambda.priors.list = lambda.priors.list, 
+      lambda.priors.list = lambda.priors.list, delta = delta,
       beta.priors.list = beta.priors.list, tstep = tstep,
       gapprox = proposaldists.theta[[3]], output.gapprox = TRUE)
     
@@ -198,7 +202,7 @@ dsdive.gibbs.obs = function(
     
     # update stage 3 tx matrix 
     if(theta.raw$accepted) {
-      P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, 
+      P.raw[[3]] = dsdive.obstx.matrix(depth.bins = depth.bins, delta = delta,
                                        beta = theta$beta, 
                                        lambda = theta$lambda, s0 = 3, 
                                        tstep = tstep, include.raw = TRUE)

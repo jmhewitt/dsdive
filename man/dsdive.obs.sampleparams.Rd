@@ -16,7 +16,8 @@ dsdive.obs.sampleparams(
   beta.priors.list,
   tstep,
   gapprox = NULL,
-  output.gapprox = FALSE
+  output.gapprox = FALSE,
+  delta
 )
 }
 \arguments{
@@ -58,6 +59,11 @@ Gaussian approximation will be computed.}
 
 \item{output.gapprox}{\code{TRUE} to return the Gaussian approximation used 
 to propose model parameters.}
+
+\item{delta}{If \code{delta>0}, then the probability transition matrices
+computed will use a transition matrix whose generator is 
+perturbed to allow much faster computation.  See \code{dsdive.obstx.matrix}
+for more details.}
 }
 \description{
 Sampler uses a Gaussian approximation to the full conditional posterior.

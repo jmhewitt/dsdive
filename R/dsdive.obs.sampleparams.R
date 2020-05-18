@@ -33,7 +33,11 @@
 #'   Gaussian approximation will be computed.
 #' @param output.gapprox \code{TRUE} to return the Gaussian approximation used 
 #'   to propose model parameters.
-#'
+#' @param delta If \code{delta>0}, then the probability transition matrices
+#'   computed will use a transition matrix whose generator is 
+#'   perturbed to allow much faster computation.  See \code{dsdive.obstx.matrix}
+#'   for more details.
+#'   
 #' @example examples/dsdive.obs.sampleparams.R
 #' 
 #' @importFrom bisque jac.log jac.logit
@@ -44,7 +48,7 @@
 dsdive.obs.sampleparams = function(
   dsobs.list, t.stages.list, P.raw, s0, depth.bins, beta, lambda,
   lambda.priors.list, beta.priors.list, tstep, gapprox = NULL,
-  output.gapprox = FALSE) {
+  output.gapprox = FALSE, delta) {
 
   #
   # components for evaluating log-posteriors
@@ -109,7 +113,7 @@ dsdive.obs.sampleparams = function(
       P.raw[[s0]] = dsdive.obstx.matrix(
         depth.bins = depth.bins, beta = theta.build$beta, 
         lambda = theta.build$lambda, s0 = s0, tstep = tstep, 
-        include.raw = TRUE)
+        include.raw = TRUE, delta = delta)
       # likelihood
       dsdive.obsld(dsobs.list = dsobs.list, t.stages.list = t.stages.list, 
                    P.raw = P.raw, s0 = s0, sf = s0) + 
