@@ -53,7 +53,8 @@ Initialize a new Adaptive Random Walk Metropolis-Hastings sampler
   C = 0.75,
   alpha = 1,
   alpha_star = 0.44,
-  adaptive = TRUE
+  adaptive = TRUE,
+  adaptation_frequency = 1
 )}\if{html}{\out{</div>}}
 }
 
@@ -78,6 +79,8 @@ Initialize a new Adaptive Random Walk Metropolis-Hastings sampler
 
 \item{\code{adaptive}}{\code{TRUE} to adapt proposal covariance \code{Sigma}, 
 \code{FALSE} otherwise.}
+
+\item{\code{adaptation_frequency}}{How often to adapt sampler parameters}
 }
 \if{html}{\out{</div>}}
 }

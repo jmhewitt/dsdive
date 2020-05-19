@@ -32,10 +32,12 @@ MhrwAdaptive = R6Class('MhrwAdaptive',
     .lambda = NULL,
     # adaptation step sizes (p. 356, "Automatic choice of the stepsizes")
     .adaptation_count = 0,
+    .adaptation_frequency = NULL,
     .C = NULL,
     .alpha = NULL,
     .alpha_star = NULL,
-    .adaptive = NULL
+    .adaptive = NULL,
+    .calls = 0
   ),
   
   public = list(
@@ -64,9 +66,11 @@ MhrwAdaptive = R6Class('MhrwAdaptive',
     #' @param alpha_star Target univariate acceptance rate for adaptation
     #' @param adaptive \code{TRUE} to adapt proposal covariance \code{Sigma}, 
     #'   \code{FALSE} otherwise.
+    #' @param adaptation_frequency How often to adapt sampler parameters
     #' 
     initialize = function(x, mu, Sigma, lambda, lp, C = .75, alpha = 1, 
-                          alpha_star = .44, adaptive = TRUE) {
+                          alpha_star = .44, adaptive = TRUE,
+                          adaptation_frequency = 1) {
       
       # copy initialization arguments
       private$.x = x
@@ -78,6 +82,7 @@ MhrwAdaptive = R6Class('MhrwAdaptive',
       private$.alpha = alpha
       private$.alpha_star = alpha_star
       private$.adaptive = adaptive
+      private$.adaptation_frequency = adaptation_frequency
       
       # initialize sampler internals
       private$.n = length(x)
@@ -119,33 +124,39 @@ MhrwAdaptive = R6Class('MhrwAdaptive',
       #
 
       if(private$.adaptive) {
-
-        # adaptation step size
-        private$.adaptation_count = private$.adaptation_count + 1
-        gamma = private$.C / private$.adaptation_count^private$.alpha
-
-        for(i in 1:private$.n) {
-
-          # componentwise accept/reject rate
-          x = x0
-          x[i] = x[i] + z[i]
-          ar.local = min(1, exp(private$.lp(x) - lp.x0))
-
-          # update componentwise scale
-          log_lambda = log(private$.lambda[i])
-          log_lambda = log_lambda + gamma * (ar.local - private$.alpha_star)
-          private$.lambda[i] = exp(log_lambda)
-
+        
+        private$.calls = private$.calls + 1
+        
+        if(private$.calls %% private$.adaptation_frequency == 0 ) {
+          
+          # adaptation step size
+          private$.adaptation_count = private$.adaptation_count + 1
+          gamma = private$.C / private$.adaptation_count^private$.alpha
+          
+          for(i in 1:private$.n) {
+            
+            # componentwise accept/reject rate
+            x = x0
+            x[i] = x[i] + z[i]
+            ar.local = min(1, exp(private$.lp(x) - lp.x0))
+            
+            # update componentwise scale
+            log_lambda = log(private$.lambda[i])
+            log_lambda = log_lambda + gamma * (ar.local - private$.alpha_star)
+            private$.lambda[i] = exp(log_lambda)
+            
+          }
+          
+          # update estimate of target mean
+          z = private$.x - private$.mu
+          private$.mu = private$.mu + gamma * z
+          
+          # update estimate of target covariance
+          private$.Sigma = private$.Sigma + gamma * (z %*% t(z) - private$.Sigma)
+          private$.Sigma_chol = chol(private$.Sigma)
+          
         }
-
-        # update estimate of target mean
-        z = private$.x - private$.mu
-        private$.mu = private$.mu + gamma * z
-
-        # update estimate of target covariance
-        private$.Sigma = private$.Sigma + gamma * (z %*% t(z) - private$.Sigma)
-        private$.Sigma_chol = chol(private$.Sigma)
-
+        
       }
       
       # package results

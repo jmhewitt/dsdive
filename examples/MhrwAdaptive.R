@@ -21,7 +21,8 @@ sampler = MhrwAdaptive$new(x = c(0, 0),
                            Sigma = diag(2),
                            lambda = c(1, 1), 
                            lp = function(x) sum(dlgamma(x = x, alpha = alpha, 
-                                                    beta = beta, log = TRUE)))
+                                                    beta = beta, log = TRUE)), 
+                           adaptation_frequency = 2)
 
 x.samples = matrix(0, nrow = 1e4, ncol = 2)
 
