@@ -14,7 +14,10 @@ dsdive.obs.sampleparams_shared(
   shared.env,
   gapprox = NULL,
   output.gapprox = FALSE,
-  optim.maxit = 1000
+  rw.sampler = NULL,
+  adaptive = FALSE,
+  optim.maxit = 1000,
+  adaptation.frequency = 10
 )
 }
 \arguments{
@@ -49,9 +52,18 @@ Gaussian approximation will be computed.}
 \item{output.gapprox}{\code{TRUE} to return the Gaussian approximation used 
 to propose model parameters.}
 
+\item{rw.sampler}{If \code{NULL}, then a new sampler will be created, 
+otherwise the sampler will be called.}
+
+\item{adaptive}{\code{TRUE} to use adaptive Random walk Metropolis-Hastings
+proposals instead of Gaussian approximations}
+
 \item{optim.maxit}{maximum number of steps to take during numerical 
 optimization to compute Gaussian approximation to full conditional 
 posteriors used to propose model parameters}
+
+\item{adaptation.frequency}{Random walk proposals will only be updated 
+at intervals of this step count}
 }
 \description{
 Sampler uses a Gaussian approximation to the full conditional posterior.

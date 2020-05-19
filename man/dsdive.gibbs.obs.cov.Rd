@@ -34,7 +34,9 @@ dsdive.gibbs.obs.cov(
   lambda.formula,
   warmup = Inf,
   delta = 1e-10,
-  optim.maxit = 1000
+  optim.maxit = 1000,
+  adaptive = FALSE,
+  adaptation.frequency = 10
 )
 }
 \arguments{
@@ -153,6 +155,13 @@ perturbed to allow much faster computation.}
 \item{optim.maxit}{maximum number of steps to take during numerical 
 optimization to compute Gaussian approximation to full conditional 
 posteriors used to propose model parameters}
+
+\item{adaptive}{\code{TRUE} to use adaptive Random walk Metropolis-Hastings 
+samplers to update model parameters instead of Gaussian approximations to 
+the full conditional posteriors.}
+
+\item{adaptation.frequency}{Random walk proposals will only be updated 
+at intervals of this step count}
 }
 \description{
 This function differs from \code{dsdive.gibbs.obs} in that this function

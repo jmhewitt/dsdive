@@ -89,6 +89,11 @@
 #' @param optim.maxit maximum number of steps to take during numerical 
 #'   optimization to compute Gaussian approximation to full conditional 
 #'   posteriors used to propose model parameters
+#' @param adaptive \code{TRUE} to use adaptive Random walk Metropolis-Hastings 
+#'   samplers to update model parameters instead of Gaussian approximations to 
+#'   the full conditional posteriors.
+#' @param adaptation.frequency Random walk proposals will only be updated 
+#'   at intervals of this step count
 #'   
 #' @example examples/dsdive.gibbs.obs.cov.R
 #'
@@ -104,7 +109,8 @@ dsdive.gibbs.obs.cov = function(
   alpha1.prior, alpha2.prior, alpha3.prior, tstep, depth.bins,
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
   t0.prior.params, tf.prior.params, offsets, offsets.tf, cl,
-  pi.formula, lambda.formula, warmup = Inf, delta = 1e-10, optim.maxit = 1e3) {
+  pi.formula, lambda.formula, warmup = Inf, delta = 1e-10, optim.maxit = 1e3,
+  adaptive = FALSE, adaptation.frequency = 10) {
 
 
   n = length(dsobs.list)
@@ -134,7 +140,7 @@ dsdive.gibbs.obs.cov = function(
   #
 
   shared.env = gibbs_init_shared(cl = cl, envir = environment())
-
+  
 
   #
   # initialize sampler output
@@ -158,7 +164,7 @@ dsdive.gibbs.obs.cov = function(
   tick.checkpoint = proc.time()[3]
 
   # proposal distribution caches
-  proposaldists.theta = vector('list', 3)
+  proposaldists.theta = vector('list', 5)
   proposaldists.offsets = vector('list', n)
   proposaldists.offsets.tf = vector('list', n)
 
@@ -183,9 +189,14 @@ dsdive.gibbs.obs.cov = function(
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 1, sample.betas = TRUE, theta = theta, optim.maxit = optim.maxit,
       alpha.priors.list = alpha.priors.list, 
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
+      rw.sampler = proposaldists.theta[[1]], adaptive = adaptive, 
+      adaptation.frequency = adaptation.frequency)
 
     theta = theta.raw$theta
+    if(adaptive) {
+      proposaldists.theta[[1]] = theta.raw$rw.sampler
+    }
 
     # update stage 1 tx matrices on nodes
     if(theta.raw$accepted) {
@@ -207,9 +218,14 @@ dsdive.gibbs.obs.cov = function(
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 1, sample.betas = FALSE, theta = theta, optim.maxit = optim.maxit,
       alpha.priors.list = alpha.priors.list, 
-      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env)
+      beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
+      rw.sampler = proposaldists.theta[[2]], adaptive = adaptive,
+      adaptation.frequency = adaptation.frequency)
     
     theta = theta.raw$theta
+    if(adaptive) {
+      proposaldists.theta[[2]] = theta.raw$rw.sampler
+    }
     
     # update stage 1 tx matrices on nodes
     if(theta.raw$accepted) {
@@ -231,9 +247,14 @@ dsdive.gibbs.obs.cov = function(
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 2, theta = theta, alpha.priors.list = alpha.priors.list,
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
-      optim.maxit = optim.maxit, sample.betas = FALSE)
+      optim.maxit = optim.maxit, sample.betas = FALSE, 
+      rw.sampler = proposaldists.theta[[3]], adaptive = adaptive,
+      adaptation.frequency = adaptation.frequency)
     
     theta = theta.raw$theta
+    if(adaptive) {
+      proposaldists.theta[[3]] = theta.raw$rw.sampler
+    }
     
     # update stage 2 tx matrices on nodes
     if(theta.raw$accepted) {
@@ -255,9 +276,14 @@ dsdive.gibbs.obs.cov = function(
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 3, theta = theta, alpha.priors.list = alpha.priors.list,
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
-      optim.maxit = optim.maxit, sample.betas = TRUE)
+      optim.maxit = optim.maxit, sample.betas = TRUE, 
+      rw.sampler = proposaldists.theta[[4]], adaptive = adaptive,
+      adaptation.frequency = adaptation.frequency)
 
     theta = theta.raw$theta
+    if(adaptive) {
+      proposaldists.theta[[4]] = theta.raw$rw.sampler
+    }
 
     # update stage 3 tx matrices on nodes
     if(theta.raw$accepted) {
@@ -279,9 +305,14 @@ dsdive.gibbs.obs.cov = function(
     theta.raw = dsdive.obs.sampleparams_shared(
       s0 = 3, theta = theta, alpha.priors.list = alpha.priors.list,
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
-      optim.maxit = optim.maxit, sample.betas = FALSE)
+      optim.maxit = optim.maxit, sample.betas = FALSE, 
+      rw.sampler = proposaldists.theta[[5]], adaptive = adaptive,
+      adaptation.frequency = adaptation.frequency)
     
     theta = theta.raw$theta
+    if(adaptive) {
+      proposaldists.theta[[5]] = theta.raw$rw.sampler
+    }
     
     # update stage 3 tx matrices on nodes
     if(theta.raw$accepted) {

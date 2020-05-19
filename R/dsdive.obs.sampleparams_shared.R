@@ -29,6 +29,12 @@
 #'   posteriors used to propose model parameters
 #' @param sample.betas \code{TRUE} to sample the directional preference 
 #'   coefficients, or \code{FALSE} to sample the speed coefficients.
+#' @param rw.sampler If \code{NULL}, then a new sampler will be created, 
+#'   otherwise the sampler will be called.
+#' @param adaptive \code{TRUE} to use adaptive Random walk Metropolis-Hastings
+#'   proposals instead of Gaussian approximations
+#' @param adaptation.frequency Random walk proposals will only be updated 
+#'   at intervals of this step count
 #'   
 #' @example examples/dsdive.obs.sampleparams_shared.R
 #' 
@@ -38,7 +44,8 @@
 #'
 dsdive.obs.sampleparams_shared = function(
   s0, sample.betas, theta, alpha.priors.list, beta.priors.list, cl, 
-  shared.env, gapprox = NULL, output.gapprox = FALSE, optim.maxit = 1e3) {
+  shared.env, gapprox = NULL, output.gapprox = FALSE, rw.sampler = NULL, 
+  adaptive = FALSE, optim.maxit = 1e3, adaptation.frequency = 10) {
   
   # build index subset for directional preference coefficients
   if(s0==1) {
@@ -125,31 +132,57 @@ dsdive.obs.sampleparams_shared = function(
     }
   }
   
-  if(is.null(gapprox)) {
-    g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
-                    control = list(fnscale =  -1, maxit = optim.maxit))
+  if(adaptive) {
+    
+    if(is.null(rw.sampler)) {
+      
+      g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
+                      control = list(fnscale =  -1, maxit = optim.maxit), 
+                      optim.output = TRUE)
+      
+      rw.sampler = MhrwAdaptive$new(
+        x = x0, 
+        mu = g$optim.output$par, 
+        Sigma = -solve(g$optim.output$hessian), 
+        lambda = rep(1, length(x0)), lp = lp, C = .5, adaptive = TRUE, 
+        adaptation_frequency = adaptation.frequency)
+    }
+    
+    sampler_out = rw.sampler$sample()
+    
+    res = sampler_out$x
+    accept = sampler_out$accepted
+    
   } else {
-    g = gapprox
+    
+    if(is.null(gapprox)) {
+      g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
+                      control = list(fnscale =  -1, maxit = optim.maxit))
+    } else {
+      g = gapprox
+    }
+    
+    #
+    # propose and accept/reject
+    #
+    
+    # propose new model parameters
+    x = g$rgaussapprox(n = 1)
+    
+    # metropolis ratio
+    lR = lp(x) - lp(x0) + g$dgaussapprox(x = x0, log = TRUE) - 
+      g$dgaussapprox(x = x, log = TRUE)
+    
+    # accept/reject
+    accept = log(runif(1)) <= lR
+    if(accept) {
+      res = x
+    } else {
+      res = x0
+    }
+    
   }
   
-  #
-  # propose and accept/reject
-  #
-  
-  # propose new model parameters
-  x = g$rgaussapprox(n = 1)
-  
-  # metropolis ratio
-  lR = lp(x) - lp(x0) + g$dgaussapprox(x = x0, log = TRUE) - 
-    g$dgaussapprox(x = x, log = TRUE)
-  
-  # accept/reject
-  accept = log(runif(1)) <= lR
-  if(accept) {
-    res = x
-  } else {
-    res = x0
-  }
   
   # back-transform parameters
   theta = build.params(theta_vec = res)$theta
@@ -167,6 +200,10 @@ dsdive.obs.sampleparams_shared = function(
   if(output.gapprox) {
     res$g = g
   } 
+  
+  if(adaptive) {
+    res$rw.sampler = rw.sampler
+  }
   
   res
 }
