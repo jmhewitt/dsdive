@@ -2,7 +2,7 @@ Package: dsdive
 Type: Package
 Title: Discrete Space Models for Dive Trajectories of Animals
 Version: 1.0.0
-Date: 2020-03-26
+Date: 2020-05-20
 Author: Joshua Hewitt
 Maintainer: Joshua Hewitt <joshua.hewitt@duke.edu>
 Description: Animal movement modeling.
