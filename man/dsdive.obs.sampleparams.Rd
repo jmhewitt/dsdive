@@ -80,7 +80,7 @@ tstep = diff(sim.obs$times[1:2])
 obstx.mat = lapply(1:3, function(s) {
   dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
                       lambda = lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
+                      include.raw = TRUE, delta = 1e-10)
 })
 
 lambda.priors = list(
@@ -96,7 +96,7 @@ x = dsdive.obs.sampleparams(dsobs.list = list(sim.obs),
                             s0 = 1, depth.bins = depth.bins, beta = beta, 
                             lambda = lambda, lambda.priors.list = lambda.priors, 
                             beta.priors.list = beta.priors, 
-                            tstep = diff(sim.obs$times[1:2]))
+                            tstep = diff(sim.obs$times[1:2]), delta = 1e-10)
 
 detach(dive.sim$params)
 detach(dive.sim)

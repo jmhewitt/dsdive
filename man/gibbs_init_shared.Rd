@@ -45,7 +45,7 @@ tstep = diff(sim.obs$times[1:2])
 obstx.mat = lapply(1:3, function(s) {
   dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
                       lambda = lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
+                      include.raw = TRUE, delta = 1e-10)
 })
 
 alpha.priors.list = list(
@@ -142,7 +142,7 @@ theta = list(beta1 = shared.env$beta1[], beta2 = shared.env$beta2[],
 theta.raw = dsdive.obs.sampleparams_shared(
   s0 = 1, theta = theta, alpha.priors.list = alpha.priors.list,
   beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
-  optim.maxit = 1)
+  optim.maxit = 1, sample.betas = TRUE)
 
 
 ##

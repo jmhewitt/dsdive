@@ -39,8 +39,9 @@ t.stages = sim$times[c(FALSE, diff(sim$stages)==1)]
 
 # build probability matrices for observations
 obstx.mat = lapply(1:3, function(s) {
-  dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, lambda = lambda, 
-                      s0 = s, tstep = tstep, include.raw = TRUE)
+  dsdive.obstx.matrix(depth.bins = depth.bins, beta = dive.sim$params$beta, 
+                      lambda = lambda, 
+                      s0 = s, tstep = tstep, include.raw = TRUE, delta = 1e-10)
 })
 
 # compute likelihood of observations, given model parameters

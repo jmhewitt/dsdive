@@ -17,7 +17,8 @@ test_that("Verify implementation of exact likelihood function", {
     dsdive.obstx.matrix(depth.bins = depth.bins, 
                         beta = dive.sim$params$beta, 
                         lambda = dive.sim$params$lambda, 
-                        s0 = s, tstep = tstep, include.raw = TRUE)
+                        s0 = s, tstep = tstep, include.raw = TRUE, 
+                        delta = 0)
   })
   
   # compute likelihood of observations, given model parameters

@@ -61,7 +61,7 @@ tstep = diff(sim.obs$times[1:2])
 P.raw = lapply(1:3, function(s) {
   dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
                       lambda = lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
+                      include.raw = TRUE, delta = 1e-10)
 })
 
 # probability transition matrix for uniformized DTMC

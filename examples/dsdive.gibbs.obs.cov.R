@@ -17,7 +17,7 @@ tstep = diff(sim.obs$times[1:2])
 obstx.mat = lapply(1:3, function(s) {
   dsdive.obstx.matrix(depth.bins = depth.bins, beta = beta, 
                       lambda = lambda, s0 = s, tstep = tstep, 
-                      include.raw = TRUE)
+                      include.raw = TRUE, delta = 1e-10)
 })
 
 lambda.priors = list(
@@ -59,7 +59,7 @@ fit = dsdive.gibbs.obs.cov(
   max.width = 100, max.width.offset = 30, t0.prior.params = c(1,1), 
   tf.prior.params = c(1,1), offsets = 0, offsets.tf = 0, warmup = 1, 
   covs = covs, pi.formula = pi.formula,  lambda.formula = lambda.formula, 
-  cl = cl, optim.maxit = 1)
+  cl = cl, optim.maxit = 1, delta = 1e-10)
 
 
 detach(dive.sim$params)

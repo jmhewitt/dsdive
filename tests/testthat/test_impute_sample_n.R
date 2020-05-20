@@ -31,7 +31,7 @@ test_that("sample num. uniformized depth bin tx's. btwn within-stage obs", {
     dsdive.obstx.matrix(depth.bins = depth.bins, 
                         beta = dive.sim$params$beta, 
                         lambda = dive.sim$params$lambda, s0 = s, tstep = tstep, 
-                        include.raw = TRUE)
+                        include.raw = TRUE, delta = 1e-10)
   })
   
   # (discrete time) probability transition matrix for uniformized process
@@ -146,7 +146,7 @@ test_that("sample num. uniformized depth bin tx's. across between-stage obs", {
     dsdive.obstx.matrix(depth.bins = depth.bins, 
                         beta = dive.sim$params$beta, 
                         lambda = dive.sim$params$lambda, s0 = s, tstep = tstep, 
-                        include.raw = TRUE)
+                        include.raw = TRUE, delta = 1e-10)
   })
   
   # (discrete time) probability transition matrix for uniformized process
