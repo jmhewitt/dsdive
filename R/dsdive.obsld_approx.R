@@ -14,11 +14,8 @@
 #'   equal to \code{s0}
 #' @param sf likelihood should include contributions for stages less than or 
 #'   equal to \code{sf}
-#'
-#' @importFrom Matrix sparseVector expm
-#' @importFrom expm expAtv
 #' 
-#' @example examples/dsdive.obsld.R
+#' @example examples/dsdive.obsld_approx.R
 #' 
 #' @export
 #'
