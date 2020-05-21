@@ -16,6 +16,7 @@ dsdive.obs.sampleparams_shared(
   output.gapprox = FALSE,
   rw.sampler = NULL,
   adaptive = FALSE,
+  gapprox.approx_ld = FALSE,
   optim.maxit = 1000,
   adaptation.frequency = 10
 )
@@ -57,6 +58,9 @@ otherwise the sampler will be called.}
 
 \item{adaptive}{\code{TRUE} to use adaptive Random walk Metropolis-Hastings
 proposals instead of Gaussian approximations}
+
+\item{gapprox.approx_ld}{\code{TRUE} to use an approximate likelihood when 
+building Gaussian approximations to full conditional posteriors.}
 
 \item{optim.maxit}{maximum number of steps to take during numerical 
 optimization to compute Gaussian approximation to full conditional 

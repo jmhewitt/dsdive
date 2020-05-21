@@ -35,6 +35,8 @@
 #'   proposals instead of Gaussian approximations
 #' @param adaptation.frequency Random walk proposals will only be updated 
 #'   at intervals of this step count
+#' @param gapprox.approx_ld \code{TRUE} to use an approximate likelihood when 
+#'   building Gaussian approximations to full conditional posteriors.
 #'   
 #' @example examples/dsdive.obs.sampleparams_shared.R
 #' 
@@ -45,7 +47,8 @@
 dsdive.obs.sampleparams_shared = function(
   s0, sample.betas, theta, alpha.priors.list, beta.priors.list, cl, 
   shared.env, gapprox = NULL, output.gapprox = FALSE, rw.sampler = NULL, 
-  adaptive = FALSE, optim.maxit = 1e3, adaptation.frequency = 10) {
+  adaptive = FALSE, gapprox.approx_ld = FALSE, optim.maxit = 1e3, 
+  adaptation.frequency = 10) {
   
   # build index subset for directional preference coefficients
   if(s0==1) {
@@ -112,6 +115,21 @@ dsdive.obs.sampleparams_shared = function(
       theta.build$P
   }
   
+  
+  lp_approx = function(theta_vec) {
+    # Evaluate approximate log-posterior at value of theta_vec
+    
+    # extract parameters and related quantities
+    theta.build = build.params(theta = theta_vec)
+    
+    # log-posterior
+    dsdive.obsld_approx_shared(theta = theta.build$theta, s0 = s0, sf = s0,
+                               shared.env = shared.env, cl = cl) + 
+      theta.build$P
+  }
+  
+  
+  
   #
   # compute or extract gaussian approximations to the posterior
   #
@@ -156,8 +174,13 @@ dsdive.obs.sampleparams_shared = function(
   } else {
     
     if(is.null(gapprox)) {
-      g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
-                      control = list(fnscale =  -1, maxit = optim.maxit))
+      if(gapprox.approx_ld) {
+        g = gaussapprox(logf = lp_approx, init = x0, method = 'Nelder-Mead', 
+                        control = list(fnscale =  -1, maxit = optim.maxit))
+      } else {
+        g = gaussapprox(logf = lp, init = x0, method = 'Nelder-Mead', 
+                        control = list(fnscale =  -1, maxit = optim.maxit))
+      }
     } else {
       g = gapprox
     }
