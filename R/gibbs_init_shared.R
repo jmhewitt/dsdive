@@ -26,7 +26,7 @@ gibbs_init_shared = function(cl, envir = environment()) {
                  'beta2.prior', 'alpha1.prior', 'alpha2.prior', 'alpha3.prior', 
                  'tstep', 'depth.bins', 'T1.prior.params', 'T2.prior.params', 
                  'max.width', 'max.width.offset', 't0.prior.params', 
-                 'tf.prior.params', 'delta')
+                 'tf.prior.params', 'delta', 'P.interpolators')
   
   # data required for initialization
   cfg.init = c('t.stages.list', 'offsets', 'offsets.tf', 'beta.init', 
