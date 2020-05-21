@@ -11,7 +11,8 @@ dsdive.obstx.matrix_interpolator(
   s0,
   tstep.seq,
   m,
-  verbose = FALSE
+  verbose = FALSE,
+  cl = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ column defines the half-width of each bin.}
 smoothing function, \code{fields::Tps}.}
 
 \item{verbose}{\code{TRUE} to output progress of code}
+
+\item{cl}{cluster over which computations can be parallelized}
 }
 \description{
 Given a range of model parameters, this function will compute the 
@@ -57,9 +60,19 @@ tstep.seq = seq(0, 300, by = 100)
 # build interpolating function
 interpolator = dsdive.obstx.matrix_interpolator(
   depth.bins = depth.bins, beta.seq = beta.seq, lambda.seq = lambda.seq, 
-  s0 = 1, tstep.seq = tstep.seq, m = 3, verbose = FALSE)
+  s0 = 1, tstep.seq = tstep.seq, m = 3, verbose = TRUE)
 
 interpolator(beta = .8, lambda = 1, tstep = 300, i = 1, j = 4)
+
+
+# cl = makeCluster(spec = 3, type = 'SOCK')
+# clusterEvalQ(cl, library(dsdive))
+# 
+# interpolator = dsdive.obstx.matrix_interpolator(
+#   depth.bins = depth.bins, beta.seq = beta.seq, lambda.seq = lambda.seq, 
+#   s0 = 1, tstep.seq = tstep.seq, m = 3, verbose = TRUE, cl = cl)
+# 
+# stopCluster(cl = cl)
 
 detach(dive.sim)
 }

@@ -17,19 +17,36 @@
 #' @param m Smoothing polynomial degree; this is the \code{m} argument in the 
 #'   smoothing function, \code{fields::Tps}.
 #' @param verbose \code{TRUE} to output progress of code
+#' @param cl cluster over which computations can be parallelized
 #'   
 #' @example examples/dsdive.obstx.matrix_interpolator.R
 #' 
 #' @importFrom fields Tps
+#' @importFrom parallel parLapply
 #' 
 #' @export
 #' 
 dsdive.obstx.matrix_interpolator = function(depth.bins, beta.seq, lambda.seq, 
-                                            s0, tstep.seq, m, verbose = FALSE) {
+                                            s0, tstep.seq, m, verbose = FALSE, 
+                                            cl = NULL) {
   
+  if(is.null(cl)) {
+    lapply_impl = lapply
+  } else {
+    lapply_impl = function(X, FUN, ...) {
+      parLapply(cl = cl, X = X, fun = FUN, ...)
+    }
+    clusterEvalQ(cl = cl, require(fields))
+  }
+
   # parameter grid
-  param.grid = expand.grid(beta = beta.seq, lambda = lambda.seq, 
-                         tstep = tstep.seq)
+  if(s0 != 2) {
+    param.grid = expand.grid(beta = beta.seq, lambda = lambda.seq, 
+                             tstep = tstep.seq)
+  } else {
+    param.grid = expand.grid(lambda = lambda.seq, tstep = tstep.seq)
+  }
+  
   
   if(verbose) {
     message(paste('Computing transition matrices at', nrow(param.grid), 
@@ -37,45 +54,78 @@ dsdive.obstx.matrix_interpolator = function(depth.bins, beta.seq, lambda.seq,
   }
   
   # transition matrices for all parameter combinations
-  P = apply(param.grid, 1, function(params) {
+  P = lapply_impl(1:nrow(param.grid), function(i, param.grid, depth.bins, s0) {
+    params = param.grid[i,]
+    if(s0 == 1) {
+      beta = c(params$beta, .5)
+      lambda = c(params$lambda, 1, 1)
+    } else if(s0 == 2) {
+      beta = c(.5, .5)
+      lambda = c(1, params$lambda, 1)
+    } else if(s0 == 3) {
+      beta = c(.5, params$beta)
+      lambda = c(1, 1, params$lambda)
+    }
     dsdive.obstx.matrix(
-      depth.bins = depth.bins, beta = c(params['beta'], .5), 
-      lambda = c(params['lambda'], 1, 1), s0 = 1, tstep = params['tstep'], 
-      include.raw = TRUE, delta = 0)
-  })
+      depth.bins = depth.bins, beta = beta, lambda = lambda, s0 = s0, 
+      tstep = params$tstep, include.raw = FALSE, delta = 0)
+  }, param.grid, depth.bins, s0)
   
   # number of entries in transition matrix
-  n = length(P[[1]]$obstx.mat)
+  n = length(P[[1]])
   
   if(verbose) {
-    message('Building interpolators')
+    message(paste('Building', n, 'interpolators.', sep = ' '))
   }
   
   # smoothing fits to all matrix entries
-  fits = lapply(1:n, function(i) {
+  fits = lapply_impl(1:n, function(i, P, param.grid, m) {
     
     if(verbose) {
       message(paste('  ', i, sep = ''))
     }
     
     # all log probabilities 
-    logp = sapply(P, function(pmat) log(pmat$obstx.mat[i]) )
+    logp = sapply(P, function(pmat) log(pmat[i]) )
     # replace 0-probabilities with an "equivalently" small log-value
     logp[is.infinite(logp)] = -1e3
     # spline fit
-    suppressWarnings(Tps(x = param.grid, Y = logp, m = m, lambda = 0))
-  })
+    tps.fit = suppressWarnings(Tps(x = param.grid, Y = logp, m = m, lambda = 0))
+    # remove some large components not required for our predictions
+    tps.fit$call = NULL
+    tps.fit$matrices = NULL
+    tps.fit$fitted.values = NULL
+    tps.fit$fitted.values.null = NULL
+    tps.fit$residuals = NULL
+    tps.fit$gcv.grid = NULL
+    tps.fit$warningTable = NULL
+    tps.fit$uniquerows = NULL
+    tps.fit$rep.info = NULL
+    # return fit object
+    tps.fit
+  }, P, param.grid, m)
   
   # simple index into smooths
   key = matrix(1:n, nrow = sqrt(n))
   
   # build interpolator
-  res = function(beta, lambda, tstep, i, j, log = FALSE) {
-    r = predict(fits[[key[i,j]]], data.frame(beta, lambda, tstep))
-    if(log) {
-      r
-    } else {
-      exp(r)
+  if(s0 != 2) {
+    res = function(beta, lambda, tstep, i, j, log = FALSE) {
+      r = predict(fits[[key[i,j]]], data.frame(beta, lambda, tstep))
+      if(log) {
+        r
+      } else {
+        exp(r)
+      }
+    }
+  } else {
+    res = function(beta, lambda, tstep, i, j, log = FALSE) {
+      r = predict(fits[[key[i,j]]], data.frame(lambda, tstep))
+      if(log) {
+        r
+      } else {
+        exp(r)
+      }
     }
   }
  
