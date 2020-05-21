@@ -94,6 +94,12 @@
 #'   the full conditional posteriors.
 #' @param adaptation.frequency Random walk proposals will only be updated 
 #'   at intervals of this step count
+#' @param gapprox If \code{NULL}, then exact-likelihood Gaussian approximations 
+#'   to the full conditional posteriors will be used to update model parameters.
+#'   Otherwise, \code{gapprox} should be a list that defines the interpolation 
+#'   grids used to construct approximate likelihoods, for building Gaussian 
+#'   approximations.  If \code{gapprox==TRUE}, then default approximation
+#'   settings will be used
 #'   
 #' @example examples/dsdive.gibbs.obs.cov.R
 #'
@@ -110,8 +116,7 @@ dsdive.gibbs.obs.cov = function(
   T1.prior.params, T2.prior.params, max.width, max.width.offset,
   t0.prior.params, tf.prior.params, offsets, offsets.tf, cl,
   pi.formula, lambda.formula, warmup = Inf, delta = 1e-10, optim.maxit = 1e3,
-  adaptive = FALSE, adaptation.frequency = 10) {
-
+  adaptive = FALSE, adaptation.frequency = 10, gapprox = TRUE) {
 
   n = length(dsobs.list)
 
@@ -119,6 +124,40 @@ dsdive.gibbs.obs.cov = function(
   beta.priors.list = list(beta1.prior, beta2.prior)
 
 
+  #
+  # default approximate likelihood settings, if requested
+  #
+  
+  if(isTRUE(gapprox)) {
+    gapprox = lapply(1:3, function(s0) {
+      # support for directional preferences, speeds, and timesteps
+      if(s0 == 1) {
+        beta.seq = seq(.5, 1, length.out = 10)
+        beta.seq[length(beta.seq)] = .999
+        lambda.seq = seq(.01, 2, length.out = 10)
+        tstep.seq = seq(0, 300, by = 30)
+      } else if(s0 == 2) {
+        beta.seq = .5
+        lambda.seq = seq(.01, 2, length.out = 10)
+        tstep.seq = seq(0, 300, by = 30)
+      } else if(s0 == 3) {
+        beta.seq = seq(0, .5, length.out = 10)
+        beta.seq[1] = 1-.999
+        lambda.seq = seq(.01, 2, length.out = 10)
+        tstep.seq = seq(0, 300, by = 30)
+      }
+      # packaged in list
+      list(
+        beta.seq = beta.seq, lambda.seq = lambda.seq, tstep.seq = tstep.seq,
+        m = 8
+      )
+    })
+  }
+  
+  # flag to indicate if approximate likelihoods will be used for Gauss. approx.
+  gapprox.approx_ld = !is.null(gapprox)
+  
+  
   #
   # expand covariate design matrices
   #
@@ -133,7 +172,23 @@ dsdive.gibbs.obs.cov = function(
 
   pi.designs = lapply(pi.formula, function(f) model.matrix(f, covs))
   lambda.designs = lapply(lambda.formula, function(f) model.matrix(f, covs))
-
+  
+  #
+  # build interpolating functions
+  #
+  
+  if(gapprox.approx_ld) {
+    P.interpolators = lapply(1:3, function(s0) {
+      interpolators = dsdive.obstx.matrix_interpolator(
+        depth.bins = depth.bins, beta.seq = gapprox[[s0]]$beta.seq, 
+        lambda.seq = gapprox[[s0]]$lambda.seq,
+        s0 = s0, tstep.seq = gapprox[[s0]]$tstep.seq, m = gapprox[[s0]]$m, 
+        verbose = verbose, cl = cl)
+    })
+  } else {
+    P.interpolators = NULL
+  }
+  
 
   #
   # initialize nodes and shared memory pass-throughs
@@ -191,7 +246,8 @@ dsdive.gibbs.obs.cov = function(
       alpha.priors.list = alpha.priors.list, 
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
       rw.sampler = proposaldists.theta[[1]], adaptive = adaptive, 
-      adaptation.frequency = adaptation.frequency)
+      adaptation.frequency = adaptation.frequency, 
+      gapprox.approx_ld = gapprox.approx_ld)
 
     theta = theta.raw$theta
     if(adaptive) {
@@ -220,7 +276,8 @@ dsdive.gibbs.obs.cov = function(
       alpha.priors.list = alpha.priors.list, 
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env, 
       rw.sampler = proposaldists.theta[[2]], adaptive = adaptive,
-      adaptation.frequency = adaptation.frequency)
+      adaptation.frequency = adaptation.frequency, 
+      gapprox.approx_ld = gapprox.approx_ld)
     
     theta = theta.raw$theta
     if(adaptive) {
@@ -249,7 +306,8 @@ dsdive.gibbs.obs.cov = function(
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
       optim.maxit = optim.maxit, sample.betas = FALSE, 
       rw.sampler = proposaldists.theta[[3]], adaptive = adaptive,
-      adaptation.frequency = adaptation.frequency)
+      adaptation.frequency = adaptation.frequency, 
+      gapprox.approx_ld = gapprox.approx_ld)
     
     theta = theta.raw$theta
     if(adaptive) {
@@ -278,7 +336,8 @@ dsdive.gibbs.obs.cov = function(
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
       optim.maxit = optim.maxit, sample.betas = TRUE, 
       rw.sampler = proposaldists.theta[[4]], adaptive = adaptive,
-      adaptation.frequency = adaptation.frequency)
+      adaptation.frequency = adaptation.frequency, 
+      gapprox.approx_ld = gapprox.approx_ld)
 
     theta = theta.raw$theta
     if(adaptive) {
@@ -307,7 +366,8 @@ dsdive.gibbs.obs.cov = function(
       beta.priors.list = beta.priors.list, cl = cl, shared.env = shared.env,
       optim.maxit = optim.maxit, sample.betas = FALSE, 
       rw.sampler = proposaldists.theta[[5]], adaptive = adaptive,
-      adaptation.frequency = adaptation.frequency)
+      adaptation.frequency = adaptation.frequency, 
+      gapprox.approx_ld = gapprox.approx_ld)
     
     theta = theta.raw$theta
     if(adaptive) {

@@ -36,7 +36,8 @@ dsdive.gibbs.obs.cov(
   delta = 1e-10,
   optim.maxit = 1000,
   adaptive = FALSE,
-  adaptation.frequency = 10
+  adaptation.frequency = 10,
+  gapprox = TRUE
 )
 }
 \arguments{
@@ -162,6 +163,13 @@ the full conditional posteriors.}
 
 \item{adaptation.frequency}{Random walk proposals will only be updated 
 at intervals of this step count}
+
+\item{gapprox}{If \code{NULL}, then exact-likelihood Gaussian approximations 
+to the full conditional posteriors will be used to update model parameters.
+Otherwise, \code{gapprox} should be a list that defines the interpolation 
+grids used to construct approximate likelihoods, for building Gaussian 
+approximations.  If \code{gapprox==TRUE}, then default approximation
+settings will be used}
 }
 \description{
 This function differs from \code{dsdive.gibbs.obs} in that this function
