@@ -215,6 +215,7 @@ dsdive.gibbs.obs.cov = function(
   trace.t.stages = vector('list', length = maxit)
   trace.offsets = matrix(0, nrow = maxit, ncol = n)
   trace.offsets.tf = matrix(0, nrow = maxit, ncol = n)
+  trace.ll = numeric(length = maxit)
 
   tick.checkpoint = proc.time()[3]
 
@@ -444,7 +445,15 @@ dsdive.gibbs.obs.cov = function(
 
       }
     })
-
+    
+    
+    #
+    # compute likelihood
+    #
+    
+    trace.ll[it] = dsdive.obsld_shared(theta = theta, shared.env = shared.env, 
+                                       cl = cl, s0 = 1, sf = 3)
+    
 
     #
     # save trace
@@ -478,7 +487,8 @@ dsdive.gibbs.obs.cov = function(
       checkpoint.fn(list(theta = trace[1:it],
                          trace.t.stages = trace.t.stages[1:it],
                          trace.offsets = trace.offsets[1:it,],
-                         trace.offsets.tf = trace.offsets.tf[1:it,]))
+                         trace.offsets.tf = trace.offsets.tf[1:it,],
+                         trace.ll = trace.ll[1:it]))
       tick.checkpoint = proc.time()[3]
     }
 
@@ -488,6 +498,7 @@ dsdive.gibbs.obs.cov = function(
     theta = trace,
     trace.t.stages = trace.t.stages,
     trace.offsets = trace.offsets,
-    trace.offsets.tf = trace.offsets.tf
+    trace.offsets.tf = trace.offsets.tf,
+    trace.ll = trace.ll
   )
 }
